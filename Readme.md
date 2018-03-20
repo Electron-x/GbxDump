@@ -29,17 +29,6 @@ GbxDump shows lot of technical data (like block identifiers and sizes) to suppor
 
 The tool was originally used to examine the [\*.Gbx](https://wiki.xaseco.org/wiki/GBX) and [\*.pak](https://wiki.xaseco.org/wiki/PAK) file formats. Both formats have been well documented by several members of the Trackmania community in the [Mania Tech Wiki](https://wiki.xaseco.org/). The file parsers of GbxDump are almost completely based on the information of this wiki.
 
-### Download of the binaries ###
-
-**Version:** 1.60.2  
-**Filename:** [gbxdump.zip](http://www.wolfgang-rolke.de/gbxdump/gbxdump.zip)  
-**Filesize:** 692 KB  
-**Filetyp:** ZIP archive  
-**Release:** March 2018  
-**Language:** German, English  
-**Games:** [Nadeo](https://nadeo.com/) [Virtual Skipper](http://virtualskipper.com/), [Trackmania](https://www.trackmania.com/), [Trackmania Turbo](https://www.ubisoft.com/en-gb/game/trackmania-turbo/), [Maniaplanet](https://www.maniaplanet.com/)  
-**OS Versions:** Windows NT 4.0/2000/XP/Vista/7/8/8.1/10
-
 ## Status of the project ##
 
 The development of the application is basically finished. It is not intended to add many new functionalities or to change the structure of the source code significantly. However, the project will continue to be maintained. For example, there will be updates if changes to the header of Gbx files are known in the future.
@@ -56,7 +45,7 @@ This is a generic C/C++ Win32 desktop project created with Visual Studio 2005. T
 To support all target platforms down to Windows NT 4.0, the project has not yet been migrated to newer versions of Visual Studio. In addition, there are problems with the Setup projects starting with Visual Studio 2012 (see below).
 
 However, to create the project with newer versions of Visual Studio, please note the following points:
-- For all configurations, the Windows XP platform toolset "Visual Studio 20xx - Windows XP (v1xx_xp)" must be selected.
+- For all configurations, the Windows XP platform toolset "Visual Studio 20xx - Windows XP (v1xx_xp)" should be selected.
 - All manifest files that Visual Studio manages on its own must be removed from the project configurations. For example, starting with Visual Studio 2008, the reference to the file "TrustInfo.manifest" has to be removed and starting with Visual Studio 2010, the reference to the file "DeclareDPIAware.manifest" has to be removed, etc. The corresponding metadata must then be set in the project settings.
 - Starting with Visual Studio 2012, Setup projects are no longer provided out-of-the-box. For each version, however, a corresponding extension is available for download in the [Visual Studio Marketplace](https://marketplace.visualstudio.com/vs).
 
