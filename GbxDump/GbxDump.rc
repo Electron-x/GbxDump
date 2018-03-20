@@ -1,0 +1,295 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#define APSTUDIO_HIDDEN_SYMBOLS
+#include "windows.h"
+#undef APSTUDIO_HIDDEN_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Deutsch (Deutschland) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_DEU)
+#ifdef _WIN32
+LANGUAGE LANG_GERMAN, SUBLANG_GERMAN
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#define APSTUDIO_HIDDEN_SYMBOLS\r\n"
+    "#include ""windows.h""\r\n"
+    "#undef APSTUDIO_HIDDEN_SYMBOLS\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_GBXDUMP             ICON                    "GbxDump.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,60,2,98
+ PRODUCTVERSION 1,0,0,0
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040704b0"
+        BEGIN
+            VALUE "Comments", "This software is based in part on the work of the Independent JPEG Group"
+            VALUE "CompanyName", "Electron"
+            VALUE "FileDescription", "Gbx File Dumper"
+            VALUE "FileVersion", "1.60.2"
+            VALUE "InternalName", "GbxDump"
+            VALUE "LegalCopyright", "Copyright © 2010-2018 by Electron"
+            VALUE "OriginalFilename", "GbxDump.exe"
+            VALUE "ProductName", "GbxTools"
+            VALUE "ProductVersion", "1.0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x407, 1200
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_GER_GBXDUMP DIALOGEX 64, 64, 495, 318
+STYLE DS_SETFONT | DS_3DLOOK | DS_FIXEDSYS | DS_CENTER | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CLIPCHILDREN | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+EXSTYLE WS_EX_ACCEPTFILES | WS_EX_APPWINDOW
+CAPTION "GbxDump"
+CLASS "GbxDumpDlgClass"
+FONT 9, "MS Shell Dlg", 400, 0, 0x0
+BEGIN
+    DEFPUSHBUTTON   "Ö&ffnen...",IDC_OPEN,411,4,80,16,BS_MULTILINE | WS_GROUP
+    PUSHBUTTON      "&Kopieren",IDC_COPY,411,24,80,16,BS_MULTILINE
+    PUSHBUTTON      "&Zeilenumbruch",IDC_WORDWRAP,411,44,80,16,BS_MULTILINE
+    PUSHBUTTON      "&T/MX",IDC_TMX,411,64,80,16,BS_MULTILINE
+    PUSHBUTTON      "&Dedimania",IDC_DEDIMANIA,411,84,80,16,BS_MULTILINE
+    EDITTEXT        IDC_OUTPUT,4,4,402,310,ES_MULTILINE | ES_NOHIDESEL | ES_READONLY | NOT WS_BORDER | WS_VSCROLL | WS_HSCROLL | WS_GROUP,WS_EX_DLGMODALFRAME | WS_EX_CLIENTEDGE
+    CONTROL         "Thumbnail",IDC_THUMB,"Button",BS_OWNERDRAW | BS_BITMAP | WS_GROUP,411,239,80,75,WS_EX_CLIENTEDGE
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// RCDATA
+//
+
+IDR_THUMB               RCDATA                  "Thumb.jpg"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_GER_POPUP MENU 
+BEGIN
+    POPUP "&Miniaturbild"
+    BEGIN
+        MENUITEM "&Kopieren",                   IDC_THUMB_COPY
+        MENUITEM "&Speichern unter...",         IDC_THUMB_SAVE
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_GER_GBXDUMP, DIALOG
+    BEGIN
+        LEFTMARGIN, 4
+        RIGHTMARGIN, 491
+        TOPMARGIN, 4
+        BOTTOMMARGIN, 314
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    IDS_GER_FILTER_GBX      "GameBox, NadeoPak (*.Gbx;*.pak)|*.gbx;*.pak|Maps (*.Map.Gbx;*.Challenge.Gbx)|*.map.gbx;*.challenge.gbx|Replays (*.Replay.Gbx)|*.replay.gbx|Pakete (*.Pack.Gbx;*.pak)|*.pack.gbx;*.pak|Items (*.Item.gbx)|*.item.gbx|Objekte (*.ObjectInfo.gbx)|*.objectinfo.gbx|Blöcke (*.Macroblock.Gbx)|*.macroblock.gbx|DirectDraw Surface (*.dds)|*.dds|Alle Dateien (*.*)|*.*||"
+    IDS_GER_FILTER_BMP      "Windows Bitmap (*.bmp)|*.bmp||"
+    IDP_GER_ERR_READ        "Fehler beim Lesen der GameBox-Daten.\r\n"
+    IDP_GER_ERR_MAGIC       "Dateisignatur nicht gefunden. Dies ist keine gültige GameBox-Datei.\r\n"
+    IDP_GER_ERR_VERSION     "Nicht unterstützte oder fehlerhafte Dateiversion!\r\n"
+    IDP_GER_ERR_UNAVAIL     "Diese Dateiversion unterstützt keine Benutzerdaten im Dateikopf.\r\n"
+    IDP_GER_ERR_EMPTY       "Der Dateikopf dieser Datei enthält keine Benutzerdaten.\r\n"
+    IDP_GER_ERR_TEXT        "Datensätze im Textformat werden in dieser Programmversion nicht unterstützt.\r\n"
+    IDP_GER_ERR_CLASS       "Diese Klasse wird in dieser Programmversion nicht unterstützt.\r\n"
+    IDP_GER_ERR_CHUNKS      "Der Block für Benutzerdaten enthält keine Datensätze.\r\n"
+    IDP_GER_ERR_TRACK       "Map nicht gefunden.\r\n"
+    IDP_GER_ERR_RECORDS     "Keine Rekorde gefunden.\r\n"
+    IDS_GER_HEXDUMP         "Hexdump der ersten {COUNT} Bytes:\r\n"
+    IDS_GER_THUMBNAIL       "Kein Miniaturbild"
+END
+
+#endif    // Deutsch (Deutschland) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Englisch (USA) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ENG_GBXDUMP DIALOGEX 64, 64, 495, 318
+STYLE DS_SETFONT | DS_3DLOOK | DS_FIXEDSYS | DS_CENTER | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CLIPCHILDREN | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+EXSTYLE WS_EX_ACCEPTFILES | WS_EX_APPWINDOW
+CAPTION "GbxDump"
+CLASS "GbxDumpDlgClass"
+FONT 9, "MS Shell Dlg", 400, 0, 0x0
+BEGIN
+    DEFPUSHBUTTON   "&Open...",IDC_OPEN,411,4,80,16,BS_MULTILINE | WS_GROUP
+    PUSHBUTTON      "&Copy",IDC_COPY,411,24,80,16,BS_MULTILINE
+    PUSHBUTTON      "&Word Wrap",IDC_WORDWRAP,411,44,80,16,BS_MULTILINE
+    PUSHBUTTON      "&T/MX",IDC_TMX,411,64,80,16,BS_MULTILINE
+    PUSHBUTTON      "&Dedimania",IDC_DEDIMANIA,411,84,80,16,BS_MULTILINE
+    EDITTEXT        IDC_OUTPUT,4,4,402,310,ES_MULTILINE | ES_NOHIDESEL | ES_READONLY | NOT WS_BORDER | WS_VSCROLL | WS_HSCROLL | WS_GROUP,WS_EX_DLGMODALFRAME | WS_EX_CLIENTEDGE
+    CONTROL         "Thumbnail",IDC_THUMB,"Button",BS_OWNERDRAW | BS_BITMAP | WS_GROUP,411,239,80,75,WS_EX_CLIENTEDGE
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_ENG_POPUP MENU 
+BEGIN
+    POPUP "&Thumbnail"
+    BEGIN
+        MENUITEM "&Copy",                       IDC_THUMB_COPY
+        MENUITEM "&Save As...",                 IDC_THUMB_SAVE
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_ENG_GBXDUMP, DIALOG
+    BEGIN
+        LEFTMARGIN, 4
+        RIGHTMARGIN, 491
+        TOPMARGIN, 4
+        BOTTOMMARGIN, 314
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    IDS_ENG_FILTER_GBX      "GameBox, NadeoPak (*.Gbx;*.pak)|*.gbx;*.pak|Maps (*.Map.Gbx;*.Challenge.Gbx)|*.map.gbx;*.challenge.gbx|Replays (*.Replay.Gbx)|*.replay.gbx|Packs (*.Pack.Gbx;*.pak)|*.pack.gbx;*.pak|Items (*.Item.gbx)|*.item.gbx|Objects (*.ObjectInfo.gbx)|*.objectinfo.gbx|Blocks (*.Macroblock.Gbx)|*.macroblock.gbx|DirectDraw Surface (*.dds)|*.dds|All Files (*.*)|*.*||"
+    IDS_ENG_FILTER_BMP      "Windows Bitmap (*.bmp)|*.bmp||"
+    IDP_ENG_ERR_READ        "Error while reading the GameBox data.\r\n"
+    IDP_ENG_ERR_MAGIC       "File signature not found. This is not a valid GameBox file.\r\n"
+    IDP_ENG_ERR_VERSION     "Unsupported or incorrect file version!\r\n"
+    IDP_ENG_ERR_UNAVAIL     "This file version does not support header user data.\r\n"
+    IDP_ENG_ERR_EMPTY       "The header of this file contains no user data.\r\n"
+    IDP_ENG_ERR_TEXT        "Text format data records are not supported in this release.\r\n"
+    IDP_ENG_ERR_CLASS       "This class is not supported in this release.\r\n"
+    IDP_ENG_ERR_CHUNKS      "The user data block contains no data chunks.\r\n"
+    IDP_ENG_ERR_TRACK       "Map not found.\r\n"
+    IDP_ENG_ERR_RECORDS     "No records found.\r\n"
+    IDS_ENG_HEXDUMP         "Hex dump of the first {COUNT} bytes:\r\n"
+    IDS_ENG_THUMBNAIL       "No Thumbnail"
+END
+
+#endif    // Englisch (USA) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+
