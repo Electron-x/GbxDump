@@ -1,0 +1,14 @@
+# top-most EditorConfig file
+root = true
+
+# Indentation override for Visual C++ files
+[*.{c,cpp,cxx,cc,tli,tlh,h,hh,hpp,hxx,inl,rc,resx,idl,asm,inc}]
+indent_size = 4
+
+# Indentation override for XML files
+[*.{xml,xsl,xslt,xsd,dtd}]
+indent_size = 4
+
+# Indentation override for manifest files
+[*.manifest]
+indent_size = 4
