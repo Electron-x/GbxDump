@@ -44,7 +44,7 @@ BOOL ReadInternetFile(HWND hwndCtl, LPCTSTR lpszUrl, LPSTR lpszData, DWORD dwSiz
 		return FALSE;
 
 	TCHAR szTitle[256];
-    HWND hwndDlg = GetParent(hwndCtl);
+	HWND hwndDlg = GetParent(hwndCtl);
 
 	HINTERNET hInternet = InternetOpen(g_szUserAgent, INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
 	if (hInternet == NULL)

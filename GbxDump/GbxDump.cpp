@@ -1036,8 +1036,10 @@ BOOL DumpFile(HWND hwndCtl, LPCTSTR lpszFileName, LPSTR lpszUid, LPSTR lpszEnvi)
 	}
 
 	// Determine file size
-	DWORD dwFileSize = GetFileSize(hFile, NULL);
-	if (dwFileSize != INVALID_FILE_SIZE && FormatByteSize(dwFileSize, szOutput, _countof(szOutput)))
+	DWORD dwFileSizeHigh;
+	DWORD dwFileSize = GetFileSize(hFile, &dwFileSizeHigh);
+	if (dwFileSizeHigh == 0 && (dwFileSize != INVALID_FILE_SIZE || GetLastError() == NO_ERROR) &&
+		FormatByteSize(dwFileSize, szOutput, _countof(szOutput)))
 	{
 		OutputText(hwndCtl, TEXT("File Size:\t"));
 		OutputText(hwndCtl, szOutput);
