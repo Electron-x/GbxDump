@@ -73,6 +73,9 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 	CHAR    szRead[ID_LEN];
 	TCHAR   szOutput[OUTPUT_LEN];
 
+	if (hwndCtl == NULL || hFile == NULL)
+		return FALSE;
+
 	// Jump to version (skip file signature)
 	if (!FileSeekBegin(hFile, 8))
 		return FALSE;

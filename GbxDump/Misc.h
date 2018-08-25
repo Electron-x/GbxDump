@@ -25,7 +25,8 @@ __inline BOOL FileSeekCurrent(HANDLE hFile, LONG lDistanceToMove)
 
 void OutputText(HWND hwndCtl, LPCTSTR lpszOutput);
 void OutputTextFmt(HWND hwndCtl, LPTSTR lpszOutput, LPCTSTR lpszFormat, ...);
-void OutputTextErr(HWND hwndCtl, UINT uID);
+BOOL OutputTextErr(HWND hwndCtl, UINT uID);
+BOOL OutputErrorMessage(HWND hwndCtl, DWORD dwError);
 
 BOOL FormatByteSize(DWORD dwSize, LPTSTR lpszString, SIZE_T cchStringLen);
 BOOL FormatTime(DWORD dwTime, LPTSTR lpszTime, SIZE_T cchStringLen, BOOL bFormat = TRUE);

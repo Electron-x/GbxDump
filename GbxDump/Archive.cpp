@@ -272,7 +272,7 @@ BOOL ReadReal(HANDLE hFile, PFLOAT pfReal, BOOL bIsText)
 
 SSIZE_T ReadString(HANDLE hFile, PSTR pszString, SIZE_T cchStringLen, BOOL bIsText)
 {
-	if (pszString == NULL || cchStringLen == 0)
+	if (hFile == NULL || pszString == NULL || cchStringLen == 0)
 		return -1;
 
 	if (bIsText)
@@ -324,7 +324,7 @@ SSIZE_T ReadString(HANDLE hFile, PSTR pszString, SIZE_T cchStringLen, BOOL bIsTe
 
 SSIZE_T ReadIdentifier(HANDLE hFile, PIDENTIFIER pId, PSTR pszString, SIZE_T cchStringLen)
 {
-	if (pId == NULL || pszString == NULL || cchStringLen == 0)
+	if (hFile == NULL || pId == NULL || pszString == NULL || cchStringLen == 0)
 		return -1;
 
 	if (pId->dwVersion < 3)

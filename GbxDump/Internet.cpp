@@ -123,7 +123,8 @@ BOOL ReadInternetFile(HWND hwndCtl, LPCTSTR lpszUrl, LPSTR lpszData, DWORD dwSiz
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Determines whether the system is globally offline
+// Determines whether the system is globally offline.
+// NULL is a valid value for HINTERNET.
 
 BOOL IsGlobalOffline(HINTERNET hInternet)
 {

@@ -145,6 +145,9 @@ BOOL DumpGbx(HWND hwndCtl, HANDLE hFile, LPSTR lpszUid, LPSTR lpszEnvi)
 	BOOL bRet = FALSE;
 	TCHAR szOutput[OUTPUT_LEN];
 
+	if (hwndCtl == NULL || hFile == NULL)
+		return FALSE;
+
 	// Jump to file version (skip signature)
 	if (!FileSeekBegin(hFile, 3))
 		return FALSE;

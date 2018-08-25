@@ -23,7 +23,8 @@
 // Reduces many relocations to SendMessage.
 void OutputText(HWND hwndCtl, LPCTSTR lpszOutput)
 {
-	Edit_ReplaceSel(hwndCtl, lpszOutput);
+	if (hwndCtl != NULL && lpszOutput != NULL)
+		Edit_ReplaceSel(hwndCtl, lpszOutput);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -31,26 +32,63 @@ void OutputText(HWND hwndCtl, LPCTSTR lpszOutput)
 
 void OutputTextFmt(HWND hwndCtl, LPTSTR lpszOutput, LPCTSTR lpszFormat, ...)
 {
-	va_list arglist;
-	va_start(arglist, lpszFormat);
-	wvsprintf(lpszOutput, lpszFormat, arglist);
-	va_end(arglist);
+	if (hwndCtl != NULL && lpszOutput != NULL && lpszFormat != NULL)
+	{
+		va_list arglist;
+		va_start(arglist, lpszFormat);
+		wvsprintf(lpszOutput, lpszFormat, arglist);
+		va_end(arglist);
 
-	Edit_ReplaceSel(hwndCtl, lpszOutput);
+		Edit_ReplaceSel(hwndCtl, lpszOutput);
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Loads an error message from the resources and inserts it with a separator
 // line at the current cursor position of an edit control.
 
-void OutputTextErr(HWND hwndCtl, UINT uID)
+BOOL OutputTextErr(HWND hwndCtl, UINT uID)
 {
+	if (hwndCtl == NULL)
+		return FALSE;
+
 	TCHAR szOutput[OUTPUT_LEN];
-	if (LoadString(g_hInstance, uID, szOutput, _countof(szOutput)) > 0)
+	if (LoadString(g_hInstance, uID, szOutput, _countof(szOutput)) == 0)
+		return FALSE;
+
+	Edit_ReplaceSel(hwndCtl, g_szSep1);
+	Edit_ReplaceSel(hwndCtl, szOutput);
+
+	return TRUE;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Retrieves the message text for a system-defined error and inserts it
+// with separator lines at the current cursor position of an edit control.
+
+BOOL OutputErrorMessage(HWND hwndCtl, DWORD dwError)
+{
+	if (hwndCtl == NULL)
+		return FALSE;
+
+	LPVOID lpMsgBuf = NULL;
+	TCHAR szOutput[OUTPUT_LEN];
+
+	DWORD dwLen = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
+		FORMAT_MESSAGE_IGNORE_INSERTS, NULL, dwError, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		(LPTSTR)&lpMsgBuf, 0, NULL);
+
+	if (dwLen > 0 && lpMsgBuf != NULL)
 	{
-		Edit_ReplaceSel(hwndCtl, g_szSep1);
-		Edit_ReplaceSel(hwndCtl, szOutput);
+		_tcsncpy(szOutput, (LPTSTR)lpMsgBuf, _countof(szOutput));
+		OutputText(hwndCtl, g_szSep1);
+		OutputText(hwndCtl, szOutput);
+		LocalFree(lpMsgBuf);
 	}
+
+	OutputText(hwndCtl, g_szSep2);
+
+	return TRUE;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -212,6 +250,9 @@ BOOL CleanupString(LPCTSTR lpszInput, LPTSTR lpszOutput, SIZE_T cchLenOutput)
 
 LPTSTR AllocReplaceString(LPCTSTR lpszOriginal, LPCTSTR lpszPattern, LPCTSTR lpszReplacement)
 {
+	if (lpszOriginal == NULL || lpszPattern == NULL || lpszReplacement == NULL)
+		return NULL;
+
 	SIZE_T CONST cchRepLen = _tcslen(lpszReplacement);
 	SIZE_T CONST cchPatLen = _tcslen(lpszPattern);
 	SIZE_T CONST cchOriLen = _tcslen(lpszOriginal);
@@ -255,6 +296,9 @@ LPTSTR AllocReplaceString(LPCTSTR lpszOriginal, LPCTSTR lpszPattern, LPCTSTR lps
 
 LPTSTR AllocCleanupString(LPCTSTR lpszOriginal)
 {
+	if (lpszOriginal == NULL)
+		return NULL;
+
 	LPTSTR lpszReturn = (LPTSTR)GlobalAllocPtr(GHND, (_tcslen(lpszOriginal) + 1) * sizeof(TCHAR));
 	if (lpszReturn != NULL)
 	{

@@ -981,7 +981,8 @@ BOOL DumpFile(HWND hwndCtl, LPCTSTR lpszFileName, LPSTR lpszUid, LPSTR lpszEnvi)
 	BOOL bRet = FALSE;
 	TCHAR szOutput[OUTPUT_LEN];
 
-	if (lpszFileName == NULL || lpszFileName[0] == TEXT('\0') || lpszUid == NULL || lpszEnvi == NULL)
+	if (hwndCtl == NULL || lpszFileName == NULL || lpszFileName[0] == TEXT('\0') ||
+		lpszUid == NULL || lpszEnvi == NULL)
 		return FALSE;
 
 	lpszUid[0] = '\0';
@@ -1009,41 +1010,34 @@ BOOL DumpFile(HWND hwndCtl, LPCTSTR lpszFileName, LPSTR lpszUid, LPSTR lpszEnvi)
 	// Output file name
 	LPCTSTR lpsz = _tcsrchr(lpszFileName, TEXT('\\'));
 	OutputTextFmt(hwndCtl, szOutput, TEXT("File Name:\t%s\r\n"),
-		lpsz != NULL ? lpsz + 1 : lpszFileName);
+		lpsz != NULL && *(lpsz + 1) != TEXT('\0') ? lpsz + 1 : lpszFileName);
+
+	// Obtain attribute information about the file
+	WIN32_FILE_ATTRIBUTE_DATA wfad = {0};
+	if (!GetFileAttributesEx(lpszFileName, GetFileExInfoStandard, &wfad))
+	{ // Determine and output error message
+		OutputErrorMessage(hwndCtl, GetLastError());
+		return FALSE;
+	}
+
+	// Output file size
+	if ((wfad.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
+	{
+		OutputText(hwndCtl, TEXT("File Size:\t"));
+		if (wfad.nFileSizeHigh > 0)
+			OutputText(hwndCtl, TEXT("> 4 GB"));
+		else if (FormatByteSize(wfad.nFileSizeLow, szOutput, _countof(szOutput)))
+			OutputText(hwndCtl, szOutput);
+		OutputText(hwndCtl, TEXT("\r\n"));
+	}
 
 	// Open the file
 	HANDLE hFile = CreateFile(lpszFileName, GENERIC_READ, FILE_SHARE_READ, NULL,
 		OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (hFile == INVALID_HANDLE_VALUE)
 	{ // Determine and output error message
-		DWORD dwErr = GetLastError();
-		LPVOID lpMsgBuf = NULL;
-
-		DWORD dwLen = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
-			FORMAT_MESSAGE_IGNORE_INSERTS, NULL, dwErr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-			(LPTSTR)&lpMsgBuf, 0, NULL);
-
-		if (dwLen > 0 && lpMsgBuf != NULL)
-		{
-			_tcsncpy(szOutput, (LPTSTR)lpMsgBuf, _countof(szOutput));
-			OutputText(hwndCtl, g_szSep1);
-			OutputText(hwndCtl, szOutput);
-			LocalFree(lpMsgBuf);
-		}
-
-		OutputText(hwndCtl, g_szSep2);
+		OutputErrorMessage(hwndCtl, GetLastError());
 		return FALSE;
-	}
-
-	// Determine file size
-	DWORD dwFileSizeHigh;
-	DWORD dwFileSize = GetFileSize(hFile, &dwFileSizeHigh);
-	if (dwFileSizeHigh == 0 && (dwFileSize != INVALID_FILE_SIZE || GetLastError() == NO_ERROR) &&
-		FormatByteSize(dwFileSize, szOutput, _countof(szOutput)))
-	{
-		OutputText(hwndCtl, TEXT("File Size:\t"));
-		OutputText(hwndCtl, szOutput);
-		OutputText(hwndCtl, TEXT("\r\n"));
 	}
 
 	// Read file signature
@@ -1088,7 +1082,7 @@ BOOL DumpFile(HWND hwndCtl, LPCTSTR lpszFileName, LPSTR lpszUid, LPSTR lpszEnvi)
 	{ // Unsupported file format
 		OutputTextErr(hwndCtl, g_bGerUI ? IDP_GER_ERR_MAGIC : IDP_ENG_ERR_MAGIC);
 
-		if (!(bRet = DumpHex(hwndCtl, hFile, dwFileSize)))
+		if (!(bRet = DumpHex(hwndCtl, hFile, wfad.nFileSizeLow)))
 			OutputTextErr(hwndCtl, g_bGerUI ? IDP_GER_ERR_READ : IDP_ENG_ERR_READ);
 	}
 
@@ -1104,6 +1098,9 @@ BOOL DumpFile(HWND hwndCtl, LPCTSTR lpszFileName, LPSTR lpszUid, LPSTR lpszEnvi)
 BOOL DumpMux(HWND hwndCtl, HANDLE hFile)
 {
 	TCHAR szOutput[OUTPUT_LEN];
+
+	if (hwndCtl == NULL || hFile == NULL)
+		return FALSE;
 
 	// Jump to file version (skip signature)
 	if (!FileSeekBegin(hFile, 9))
@@ -1137,6 +1134,9 @@ BOOL DumpHex(HWND hwndCtl, HANDLE hFile, SIZE_T cbLen)
 {
 	TCHAR szFormat[256];
 	TCHAR szOutput[OUTPUT_LEN];
+
+	if (hwndCtl == NULL || hFile == NULL)
+		return FALSE;
 
 	if (cbLen > 1024)
 		cbLen = 1024;
@@ -1272,7 +1272,12 @@ int SelectText(HWND hwndCtl)
 
 BOOL SetWordWrap(HWND hDlg, BOOL bWordWrap)
 {
+	if (hDlg == NULL)
+		return FALSE;
+
 	HWND hwndEditOld = GetDlgItem(hDlg, IDC_OUTPUT);
+	if (hwndEditOld == NULL)
+		return FALSE;
 
 	// Remove subclassing
 	if (g_lpPrevOutputWndProc != NULL)
@@ -1503,10 +1508,13 @@ __inline UINT DIBNumColors(LPSTR lpbi)
 
 void StoreWindowRect(HWND hWnd, LPRECT lprc)
 {
-	SetProp(hWnd, g_szTop,    (HANDLE)(LONG_PTR)lprc->top);
-	SetProp(hWnd, g_szBottom, (HANDLE)(LONG_PTR)lprc->bottom);
-	SetProp(hWnd, g_szLeft,   (HANDLE)(LONG_PTR)lprc->left);
-	SetProp(hWnd, g_szRight,  (HANDLE)(LONG_PTR)lprc->right);
+	if (hWnd != NULL && lprc != NULL)
+	{
+		SetProp(hWnd, g_szTop,    (HANDLE)(LONG_PTR)lprc->top);
+		SetProp(hWnd, g_szBottom, (HANDLE)(LONG_PTR)lprc->bottom);
+		SetProp(hWnd, g_szLeft,   (HANDLE)(LONG_PTR)lprc->left);
+		SetProp(hWnd, g_szRight,  (HANDLE)(LONG_PTR)lprc->right);
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1514,10 +1522,13 @@ void StoreWindowRect(HWND hWnd, LPRECT lprc)
 
 void RetrieveWindowRect(HWND hWnd, LPRECT lprc)
 {
-	lprc->top    = (LONG)(LONG_PTR)GetProp(hWnd, g_szTop);
-	lprc->bottom = (LONG)(LONG_PTR)GetProp(hWnd, g_szBottom);
-	lprc->left   = (LONG)(LONG_PTR)GetProp(hWnd, g_szLeft);
-	lprc->right  = (LONG)(LONG_PTR)GetProp(hWnd, g_szRight);
+	if (hWnd != NULL && lprc != NULL)
+	{
+		lprc->top    = (LONG)(LONG_PTR)GetProp(hWnd, g_szTop);
+		lprc->bottom = (LONG)(LONG_PTR)GetProp(hWnd, g_szBottom);
+		lprc->left   = (LONG)(LONG_PTR)GetProp(hWnd, g_szLeft);
+		lprc->right  = (LONG)(LONG_PTR)GetProp(hWnd, g_szRight);
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1525,10 +1536,13 @@ void RetrieveWindowRect(HWND hWnd, LPRECT lprc)
 
 void DeleteWindowRect(HWND hWnd)
 {
-	RemoveProp(hWnd, g_szTop);
-	RemoveProp(hWnd, g_szBottom);
-	RemoveProp(hWnd, g_szLeft);
-	RemoveProp(hWnd, g_szRight);
+	if (hWnd != NULL)
+	{
+		RemoveProp(hWnd, g_szTop);
+		RemoveProp(hWnd, g_szBottom);
+		RemoveProp(hWnd, g_szLeft);
+		RemoveProp(hWnd, g_szRight);
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////

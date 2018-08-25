@@ -34,6 +34,9 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile)
 	const TCHAR szCRLF[] = TEXT("\r\n");
 	const TCHAR szUnknown[] = TEXT("Unknown");
 
+	if (hwndCtl == NULL || hFile == NULL)
+		return FALSE;
+
 	// Jump to header (skip file signature)
 	if (!FileSeekBegin(hFile, 4))
 		return FALSE;
@@ -504,6 +507,9 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile)
 				case 24:
 					OutputText(hwndCtl, TEXT(" (R10G10B10A2 UNORM)"));
 					break;
+				case 66:
+					OutputText(hwndCtl, TEXT(" (R1 UNORM)"));
+					break;
 				case 67:
 					OutputText(hwndCtl, TEXT(" (R9G9B9E5 SHAREDEXP)"));
 					break;
@@ -551,6 +557,9 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile)
 					break;
 				case 84:
 					OutputText(hwndCtl, TEXT(" (BC5 SNORM)"));
+					break;
+				case 89:
+					OutputText(hwndCtl, TEXT(" (R10G10B10 XR BIAS A2 UNORM)"));
 					break;
 				case 94:
 					OutputText(hwndCtl, TEXT(" (BC6H TYPELESS)"));
