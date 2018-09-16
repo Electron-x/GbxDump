@@ -61,6 +61,14 @@ BOOL DumpIncludedPacksHeaders(HWND hwndCtl, HANDLE hFile, DWORD dwVersion);
 BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderMaxSize);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
+// String Constants
+//
+const TCHAR g_chNil        = TEXT('\0');
+const TCHAR g_szOR[]       = TEXT("|");
+const TCHAR g_szAsterisk[] = TEXT("*");
+const TCHAR g_szCRLF[]     = TEXT("\r\n");
+
+////////////////////////////////////////////////////////////////////////////////////////////////
 // DumpPack is called by DumpFile from GbxDump.cpp
 
 BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
@@ -87,8 +95,8 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 
 	OutputText(hwndCtl, g_szSep1);
 	OutputTextFmt(hwndCtl, szOutput, TEXT("Pack Version:\t%d"), dwVersion);
-	if (dwVersion > 18) OutputText(hwndCtl, TEXT("*"));
-	OutputText(hwndCtl, TEXT("\r\n"));
+	if (dwVersion > 18) OutputText(hwndCtl, g_szAsterisk);
+	OutputText(hwndCtl, g_szCRLF);
 
 	if (dwVersion < 6)
 	{ // Packs with version < 6 don't have a Pack header
@@ -109,51 +117,51 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 	
 	PHEADERFLAGSUNCRYPT pCryptFlags = (PHEADERFLAGSUNCRYPT)&dwCryptFlags;
 
-	szOutput[0] = TEXT('\0');
+	szOutput[0] = g_chNil;
 
 	if (pCryptFlags->IsHeaderPrivate)
 	{
-		if (szOutput[0] != TEXT('\0'))
-			_tcsncat(szOutput, TEXT("|"), _countof(szOutput) - _tcslen(szOutput) - 1);
+		if (szOutput[0] != g_chNil)
+			_tcsncat(szOutput, g_szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
 		_tcsncat(szOutput, TEXT("IsHeaderPrivate"), _countof(szOutput) - _tcslen(szOutput) - 1);
 	}
 
 	if (pCryptFlags->UseDefaultHeaderKey)
 	{
-		if (szOutput[0] != TEXT('\0'))
-			_tcsncat(szOutput, TEXT("|"), _countof(szOutput) - _tcslen(szOutput) - 1);
+		if (szOutput[0] != g_chNil)
+			_tcsncat(szOutput, g_szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
 		_tcsncat(szOutput, TEXT("UseDefaultHeaderKey"), _countof(szOutput) - _tcslen(szOutput) - 1);
 	}
 
 	if (pCryptFlags->IsDataPrivate)
 	{
-		if (szOutput[0] != TEXT('\0'))
-			_tcsncat(szOutput, TEXT("|"), _countof(szOutput) - _tcslen(szOutput) - 1);
+		if (szOutput[0] != g_chNil)
+			_tcsncat(szOutput, g_szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
 		_tcsncat(szOutput, TEXT("IsDataPrivate"), _countof(szOutput) - _tcslen(szOutput) - 1);
 	}
 
 	if (pCryptFlags->IsImpostor)
 	{
-		if (szOutput[0] != TEXT('\0'))
-			_tcsncat(szOutput, TEXT("|"), _countof(szOutput) - _tcslen(szOutput) - 1);
+		if (szOutput[0] != g_chNil)
+			_tcsncat(szOutput, g_szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
 		_tcsncat(szOutput, TEXT("IsImpostor"), _countof(szOutput) - _tcslen(szOutput) - 1);
 	}
 
 	if (pCryptFlags->__Unused__)
 	{
-		if (szOutput[0] != TEXT('\0'))
-			_tcsncat(szOutput, TEXT("|"), _countof(szOutput) - _tcslen(szOutput) - 1);
-		_tcsncat(szOutput, TEXT("*"), _countof(szOutput) - _tcslen(szOutput) - 1);
+		if (szOutput[0] != g_chNil)
+			_tcsncat(szOutput, g_szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
+		_tcsncat(szOutput, g_szAsterisk, _countof(szOutput) - _tcslen(szOutput) - 1);
 	}
 
-	if (szOutput[0] != TEXT('\0'))
+	if (szOutput[0] != g_chNil)
 	{
 		OutputText(hwndCtl, TEXT(" ("));
 		OutputText(hwndCtl, szOutput);
 		OutputText(hwndCtl, TEXT(")"));
 	}
 
-	OutputText(hwndCtl, TEXT("\r\n"));
+	OutputText(hwndCtl, g_szCRLF);
 
 	if (dwVersion < 7)
 		return TRUE;
@@ -180,7 +188,7 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 				OutputText(hwndCtl, TEXT(" (huge)"));
 				break;
 		}
-		OutputText(hwndCtl, TEXT("\r\n"));
+		OutputText(hwndCtl, g_szCRLF);
 	}
 	
 	// SAuthorInfo
@@ -484,7 +492,7 @@ BOOL DumpChecksum(HWND hwndCtl, HANDLE hFile, SIZE_T cbLen)
 	}
 
 	TCHAR szOutput[OUTPUT_LEN];
-	szOutput[0] = TEXT('\0');
+	szOutput[0] = g_chNil;
 
 	LPBYTE lpByte = (LPBYTE)lpData;
 	cbLen = min(cbLen, _countof(szOutput)/2 - 1);
@@ -493,7 +501,7 @@ BOOL DumpChecksum(HWND hwndCtl, HANDLE hFile, SIZE_T cbLen)
 
 	OutputText(hwndCtl, TEXT("Checksum:\t"));
 	OutputText(hwndCtl, szOutput);
-	OutputText(hwndCtl, TEXT("\r\n"));
+	OutputText(hwndCtl, g_szCRLF);
 
 	GlobalFreePtr(lpData);
 	
@@ -518,8 +526,8 @@ BOOL DumpAuthorInfo(HWND hwndCtl, HANDLE hFile)
 #endif
 	{ // Display only if changed
 		OutputTextFmt(hwndCtl, szOutput, TEXT("Author Version:\t%d"), dwAuthorVer);
-		if (dwAuthorVer > 0) OutputText(hwndCtl, TEXT("*"));
-		OutputText(hwndCtl, TEXT("\r\n"));
+		if (dwAuthorVer > 0) OutputText(hwndCtl, g_szAsterisk);
+		OutputText(hwndCtl, g_szCRLF);
 	}
 
 	// Login
@@ -851,7 +859,7 @@ BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderM
 				OutputText(hwndCtl, TEXT(" (FilePack)"));
 				break;
 		}
-		OutputText(hwndCtl, TEXT("\r\n"));
+		OutputText(hwndCtl, g_szCRLF);
 
 		if (dwVersion >= 17)
 		{
@@ -869,20 +877,96 @@ BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderM
 			if (!DumpChecksum(hwndCtl, hFile, 16))
 				return FALSE;
 		}
-		
-		// Flags
-		dwFlags = 0;
-		if (!ReadNat32(hFile, &dwFlags))
+
+		// SFileDescFlags
+		ULARGE_INTEGER ulFlags = {0};
+		if (!ReadNat64(hFile, &ulFlags))
 			return FALSE;
 
-		OutputTextFmt(hwndCtl, szOutput, TEXT("Flags:\t\t%08X\r\n"), dwFlags);
+		OutputTextFmt(hwndCtl, szOutput, TEXT("Flags:\t\t%08X%08X"), ulFlags.HighPart, ulFlags.LowPart);
 
-		// Flags
-		dwFlags = 0;
-		if (!ReadNat32(hFile, &dwFlags))
-			return FALSE;
+		PFILEDESCFLAGS pFileFlags = (PFILEDESCFLAGS)&ulFlags;
 
-		OutputTextFmt(hwndCtl, szOutput, TEXT("Flags:\t\t%08X\r\n"), dwFlags);
+		szOutput[0] = g_chNil;
+
+		if (pFileFlags->IsHashed)
+		{
+			if (szOutput[0] != g_chNil)
+				_tcsncat(szOutput, g_szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
+			_tcsncat(szOutput, TEXT("IsHashed"), _countof(szOutput) - _tcslen(szOutput) - 1);
+		}
+
+		if (pFileFlags->PublishFid)
+		{
+			if (szOutput[0] != g_chNil)
+				_tcsncat(szOutput, g_szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
+			_tcsncat(szOutput, TEXT("PublishFid"), _countof(szOutput) - _tcslen(szOutput) - 1);
+		}
+
+		if (pFileFlags->Compression)
+		{
+			if (szOutput[0] != g_chNil)
+				_tcsncat(szOutput, g_szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
+			_tcsncat(szOutput, TEXT("Compressed"), _countof(szOutput) - _tcslen(szOutput) - 1);
+		}
+
+		if (pFileFlags->IsSeekable)
+		{
+			if (szOutput[0] != g_chNil)
+				_tcsncat(szOutput, g_szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
+			_tcsncat(szOutput, TEXT("IsSeekable"), _countof(szOutput) - _tcslen(szOutput) - 1);
+		}
+
+		if (pFileFlags->Unknown1)
+		{
+			if (szOutput[0] != g_chNil)
+				_tcsncat(szOutput, g_szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
+			_tcsncat(szOutput, TEXT("Unknown1"), _countof(szOutput) - _tcslen(szOutput) - 1);
+		}
+
+		if (pFileFlags->Unknown2)
+		{
+			if (szOutput[0] != g_chNil)
+				_tcsncat(szOutput, g_szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
+			_tcsncat(szOutput, TEXT("Unknown2"), _countof(szOutput) - _tcslen(szOutput) - 1);
+		}
+
+		if (pFileFlags->OpaqueUserData)
+		{
+			if (szOutput[0] != g_chNil)
+				_tcsncat(szOutput, g_szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
+			_tcsncat(szOutput, TEXT("OpaqueUserData"), _countof(szOutput) - _tcslen(szOutput) - 1);
+		}
+
+		if (pFileFlags->PublicFile)
+		{
+			if (szOutput[0] != g_chNil)
+				_tcsncat(szOutput, g_szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
+			_tcsncat(szOutput, TEXT("PublicFile"), _countof(szOutput) - _tcslen(szOutput) - 1);
+		}
+
+		if (pFileFlags->ForceNoCrypt)
+		{
+			if (szOutput[0] != g_chNil)
+				_tcsncat(szOutput, g_szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
+			_tcsncat(szOutput, TEXT("ForceNoCrypt"), _countof(szOutput) - _tcslen(szOutput) - 1);
+		}
+
+		if (pFileFlags->__Unused1__ || pFileFlags->__Unused2__)
+		{
+			if (szOutput[0] != g_chNil)
+				_tcsncat(szOutput, g_szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
+			_tcsncat(szOutput, g_szAsterisk, _countof(szOutput) - _tcslen(szOutput) - 1);
+		}
+
+		if (szOutput[0] != g_chNil)
+		{
+			OutputText(hwndCtl, TEXT(" ("));
+			OutputText(hwndCtl, szOutput);
+			OutputText(hwndCtl, TEXT(")"));
+		}
+
+		OutputText(hwndCtl, g_szCRLF);
 	}
 
 	return TRUE;

@@ -504,6 +504,9 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile)
 
 			switch (ddsexth.dxgiFormat)
 			{
+				case 10:
+					OutputText(hwndCtl, TEXT(" (R16G16B16A16 FLOAT)"));
+					break;
 				case 24:
 					OutputText(hwndCtl, TEXT(" (R10G10B10A2 UNORM)"));
 					break;
