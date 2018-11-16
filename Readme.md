@@ -8,7 +8,7 @@ GbxDump is a little Windows application to indicate the contents of the file hea
 - Displays general track properties
 - Displays external dependencies
 - Displays the author comment
-- Shows and exported the thumbnail
+- Shows and exports the thumbnail
 - Online interface to the TMX and MX trackbase
 - Online interface to the Dedimania records database
 
