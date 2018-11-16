@@ -40,7 +40,7 @@ BOOL ReadData(HANDLE hFile, LPVOID lpBuffer, SIZE_T cbSize)
 	DWORD dwRead;
 	if (!ReadFile(hFile, lpBuffer, (DWORD)cbSize, &dwRead, NULL) || dwRead != cbSize)
 		return FALSE;
-	
+
 	return TRUE;
 }
 
@@ -66,13 +66,13 @@ BOOL ReadLine(HANDLE hFile, LPSTR lpszString, SIZE_T cchStringLen)
 		{
 			if (!ReadData(hFile, &ch, 1))
 				return FALSE;
-			
+
 			if (ch != 0xA)	// LF
 				return FALSE;
 
 			if (lpszString != NULL && uPos < cchStringLen)
 				lpszString[uPos] = '\0';
-			
+
 			return TRUE;
 		}
 
@@ -372,7 +372,7 @@ SSIZE_T ReadIdentifier(HANDLE hFile, PIDENTIFIER pId, PSTR pszString, SIZE_T cch
 
 		return cchLen;
 	}
-	
+
 	// Determine identifier index (delete topmost two MSBs)
 	DWORD dwIndex = GET_INDEX(dwId);
 	if (dwIndex == 0 || dwIndex > ID_DIM)
@@ -397,6 +397,39 @@ SIZE_T GetCollectionString(DWORD dwId, LPSTR lpszCollection, SIZE_T cchStringLen
 
 	switch (dwId)
 	{
+		case 0: // Speed
+			strncpy(lpszCollection, "Desert", cchStringLen);
+			break;
+		case 1: // Alpine
+			strncpy(lpszCollection, "Snow", cchStringLen);
+			break;
+		case 2: // Rally
+			strncpy(lpszCollection, "Rally", cchStringLen);
+			break;
+		case 3: // Island
+			strncpy(lpszCollection, "Island", cchStringLen);
+			break;
+		case 4: // Bay
+			strncpy(lpszCollection, "Bay", cchStringLen);
+			break;
+		case 5: // Coast
+			strncpy(lpszCollection, "Coast", cchStringLen);
+			break;
+		case 6: // Stadium
+			strncpy(lpszCollection, "Stadium", cchStringLen);
+			break;
+		case 7: // Basic
+			strncpy(lpszCollection, "Basic", cchStringLen);
+			break;
+		case 8: // Plain
+			strncpy(lpszCollection, "Plain", cchStringLen);
+			break;
+		case 9: // Moon
+			strncpy(lpszCollection, "Moon", cchStringLen);
+			break;
+		case 10: // Toy
+			strncpy(lpszCollection, "Toy", cchStringLen);
+			break;
 		case 11: // Valley
 			strncpy(lpszCollection, "Valley", cchStringLen);
 			break;
@@ -406,17 +439,41 @@ SIZE_T GetCollectionString(DWORD dwId, LPSTR lpszCollection, SIZE_T cchStringLen
 		case 13: // Lagoon
 			strncpy(lpszCollection, "Lagoon", cchStringLen);
 			break;
-		case 14: // Arena
+		case 14: // Deprecated_Arena
 			strncpy(lpszCollection, "Arena", cchStringLen);
 			break;
-		case 15: // Test8
-			strncpy(lpszCollection, "Test8", cchStringLen);
+		case 15: // TMTest8
+			strncpy(lpszCollection, "TMTest8", cchStringLen);
 			break;
-		case 16: // Test9
-			strncpy(lpszCollection, "Test9", cchStringLen);
+		case 16: // TMTest9
+			strncpy(lpszCollection, "TMTest9", cchStringLen);
 			break;
 		case 17: // TMCommon
 			strncpy(lpszCollection, "TMCommon", cchStringLen);
+			break;
+		case 18: // Canyon4
+			strncpy(lpszCollection, "Canyon4", cchStringLen);
+			break;
+		case 19: // Canyon256
+			strncpy(lpszCollection, "Canyon256", cchStringLen);
+			break;
+		case 20: // Valley4
+			strncpy(lpszCollection, "Valley4", cchStringLen);
+			break;
+		case 21: // Valley256
+			strncpy(lpszCollection, "Valley256", cchStringLen);
+			break;
+		case 22: // Lagoon4
+			strncpy(lpszCollection, "Lagoon4", cchStringLen);
+			break;
+		case 23: // Lagoon256
+			strncpy(lpszCollection, "Lagoon256", cchStringLen);
+			break;
+		case 24: // Stadium4
+			strncpy(lpszCollection, "Stadium4", cchStringLen);
+			break;
+		case 25: // Stadium256
+			strncpy(lpszCollection, "Stadium256", cchStringLen);
 			break;
 		case 100: // History
 			strncpy(lpszCollection, "History", cchStringLen);
@@ -427,14 +484,14 @@ SIZE_T GetCollectionString(DWORD dwId, LPSTR lpszCollection, SIZE_T cchStringLen
 		case 102: // Galaxy
 			strncpy(lpszCollection, "Galaxy", cchStringLen);
 			break;
-		case 103: // Test1
-			strncpy(lpszCollection, "Test1", cchStringLen);
+		case 103: // QMTest1
+			strncpy(lpszCollection, "QMTest1", cchStringLen);
 			break;
-		case 104: // Test2
-			strncpy(lpszCollection, "Test2", cchStringLen);
+		case 104: // QMTest2
+			strncpy(lpszCollection, "QMTest2", cchStringLen);
 			break;
-		case 105: // Test3
-			strncpy(lpszCollection, "Test3", cchStringLen);
+		case 105: // QMTest3
+			strncpy(lpszCollection, "QMTest3", cchStringLen);
 			break;
 		case 200: // Gothic
 			strncpy(lpszCollection, "Gothic", cchStringLen);
@@ -451,17 +508,20 @@ SIZE_T GetCollectionString(DWORD dwId, LPSTR lpszCollection, SIZE_T cchStringLen
 		case 204: // Meteor
 			strncpy(lpszCollection, "Meteor", cchStringLen);
 			break;
-		case 205: // Test1
-			strncpy(lpszCollection, "Test1", cchStringLen);
+		case 205: // Meteor4
+			strncpy(lpszCollection, "Meteor4", cchStringLen);
 			break;
-		case 206: // Test2
-			strncpy(lpszCollection, "Test2", cchStringLen);
+		case 206: // Meteor256
+			strncpy(lpszCollection, "Meteor256", cchStringLen);
 			break;
-		case 207: // Test3
-			strncpy(lpszCollection, "Test3", cchStringLen);
+		case 207: // SMTest3
+			strncpy(lpszCollection, "SMTest3", cchStringLen);
 			break;
 		case 299: // SMCommon
 			strncpy(lpszCollection, "SMCommon", cchStringLen);
+			break;
+		case 10000: // Vehicles
+			strncpy(lpszCollection, "Vehicles", cchStringLen);
 			break;
 		case 10001: // Orbital
 			strncpy(lpszCollection, "Orbital", cchStringLen);
@@ -471,6 +531,9 @@ SIZE_T GetCollectionString(DWORD dwId, LPSTR lpszCollection, SIZE_T cchStringLen
 			break;
 		case 10003: // Common
 			strncpy(lpszCollection, "Common", cchStringLen);
+			break;
+		case 0xFFFFFFFF: // Unassigned
+			strncpy(lpszCollection, "_Unassigned", cchStringLen);
 			break;
 		default:
 			{
@@ -485,7 +548,7 @@ SIZE_T GetCollectionString(DWORD dwId, LPSTR lpszCollection, SIZE_T cchStringLen
 				}
 			}
 	}
-	
+
 	return strlen(lpszCollection);
 }
 
