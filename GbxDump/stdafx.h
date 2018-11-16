@@ -11,9 +11,9 @@
 #define WINVER 0x0400		// Ändern Sie dies in den geeigneten Wert für andere Versionen von Windows.
 #endif
 
-#ifndef _WIN32_WINNT		// Lassen Sie die Verwendung spezifischer Features von Windows NT oder später zu.                   
+#ifndef _WIN32_WINNT		// Lassen Sie die Verwendung spezifischer Features von Windows NT oder später zu.
 #define _WIN32_WINNT 0x0400	// Ändern Sie dies in den geeigneten Wert für andere Versionen von Windows.
-#endif						
+#endif
 
 #ifndef _WIN32_WINDOWS		// Lassen Sie die Verwendung spezifischer Features von Windows 95 oder später zu.
 #define _WIN32_WINDOWS 0x0400 // Ändern Sie dies in den geeigneten Wert für Windows Me oder höher.

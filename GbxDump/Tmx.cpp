@@ -320,7 +320,7 @@ BOOL PrintTmxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 		}
 		token = strtok(NULL, "\t");
 	}
-	
+
 	// Request additional TMX data (Replays) via TMX Track ID
 	_sntprintf(szTmxUrl, _countof(szTmxUrl), g_szUrlTmx, szSubDomain, g_szParamRecord, szTrackId);
 	if (!ReadInternetFile(hwndCtl, szTmxUrl, lpszData, dwSize))
@@ -334,7 +334,7 @@ BOOL PrintTmxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 		GlobalFreePtr((HGLOBAL)lpszData);
 		return TRUE;
 	}
-	
+
 	// Place the cursor at the end of the edit control
 	nLen = Edit_GetTextLength(hwndCtl);
 	Edit_SetSel(hwndCtl, (WPARAM)nLen, (LPARAM)nLen);
@@ -546,7 +546,7 @@ BOOL PrintMxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 		GlobalFreePtr((HGLOBAL)lpszData);
 		return TRUE;
 	}
-	
+
 	// Request additional MX data (Replays) via MX Track ID
 	_sntprintf(szMxUrl, _countof(szMxUrl), g_szUrlMx2, szSubDomain, szTrackId);
 	if (!ReadInternetFile(hwndCtl, szMxUrl, lpszData, dwSize))
@@ -583,7 +583,7 @@ BOOL PrintMxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 			break;
 		if (!GetReplayData(uCodePage, &lpsz, "Position", szPosition, _countof(szPosition)))
 			break;
-		
+
 		int nPos = _ttoi(szPosition);
 		OutputTextFmt(hwndCtl, szPosition, TEXT("%02u. "), nPos);
 
@@ -613,7 +613,7 @@ BOOL PrintMxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 		}
 		else
 			OutputTextFmt(hwndCtl, szReplayTime, TEXT("(%s)"), szStuntScore);
-		
+
 		OutputText(hwndCtl, TEXT("\r\n"));
 	}
 
@@ -632,7 +632,7 @@ BOOL GetReplayData(UINT uCodePage, LPSTR* lpszData, LPCSTR lpszMarker, LPTSTR sz
 	strncpy(szElement, "<", _countof(szElement));
 	strncat(szElement, lpszMarker, _countof(szElement) - strlen(szElement) - 1);
 	strncat(szElement, ">", _countof(szElement) - strlen(szElement) - 1);
-	
+
 	LPSTR lpszBegin = strstr(*lpszData, szElement);
 	if (lpszBegin == NULL)
 		return FALSE;
@@ -641,7 +641,7 @@ BOOL GetReplayData(UINT uCodePage, LPSTR* lpszData, LPCSTR lpszMarker, LPTSTR sz
 	strncpy(szElement, "</", _countof(szElement));
 	strncat(szElement, lpszMarker, _countof(szElement) - strlen(szElement) - 1);
 	strncat(szElement, ">", _countof(szElement) - strlen(szElement) - 1);
-	
+
 	LPSTR lpszEnd = strstr(lpszBegin, szElement);
 	if (lpszEnd == NULL)
 		return FALSE;
@@ -652,11 +652,11 @@ BOOL GetReplayData(UINT uCodePage, LPSTR* lpszData, LPCSTR lpszMarker, LPTSTR sz
 
 	strncpy(szValue, lpszBegin, cchLen);
 	szValue[cchLen] = '\0';
-	
+
 	*lpszData = lpszEnd + strlen(szElement);
 
 	MultiByteToWideChar(uCodePage, 0, szValue, -1, szOutput, (int)(cchLenOutput-1));
-	
+
 	return TRUE;
 }
 
@@ -673,7 +673,7 @@ BOOL OutputXmlData(HWND hwndCtl, UINT uCodePage, LPCSTR lpszData, LPCSTR lpszMar
 	strncpy(szElement, "<", _countof(szElement));
 	strncat(szElement, lpszMarker, _countof(szElement) - strlen(szElement) - 1);
 	strncat(szElement, ">", _countof(szElement) - strlen(szElement) - 1);
-	
+
 	LPCSTR lpszBegin = strstr(lpszData, szElement);
 	if (lpszBegin == NULL)
 		return FALSE;
@@ -682,7 +682,7 @@ BOOL OutputXmlData(HWND hwndCtl, UINT uCodePage, LPCSTR lpszData, LPCSTR lpszMar
 	strncpy(szElement, "</", _countof(szElement));
 	strncat(szElement, lpszMarker, _countof(szElement) - strlen(szElement) - 1);
 	strncat(szElement, ">", _countof(szElement) - strlen(szElement) - 1);
-	
+
 	LPCSTR lpszEnd = strstr(lpszBegin, szElement);
 	if (lpszEnd == NULL)
 		return FALSE;
@@ -693,7 +693,7 @@ BOOL OutputXmlData(HWND hwndCtl, UINT uCodePage, LPCSTR lpszData, LPCSTR lpszMar
 
 	strncpy(szValue, lpszBegin, cchLen);
 	szValue[cchLen] = '\0';
-	
+
 	MultiByteToWideChar(uCodePage, 0, szValue, -1, szOutput, _countof(szOutput)-1);
 	OutputText(hwndCtl, lpszText);
 	OutputText(hwndCtl, szOutput);

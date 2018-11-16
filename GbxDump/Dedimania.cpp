@@ -53,25 +53,25 @@ char *estrtok(char *str, const char *delim)
 		if (!last)
 			return NULL;
 		last++;
-	}  
+	}
 
 	ret = last;
 
 	for (;;)
-	{  
-		if (*last == 0) 
-		{  
+	{
+		if (*last == 0)
+		{
 			last = NULL;
 			return ret;
-		}  
+		}
 
 		if (strchr(delim, *last))
-		{  
-			*last = 0; 
+		{
+			*last = 0;
 			return ret;
-		}  
+		}
 		last++;
-	}  
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -87,7 +87,7 @@ BOOL GetDedimaniaData(HWND hwndCtl, LPCSTR lpszUid, LPCSTR lpszEnvi)
 	OutputText(hwndCtl, g_szSep1);
 
 	BOOL bTrackFound = FALSE;
-	
+
 	// Does the environment belong to TrackMania 1 or ManiaPlanet?
 	BOOL bIsTwice = FALSE;
 	BOOL bIsManiaPlanet = TRUE;
@@ -174,7 +174,7 @@ BOOL PrintDedimaniaData(HWND hwndCtl, LPCSTR lpszUid, BOOL bIsManiaPlanet, LPBOO
 		if (LoadString(g_hInstance, g_bGerUI ? IDP_GER_ERR_RECORDS : IDP_ENG_ERR_RECORDS, szText, _countof(szText)) > 0)
 			OutputText(hwndCtl, szText);
 	}
-	
+
 	UINT uRecords = 0;
 
 	// Parse and output list of records

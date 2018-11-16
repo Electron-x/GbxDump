@@ -172,7 +172,7 @@ BOOL SaveBmpFile(LPCTSTR lpszFileName, HANDLE hDIB)
 
 // Data Types
 typedef struct jpeg_decompress_struct j_decompress;
-typedef struct jpeg_error_mgr         j_error_mgr;  
+typedef struct jpeg_error_mgr         j_error_mgr;
 
 // JPEG decompression structure (overloads jpeg_decompress_struct)
 typedef struct
@@ -302,7 +302,7 @@ HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData)
 	// Size of one DIB row
 	JpegDecompress.dwIncrement = (((DWORD)JpegDecompress.uWidth * JpegDecompress.uBPP + 31) / 32) * 4;
 	// Size of the DIB data
-	JpegDecompress.dwSize = JpegDecompress.dwIncrement * JpegDecompress.uHeight;  
+	JpegDecompress.dwSize = JpegDecompress.dwIncrement * JpegDecompress.uHeight;
 
 	// Create a Windows Bitmap
 	// Allocate memory for the DIB
@@ -340,7 +340,7 @@ HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData)
 	{
 		if (pjInfo->out_color_space == JCS_GRAYSCALE)
 		{
-			// Grayscale image 
+			// Grayscale image
 			for (UINT u = 0; u < JpegDecompress.uColors; u++)
 			{  // Create grayscale
 				lpBMI->bmiColors[u].rgbRed      = (BYTE)u;
