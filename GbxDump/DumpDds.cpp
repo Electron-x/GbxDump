@@ -28,7 +28,7 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile)
 	DWORD dwFlags;
 	TCHAR szFlags[32];
 	TCHAR szOutput[OUTPUT_LEN];
-	
+
 	const TCHAR chNil = TEXT('\0');
 	const TCHAR szOR[] = TEXT("|");
 	const TCHAR szCRLF[] = TEXT("\r\n");
@@ -275,7 +275,7 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile)
 		{
 			BYTE achFourCC[4];
 			CopyMemory(achFourCC, &ddsh.ddspf.dwFourCC, 4);
-			
+
 			OutputText(hwndCtl, TEXT("FourCC Tag:\t"));
 			if (isprint(achFourCC[0]) && isprint(achFourCC[1]) &&
 				isprint(achFourCC[2]) && isprint(achFourCC[3]))
@@ -286,7 +286,7 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile)
 				if (ddsh.ddspf.dwFourCC != 0)
 				{
 					OutputTextFmt(hwndCtl, szOutput, TEXT("%u"), ddsh.ddspf.dwFourCC);
-					
+
 					switch (ddsh.ddspf.dwFourCC)
 					{
 						case 36:
@@ -398,7 +398,7 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile)
 			}
 		}
 		OutputText(hwndCtl, szCRLF);
-		
+
 		if (ddsh.dwCubemapFlags != 0)
 		{
 			OutputTextFmt(hwndCtl, szOutput, TEXT("Cubemap Flags:\t%08X"), ddsh.dwCubemapFlags);
@@ -479,7 +479,7 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile)
 			OutputText(hwndCtl, szCRLF);
 		}
 	}
-	
+
 	// DX10 or XBOX header present?
 	if ((ddsh.ddspf.dwFlags & DDPF_FOURCC) &&
 		((ddsh.ddspf.dwFourCC == MAKEFOURCC('D', 'X', '1', '0')) ||
@@ -509,6 +509,9 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile)
 					break;
 				case 24:
 					OutputText(hwndCtl, TEXT(" (R10G10B10A2 UNORM)"));
+					break;
+				case 26:
+					OutputText(hwndCtl, TEXT(" (R11G11B10 FLOAT)"));
 					break;
 				case 66:
 					OutputText(hwndCtl, TEXT(" (R1 UNORM)"));
