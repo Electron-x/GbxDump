@@ -39,17 +39,17 @@ typedef struct SHeaderFlagsUncrypt
 
 typedef struct SFileDescFlags
 {
-	UINT IsHashed		: 1;
-	UINT PublishFid		: 1;
-	UINT Compression	: 4;
-	UINT IsSeekable		: 1;
-	UINT Unknown1		: 1;
-	UINT __Unused1__	: 24;
-	UINT Unknown2		: 1;
-	UINT OpaqueUserData	: 16;
-	UINT PublicFile		: 1;
-	UINT ForceNoCrypt	: 1;
-	UINT __Unused2__	: 13;
+	UINT IsHashed			: 1;
+	UINT PublishFid			: 1;
+	UINT Compression		: 4;
+	UINT IsSeekable			: 1;
+	UINT _Unknown_			: 1;
+	UINT __Unused1__		: 24;
+	UINT DontUseDummyWrite	: 1;
+	UINT OpaqueUserData		: 16;
+	UINT PublicFile			: 1;
+	UINT ForceNoCrypt		: 1;
+	UINT __Unused2__		: 13;
 } FILEDESCFLAGS, *PFILEDESCFLAGS;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -87,7 +87,7 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 	// Jump to version (skip file signature)
 	if (!FileSeekBegin(hFile, 8))
 		return FALSE;
-	
+
 	// Version
 	DWORD dwVersion = 0;
 	if (!ReadNat32(hFile, &dwVersion))
@@ -114,7 +114,7 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 		return FALSE;
 
 	OutputTextFmt(hwndCtl, szOutput, TEXT("Decrypt Flags:\t%08X"), dwCryptFlags);
-	
+
 	PHEADERFLAGSUNCRYPT pCryptFlags = (PHEADERFLAGSUNCRYPT)&dwCryptFlags;
 
 	szOutput[0] = g_chNil;
@@ -175,7 +175,7 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 
 		OutputText(hwndCtl, TEXT("Header Size:\t"));
 		OutputTextFmt(hwndCtl, szOutput, TEXT("%08X"), dwHeaderMaxSize);
-		
+
 		switch (dwHeaderMaxSize)
 		{
 			case 0x4000:	// 16 KB
@@ -190,7 +190,7 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 		}
 		OutputText(hwndCtl, g_szCRLF);
 	}
-	
+
 	// SAuthorInfo
 	if (!DumpAuthorInfo(hwndCtl, hFile))
 		return FALSE;
@@ -200,7 +200,7 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 		// Comment
 		if ((nRet = ReadString(hFile, szRead, _countof(szRead))) < 0)
 			return FALSE;
-		
+
 		if (nRet > 0)
 		{
 			OutputText(hwndCtl, TEXT("Comment:\t"));
@@ -221,7 +221,7 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 		// CreationBuildInfo
 		if ((nRet = ReadString(hFile, szRead, _countof(szRead))) < 0)
 			return FALSE;
-		
+
 		if (nRet > 0)
 		{
 			OutputText(hwndCtl, TEXT("Build Info:\t"));
@@ -232,7 +232,7 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 		// URL
 		if ((nRet = ReadString(hFile, szRead, _countof(szRead))) < 0)
 			return FALSE;
-		
+
 		if (nRet > 0)
 		{
 			OutputText(hwndCtl, TEXT("URL:\t\t"));
@@ -246,7 +246,7 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 	// Manialink
 	if ((nRet = ReadString(hFile, szRead, _countof(szRead))) < 0)
 		return FALSE;
-	
+
 	if (nRet > 0)
 	{
 		OutputText(hwndCtl, TEXT("Manialink:\t"));
@@ -259,7 +259,7 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 		// Download URL
 		if ((nRet = ReadString(hFile, szRead, _countof(szRead))) < 0)
 			return FALSE;
-		
+
 		if (nRet > 0)
 		{
 			OutputText(hwndCtl, TEXT("Download URL:\t"));
@@ -341,7 +341,7 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 				GlobalFreePtr(lpDataTxt);
 			return FALSE;
 		}
-		
+
 		if (nRet > 0)
 		{
 			OutputText(hwndCtl, TEXT("Title ID:\t"));
@@ -349,7 +349,7 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 			OutputText(hwndCtl, szOutput);
 		}
 	}
-	
+
 	// Usage/SubDir
 	if ((nRet = ReadString(hFile, szRead, _countof(szRead))) < 0)
 	{
@@ -359,7 +359,7 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 			GlobalFreePtr(lpDataTxt);
 		return FALSE;
 	}
-	
+
 	if (nRet > 0)
 	{
 		OutputText(hwndCtl, TEXT("Pack Type:\t"));
@@ -376,7 +376,7 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 			GlobalFreePtr(lpDataTxt);
 		return FALSE;
 	}
-	
+
 	if (nRet > 0)
 	{
 		OutputText(hwndCtl, TEXT("Build Info:\t"));
@@ -451,9 +451,9 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 
 				// Insert line breaks
 				LPTSTR lpszTemp = AllocReplaceString((LPCTSTR)pXmlString, TEXT("><"), TEXT(">\r\n<"));
-				
+
 				OutputText(hwndCtl, g_szSep1);
-				
+
 				if (lpszTemp == NULL)
 					OutputText(hwndCtl, (LPCTSTR)pXmlString);
 				else
@@ -504,7 +504,7 @@ BOOL DumpChecksum(HWND hwndCtl, HANDLE hFile, SIZE_T cbLen)
 	OutputText(hwndCtl, g_szCRLF);
 
 	GlobalFreePtr(lpData);
-	
+
 	return TRUE;
 }
 
@@ -533,7 +533,7 @@ BOOL DumpAuthorInfo(HWND hwndCtl, HANDLE hFile)
 	// Login
 	if ((nRet = ReadString(hFile, szRead, _countof(szRead))) < 0)
 		return FALSE;
-	
+
 	if (nRet > 0)
 	{
 		OutputText(hwndCtl, TEXT("Author Login:\t"));
@@ -544,7 +544,7 @@ BOOL DumpAuthorInfo(HWND hwndCtl, HANDLE hFile)
 	// Nick Name
 	if ((nRet = ReadString(hFile, szRead, _countof(szRead))) < 0)
 		return FALSE;
-	
+
 	if (nRet > 0)
 	{
 		OutputText(hwndCtl, TEXT("Author Nick:\t"));
@@ -555,7 +555,7 @@ BOOL DumpAuthorInfo(HWND hwndCtl, HANDLE hFile)
 	// Zone
 	if ((nRet = ReadString(hFile, szRead, _countof(szRead))) < 0)
 		return FALSE;
-	
+
 	if (nRet > 0)
 	{
 		OutputText(hwndCtl, TEXT("Author Zone:\t"));
@@ -566,7 +566,7 @@ BOOL DumpAuthorInfo(HWND hwndCtl, HANDLE hFile)
 	// Extra Info
 	if ((nRet = ReadString(hFile, szRead, _countof(szRead))) < 0)
 		return FALSE;
-	
+
 	if (nRet > 0)
 	{
 		OutputText(hwndCtl, TEXT("Extra Info:\t"));
@@ -594,7 +594,7 @@ BOOL DumpIncludedPacksHeaders(HWND hwndCtl, HANDLE hFile, DWORD dwVersion)
 	// Package Name
 	if ((nRet = ReadString(hFile, szRead, _countof(szRead))) < 0)
 		return FALSE;
-	
+
 	if (nRet > 0)
 	{
 		OutputText(hwndCtl, TEXT("Pack Name:\t"));
@@ -609,7 +609,7 @@ BOOL DumpIncludedPacksHeaders(HWND hwndCtl, HANDLE hFile, DWORD dwVersion)
 	// Manialink
 	if ((nRet = ReadString(hFile, szRead, _countof(szRead))) < 0)
 		return FALSE;
-	
+
 	if (nRet > 0)
 	{
 		OutputText(hwndCtl, TEXT("Manialink:\t"));
@@ -626,11 +626,11 @@ BOOL DumpIncludedPacksHeaders(HWND hwndCtl, HANDLE hFile, DWORD dwVersion)
 	if ((ftDate.dwLowDateTime != 0 || ftDate.dwHighDateTime != 0) && FileTimeToSystemTime(&ftDate, &stDate))
 		OutputTextFmt(hwndCtl, szOutput, TEXT("Creation Date:\t%02u-%02u-%02u %02u:%02u:%02u\r\n"),
 			stDate.wYear, stDate.wMonth, stDate.wDay, stDate.wHour, stDate.wMinute, stDate.wSecond);
-	
+
 	// Package Name
 	if ((nRet = ReadString(hFile, szRead, _countof(szRead))) < 0)
 		return FALSE;
-	
+
 	if (nRet > 0)
 	{
 		OutputText(hwndCtl, TEXT("Pack Name:\t"));
@@ -647,7 +647,7 @@ BOOL DumpIncludedPacksHeaders(HWND hwndCtl, HANDLE hFile, DWORD dwVersion)
 
 		OutputTextFmt(hwndCtl, szOutput, TEXT("Include Depth:\t%d\r\n"), dwIncludeDepth);
 	}
-	
+
 	return TRUE;
 }
 
@@ -674,7 +674,7 @@ BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderM
 
 	// Data Start
 	DWORD dwDataStart = dwHeaderMaxSize;
-	
+
 	if (dwVersion < 15)
 	{
 		if (!ReadNat32(hFile, &dwDataStart))
@@ -759,7 +759,7 @@ BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderM
 		// Folder Name
 		if ((nRet = ReadString(hFile, szRead, _countof(szRead))) < 0)
 			return FALSE;
-		
+
 		if (nRet > 0)
 		{
 			OutputText(hwndCtl, TEXT("Folder Name:\t"));
@@ -790,7 +790,7 @@ BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderM
 		// File name
 		if ((nRet = ReadString(hFile, szRead, _countof(szRead))) < 0)
 			return FALSE;
-		
+
 		if (nRet > 0)
 		{
 			OutputText(hwndCtl, TEXT("File Name:\t"));
@@ -828,7 +828,7 @@ BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderM
 
 		// Class ID
 		DWORD dwClassId = 0;
-		if (!ReadNat32(hFile, &dwClassId))
+		if (!ReadMask(hFile, &dwClassId))
 			return FALSE;
 
 		OutputTextFmt(hwndCtl, szOutput, TEXT("Class ID:\t%08X"), dwClassId);
@@ -917,18 +917,18 @@ BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderM
 			_tcsncat(szOutput, TEXT("IsSeekable"), _countof(szOutput) - _tcslen(szOutput) - 1);
 		}
 
-		if (pFileFlags->Unknown1)
+		if (pFileFlags->_Unknown_)
 		{
 			if (szOutput[0] != g_chNil)
 				_tcsncat(szOutput, g_szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-			_tcsncat(szOutput, TEXT("Unknown1"), _countof(szOutput) - _tcslen(szOutput) - 1);
+			_tcsncat(szOutput, TEXT("_Unknown_"), _countof(szOutput) - _tcslen(szOutput) - 1);
 		}
 
-		if (pFileFlags->Unknown2)
+		if (pFileFlags->DontUseDummyWrite)
 		{
 			if (szOutput[0] != g_chNil)
 				_tcsncat(szOutput, g_szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-			_tcsncat(szOutput, TEXT("Unknown2"), _countof(szOutput) - _tcslen(szOutput) - 1);
+			_tcsncat(szOutput, TEXT("DontUseDummyWrite"), _countof(szOutput) - _tcslen(szOutput) - 1);
 		}
 
 		if (pFileFlags->OpaqueUserData)
