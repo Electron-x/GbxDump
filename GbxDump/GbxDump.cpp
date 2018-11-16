@@ -57,7 +57,7 @@ void DeleteWindowRect(HWND hWnd);
 #endif
 
 const TCHAR g_szTitle[]   = TEXT("GbxDump");
-const TCHAR g_szAbout[]   = TEXT("Gbx File Dumper 1.60 (") PLATFORM TEXT(")\r\n")
+const TCHAR g_szAbout[]   = TEXT("Gbx File Dumper 1.61 (") PLATFORM TEXT(")\r\n")
                             TEXT("Copyright © 2010-2018 by Electron\r\n");
 const TCHAR g_szDlgCls[]  = TEXT("GbxDumpDlgClass");
 const TCHAR g_szTop[]     = TEXT("GbxDumpWndTop");
@@ -97,7 +97,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 		{
 			_tcsncpy(pszCommandLine, lpCmdLine, cchCmdLineLen);
 			pszFilename = pszCommandLine;
-		
+
 			// Remove quotation marks
 			TCHAR* pch = _tcschr(pszFilename, TEXT('\"'));
 			if (pch != NULL)
@@ -198,7 +198,7 @@ BOOL CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 				LPDRAWITEMSTRUCT lpdis = (LPDRAWITEMSTRUCT)lParam;
 				if (lpdis == NULL || wParam != IDC_THUMB)
 					return FALSE;
-				
+
 				HDC hdc = lpdis->hDC;
 				RECT rc = lpdis->rcItem;
 				LONG cx = rc.right - rc.left;
@@ -211,7 +211,7 @@ BOOL CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 					bDrawText = FALSE;
 					hDIB = g_hDibThumb;
 				}
-				
+
 				// If necessary, create and select a color palette
 				HPALETTE hOldPal = NULL;
 				HPALETTE hPal = (GetDeviceCaps(hdc, RASTERCAPS) & RC_PALETTE) ? DIBCreatePalette(hDIB) : NULL;
@@ -221,7 +221,7 @@ BOOL CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 					if (hOldPal)
 						RealizePalette(hdc);
 				}
-				
+
 				if (hDIB != NULL)
 				{ // Output the DIB
 					LPBITMAPINFOHEADER lpbi = (LPBITMAPINFOHEADER)GlobalLock(hDIB);
@@ -423,7 +423,7 @@ BOOL CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 					nNumWindows++;
 					hCtl = GetNextSibling(hCtl);
 				}
-				
+
 				// Reposition all child windows
 				HDWP hWinPosInfo = BeginDeferWindowPos(nNumWindows);
 				if (hWinPosInfo != NULL)
@@ -469,7 +469,7 @@ BOOL CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 						else
 							hWinPosInfo = DeferWindowPos(hWinPosInfo, hCtl, NULL, rc.left, rc.top,
 								(rc.right-rc.left), (rc.bottom-rc.top), SWP_NOZORDER | SWP_NOACTIVATE);
-						
+
 						// Determine the next child window
 						hCtl = GetNextSibling(hCtl);
 					}
@@ -583,7 +583,7 @@ BOOL CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 						HWND hwndCtl = GetDlgItem(hDlg, IDC_OUTPUT);
 						if (GetFocus() != hwndCtl)
 							SetFocus(hwndCtl);
-						
+
 						// Place the cursor at the end of the text
 						int nLen = Edit_GetTextLength(hwndCtl);
 						Edit_SetSel(hwndCtl, nLen, nLen);
@@ -599,7 +599,7 @@ BOOL CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 						HWND hwndCtl = GetDlgItem(hDlg, IDC_OUTPUT);
 						if (GetFocus() != hwndCtl)
 							SetFocus(hwndCtl);
-						
+
 						// Place the cursor at the end of the text
 						int nLen = Edit_GetTextLength(hwndCtl);
 						Edit_SetSel(hwndCtl, nLen, nLen);
@@ -615,18 +615,18 @@ BOOL CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 						HANDLE hDIB = g_hDibThumb ? g_hDibThumb : g_hDibDefault;
 						if (hDIB == NULL)
 							return FALSE;
-						
+
 						SIZE_T cbLen = GlobalSize((HGLOBAL)hDIB);
 						if (cbLen == 0)
 							return FALSE;
-						
+
 						HGLOBAL hNewDIB = GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE, cbLen);
 						if (hNewDIB == NULL)
 							return FALSE;
-						
+
 						register LPBYTE lpSrc  = (LPBYTE)GlobalLock((HGLOBAL)hDIB);
 						register LPBYTE lpDest = (LPBYTE)GlobalLock((HGLOBAL)hNewDIB);
-						
+
 						__try
 						{
 							while (cbLen--)
@@ -702,7 +702,7 @@ BOOL CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 				HDROP hDrop = (HDROP)wParam;
 				if (hDrop == NULL)
 					return FALSE;
-				
+
 				if (IsMinimized(hDlg))
 					ShowWindow(hDlg, SW_SHOWNORMAL);
 				SetForegroundWindow(hDlg);
@@ -716,7 +716,7 @@ BOOL CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 
 				HCURSOR hOldCursor = SetCursor(LoadCursor(NULL, IDC_WAIT));
 				HWND hwndCtl = GetDlgItem(hDlg, IDC_OUTPUT);
-				
+
 				// Clear the output window
 				Edit_SetText(hwndCtl, TEXT(""));
 				Edit_EmptyUndoBuffer(hwndCtl);
@@ -731,7 +731,7 @@ BOOL CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 
 					if (iFile > 0)
 						Edit_ReplaceSel(hwndCtl, TEXT("\r\n"));
-					
+
 					// Dump the file
 					bSuccess = DumpFile(hwndCtl, szFile, s_szUid, s_szEnvi) || bSuccess;
 				}
@@ -756,7 +756,7 @@ BOOL CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 				{
 					int x = (int)(short)LOWORD(lParam);
 					int y = (int)(short)HIWORD(lParam);
-					
+
 					if (x == -1 || y == -1)
 					{
 						RECT rc;
@@ -785,7 +785,7 @@ BOOL CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 
 					BOOL bSuccess = TrackPopupMenu(hmenuTrackPopup,
 						TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_RIGHTBUTTON, x, y, 0, hDlg, NULL);
-					
+
 					DestroyMenu(hmenuPopup);
 
 					return bSuccess;
@@ -838,7 +838,7 @@ BOOL CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 				GetWindowRect(hDlg, &rc);
 				s_ptMinTrackSize.x = (rc.right - rc.left) * 3 / 4;
 				s_ptMinTrackSize.y = (rc.bottom - rc.top) * 3 / 4;
-				
+
 				// Save size of main window as property
 				GetClientRect(hDlg, &rc);
 				StoreWindowRect(hDlg, &rc);
@@ -891,7 +891,7 @@ BOOL CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 				s_hfontEditBox = CreateFontIndirect(&lf);
 				if (s_hfontEditBox != NULL)
 					SetWindowFont(hwndCtl, s_hfontEditBox, FALSE);
-				
+
 				s_szUid[0] = '\0'; s_szEnvi[0] = '\0';
 				Button_Enable(GetDlgItem(hDlg, IDC_TMX), FALSE);
 				Button_Enable(GetDlgItem(hDlg, IDC_DEDIMANIA), FALSE);
@@ -908,7 +908,7 @@ BOOL CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 					if ((GetWindowStyle(hwndCtl) & ES_READONLY) == 0)
 						Edit_SetReadOnly(hwndCtl, TRUE);
 				}
-				
+
 				// Allow drag-and-drop
 				DragAcceptFiles(hDlg, TRUE);
 			}
@@ -996,7 +996,7 @@ BOOL DumpFile(HWND hwndCtl, LPCTSTR lpszFileName, LPSTR lpszUid, LPSTR lpszEnvi)
 	if (IsWindowEnabled(hwndButton))
 		Button_Enable(hwndButton, FALSE);
 
-	// Destroy old thumbnail
+	// Release old thumbnail
 	if (g_hDibThumb != NULL)
 	{
 		JpegFreeDib(g_hDibThumb);
@@ -1197,7 +1197,7 @@ BOOL DumpHex(HWND hwndCtl, HANDLE hFile, SIZE_T cbLen)
 			_tcsncat(szOutput, TEXT(" "), _countof(szOutput) - _tcslen(szOutput) - 4);
 
 		_tcsncat(szOutput, TEXT("|\r\n"), _countof(szOutput) - _tcslen(szOutput) - 1);
-		
+
 		OutputText(hwndCtl, szOutput);
 	}
 
@@ -1238,7 +1238,8 @@ int SelectText(HWND hwndCtl)
 	int iChar = Edit_LineIndex(hwndCtl, iLine);
 	int iCharInLine = (int)(iStartChar - iChar);
 
-	// Spaces and parentheses are necessary for the selection of regular words
+	// Spaces and parentheses are valid characters for URLs,
+	// but are required for the selection of regular words.
 	const TCHAR* pszCutOffChars = TEXT(" \t\"<>()[]{}|#");
 
 	TCHAR* pszLine = szLine;
@@ -1430,11 +1431,11 @@ HPALETTE DIBCreatePalette(HANDLE hDIB)
 {
 	if (hDIB == NULL)
 		return NULL;
-	
+
 	HPALETTE hPal = NULL;
 	LPSTR lpbi = (LPSTR)GlobalLock((HGLOBAL)hDIB);
 	LPBITMAPINFO lpbmi = (LPBITMAPINFO)lpbi;
-	
+
 	UINT uNumColors = DIBNumColors(lpbi);
 	if (uNumColors != 0)
 	{ // Create palette from the colors of the DIB
@@ -1444,11 +1445,11 @@ HPALETTE DIBCreatePalette(HANDLE hDIB)
 			GlobalUnlock((HGLOBAL)hDIB);
 			return NULL;
 		}
-		
+
 		LPLOGPALETTE lpPal = (LPLOGPALETTE)GlobalLock((HGLOBAL)hLogPal);
 		lpPal->palVersion    = 0x300;
 		lpPal->palNumEntries = (WORD)uNumColors;
-		
+
 		for (register UINT i = 0; i < uNumColors; i++)
 		{
 			lpPal->palPalEntry[i].peRed   = lpbmi->bmiColors[i].rgbRed;
@@ -1456,9 +1457,9 @@ HPALETTE DIBCreatePalette(HANDLE hDIB)
 			lpPal->palPalEntry[i].peBlue  = lpbmi->bmiColors[i].rgbBlue;
 			lpPal->palPalEntry[i].peFlags = 0;
 		}
-		
+
 		hPal = CreatePalette(lpPal);
-		
+
 		GlobalUnlock((HGLOBAL)hLogPal);
 		GlobalFree((HGLOBAL)hLogPal);
 	}
@@ -1468,9 +1469,9 @@ HPALETTE DIBCreatePalette(HANDLE hDIB)
 		hPal = CreateHalftonePalette(hDC);
 		ReleaseDC(NULL, hDC);
 	}
-	
+
 	GlobalUnlock((HGLOBAL)hDIB);
-	
+
 	return hPal;
 }
 
@@ -1494,9 +1495,9 @@ __inline UINT DIBNumColors(LPSTR lpbi)
 	DWORD dwClrUsed = ((LPBITMAPINFOHEADER)lpbi)->biClrUsed;
 	if (dwClrUsed != 0)
 		return dwClrUsed;
-	
+
 	WORD wBPP = ((LPBITMAPINFOHEADER)lpbi)->biBitCount;
-	
+
 	if (wBPP <= 8)
 		return (1 << wBPP);
 	else

@@ -30,7 +30,7 @@ void LastInternetError(HWND hwndCtl, DWORD dwError);
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // String Constants
 //
-const TCHAR g_szUserAgent[]  = TEXT("GbxDump/1.60");
+const TCHAR g_szUserAgent[]  = TEXT("GbxDump/1.61");
 const TCHAR g_szWininetDll[] = TEXT("wininet.dll");
 const TCHAR g_szConnecting[] = TEXT("%s - Connecting...");
 const TCHAR g_szDownload[]   = TEXT("%s - Downloading...");
@@ -73,7 +73,7 @@ BOOL ReadInternetFile(HWND hwndCtl, LPCTSTR lpszUrl, LPSTR lpszData, DWORD dwSiz
 			return FALSE;
 		}
 
-		if (!InternetGoOnline((LPTSTR)lpszUrl, GetParent(hwndCtl), INTERENT_GOONLINE_REFRESH))
+		if (!InternetGoOnline((LPTSTR)lpszUrl, hwndDlg, INTERENT_GOONLINE_REFRESH))
 		{
 			SetWindowText(hwndDlg, g_szTitle);
 			InternetCloseHandle(hInternet);
@@ -92,7 +92,7 @@ BOOL ReadInternetFile(HWND hwndCtl, LPCTSTR lpszUrl, LPSTR lpszData, DWORD dwSiz
 
 	_sntprintf(szTitle, _countof(szTitle), g_szDownload, g_szTitle);
 	SetWindowText(hwndDlg, szTitle);
-	
+
 	DWORD dwRead = 0;
 	DWORD dwReadTotal = 0;
 	LPSTR lpsz = lpszData;
@@ -124,7 +124,7 @@ BOOL ReadInternetFile(HWND hwndCtl, LPCTSTR lpszUrl, LPSTR lpszData, DWORD dwSiz
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Determines whether the system is globally offline.
-// NULL is a valid value for HINTERNET.
+// Note: NULL is a valid value for HINTERNET.
 
 BOOL IsGlobalOffline(HINTERNET hInternet)
 {
