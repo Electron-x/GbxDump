@@ -3767,6 +3767,9 @@ BOOL ObjectInfoTypeChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckType)
 		case 11:
 			OutputText(hwndCtl, TEXT("Block"));
 			break;
+		case 12:
+			OutputText(hwndCtl, TEXT("EntitySpawner"));
+			break;
 		case UNASSIGNED:
 			OutputText(hwndCtl, g_szUnknown);
 			break;
