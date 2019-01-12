@@ -136,8 +136,11 @@ BOOL ReadNat8(HANDLE hFile, LPBYTE lpcNat8, BOOL bIsText)
 		if (!ReadLine(hFile, achBuffer, _countof(achBuffer)))
 			return FALSE;
 
+		WORD wNat16 = 0;
+		sscanf(achBuffer, "%hu", &wNat16);
+
 		if (lpcNat8 != NULL)
-			sscanf(achBuffer, "%hu", lpcNat8);
+			*lpcNat8 = LOBYTE(wNat16);
 
 		return TRUE;
 	}
@@ -197,7 +200,7 @@ BOOL ReadNat64(HANDLE hFile, PULARGE_INTEGER pullNat64, BOOL bIsText)
 			return FALSE;
 
 		if (pullNat64 != NULL)
-			sscanf(achBuffer, "%I64u", pullNat64);
+			sscanf(achBuffer, "%I64u", &pullNat64->QuadPart);
 
 		return TRUE;
 	}

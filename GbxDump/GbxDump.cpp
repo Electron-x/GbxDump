@@ -1155,7 +1155,7 @@ BOOL DumpHex(HWND hwndCtl, HANDLE hFile, SIZE_T cbLen)
 	if (LoadString(g_hInstance, g_bGerUI ? IDS_GER_HEXDUMP : IDS_ENG_HEXDUMP,
 		szOutput, _countof(szOutput)) > 0)
 	{
-		_sntprintf(szFormat, _countof(szFormat), TEXT("%u"), cbLen);
+		_sntprintf(szFormat, _countof(szFormat), TEXT("%Iu"), cbLen);
 		LPTSTR lpszText = AllocReplaceString(szOutput, TEXT("{COUNT}"), szFormat);
 		if (lpszText != NULL)
 		{
@@ -1172,7 +1172,7 @@ BOOL DumpHex(HWND hwndCtl, HANDLE hFile, SIZE_T cbLen)
 		c = ((cbLen - i) > COLUMNS) ? COLUMNS : cbLen - i;
 
 		// Address
-		_sntprintf(szOutput, _countof(szOutput), TEXT("%04X| "), i);
+		_sntprintf(szOutput, _countof(szOutput), TEXT("%04IX| "), i);
 
 		// Hex dump
 		for (j = c, pByte = pData + i; j--; pByte++)
