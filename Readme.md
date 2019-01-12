@@ -59,7 +59,7 @@ See also the section [Status of the project](#status-of-the-project) above.
 
 ## License ##
 
-Copyright (c) 2010 - 2018 by Electron
+Copyright (c) 2010 - 2019 by Electron
 
 Licensed under the [EUPL](https://joinup.ec.europa.eu/software/page/eupl), Version 1.2 - see the [Licence.txt](Licence.txt) file for details.
 
@@ -67,10 +67,12 @@ This software is based in part on the work of the Independent JPEG Group.
 
 ## Links ##
 - [Gbx File Dumper](http://www.wolfgang-rolke.de/gbxdump/)
-- [Gbx File Format](https://wiki.xaseco.org/wiki/GBX)
-- [Microsoft Windows SDK for Windows 7 and .NET Framework 4](https://www.microsoft.com/en-us/download/details.aspx?id=8279)
+- [Gbx file format](https://wiki.xaseco.org/wiki/GBX)
+- [Microsoft Windows SDK for Windows 7 and .NET Framework 4 (VS2005/VS2008/VS2010)](https://www.microsoft.com/en-us/download/details.aspx?id=8279)
 - [Microsoft Visual Studio 2013 Installer Projects](https://marketplace.visualstudio.com/items?itemName=UnniRavindranathan-MSFT.MicrosoftVisualStudio2013InstallerProjects)
 - [Microsoft Visual Studio 2015 Installer Projects](https://marketplace.visualstudio.com/items?itemName=VisualStudioProductTeam.MicrosoftVisualStudio2015InstallerProjects)
-- [Microsoft Visual Studio 2017 Installer Projects](https://marketplace.visualstudio.com/items?itemName=VisualStudioProductTeam.MicrosoftVisualStudio2017InstallerProjects)
+- [Microsoft Visual Studio 2017/2019 Installer Projects](https://marketplace.visualstudio.com/items?itemName=VisualStudioProductTeam.MicrosoftVisualStudio2017InstallerProjects)
 - [Independent JPEG Group's JPEG software](http://www.ijg.org/)
 - [European Union Public Licence 1.1 & 1.2](https://joinup.ec.europa.eu/software/page/eupl)
+- [EUPL Guidelines for users and developers](https://joinup.ec.europa.eu/collection/eupl/guidelines-users-and-developers)
+- [Managing copyright information within a free software project](https://softwarefreedom.org/resources/2012/ManagingCopyrightInformation.html)
