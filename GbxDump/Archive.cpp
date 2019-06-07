@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Archive.cpp - Copyright (c) 2010-2018 by Electron.
+// Archive.cpp - Copyright (c) 2010-2019 by Electron.
 //
-// Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
+// Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
 // You may not use this work except in compliance with the Licence.
 // You may obtain a copy of the Licence at:
@@ -112,14 +112,16 @@ BOOL ReadMask(HANDLE hFile, LPDWORD lpdwMask, BOOL bIsText)
 		return ReadData(hFile, lpdwMask, 4);
 	else
 	{
+		int nRet = 0;
 		CHAR achBuffer[12] = {0};
+
 		if (!ReadLine(hFile, achBuffer, _countof(achBuffer)))
 			return FALSE;
 
 		if (lpdwMask != NULL)
-			sscanf(achBuffer, "%x", lpdwMask);
+			nRet = sscanf(achBuffer, "%x", lpdwMask);
 
-		return TRUE;
+		return (nRet != 0 && nRet != EOF);
 	}
 }
 
@@ -132,17 +134,19 @@ BOOL ReadNat8(HANDLE hFile, LPBYTE lpcNat8, BOOL bIsText)
 		return ReadData(hFile, lpcNat8, 1);
 	else
 	{
+		int nRet = 0;
 		CHAR achBuffer[12] = {0};
+
 		if (!ReadLine(hFile, achBuffer, _countof(achBuffer)))
 			return FALSE;
 
 		WORD wNat16 = 0;
-		sscanf(achBuffer, "%hu", &wNat16);
+		nRet = sscanf(achBuffer, "%hu", &wNat16);
 
 		if (lpcNat8 != NULL)
 			*lpcNat8 = LOBYTE(wNat16);
 
-		return TRUE;
+		return (nRet != 0 && nRet != EOF);
 	}
 }
 
@@ -155,14 +159,16 @@ BOOL ReadNat16(HANDLE hFile, LPWORD lpwNat16, BOOL bIsText)
 		return ReadData(hFile, lpwNat16, 2);
 	else
 	{
+		int nRet = 0;
 		CHAR achBuffer[12] = {0};
+
 		if (!ReadLine(hFile, achBuffer, _countof(achBuffer)))
 			return FALSE;
 
 		if (lpwNat16 != NULL)
-			sscanf(achBuffer, "%hu", lpwNat16);
+			nRet = sscanf(achBuffer, "%hu", lpwNat16);
 
-		return TRUE;
+		return (nRet != 0 && nRet != EOF);
 	}
 }
 
@@ -175,14 +181,16 @@ BOOL ReadNat32(HANDLE hFile, LPDWORD lpdwNat32, BOOL bIsText)
 		return ReadData(hFile, lpdwNat32, 4);
 	else
 	{
+		int nRet = 0;
 		CHAR achBuffer[12] = {0};
+
 		if (!ReadLine(hFile, achBuffer, _countof(achBuffer)))
 			return FALSE;
 
 		if (lpdwNat32 != NULL)
-			sscanf(achBuffer, "%u", lpdwNat32);
+			nRet = sscanf(achBuffer, "%u", lpdwNat32);
 
-		return TRUE;
+		return (nRet != 0 && nRet != EOF);
 	}
 }
 
@@ -195,14 +203,16 @@ BOOL ReadNat64(HANDLE hFile, PULARGE_INTEGER pullNat64, BOOL bIsText)
 		return ReadData(hFile, pullNat64, 8);
 	else
 	{
+		int nRet = 0;
 		CHAR achBuffer[12] = {0};
+
 		if (!ReadLine(hFile, achBuffer, _countof(achBuffer)))
 			return FALSE;
 
 		if (pullNat64 != NULL)
-			sscanf(achBuffer, "%I64u", &pullNat64->QuadPart);
+			nRet = sscanf(achBuffer, "%I64u", &pullNat64->QuadPart);
 
-		return TRUE;
+		return (nRet != 0 && nRet != EOF);
 	}
 }
 
@@ -235,14 +245,16 @@ BOOL ReadInteger(HANDLE hFile, LPINT lpnInteger, BOOL bIsText)
 		return ReadData(hFile, lpnInteger, 4);
 	else
 	{
+		int nRet = 0;
 		CHAR achBuffer[12] = {0};
+
 		if (!ReadLine(hFile, achBuffer, _countof(achBuffer)))
 			return FALSE;
 
 		if (lpnInteger != NULL)
-			sscanf(achBuffer, "%d", lpnInteger);
+			nRet = sscanf(achBuffer, "%d", lpnInteger);
 
-		return TRUE;
+		return (nRet != 0 && nRet != EOF);
 	}
 }
 
@@ -260,12 +272,12 @@ BOOL ReadReal(HANDLE hFile, PFLOAT pfReal, BOOL bIsText)
 			return FALSE;
 
 		_CRT_FLOAT fltval;
-		_atoflt(&fltval, achBuffer);
+		int nRet = _atoflt(&fltval, achBuffer);
 
 		if (pfReal != NULL)
 			*pfReal = fltval.f;
 
-		return TRUE;
+		return (nRet == 0);
 	}
 }
 
@@ -297,7 +309,7 @@ SSIZE_T ReadString(HANDLE hFile, PSTR pszString, SIZE_T cchStringLen, BOOL bIsTe
 		}
 
 		// Allocate memory for the string (1 additional character for the terminating zero)
-		LPVOID lpData = GlobalAllocPtr(GHND, dwLen + 1);
+		LPVOID lpData = GlobalAllocPtr(GHND, (SIZE_T)dwLen + 1);
 		if (lpData == NULL)
 		{
 			pszString[0] = '\0';
@@ -312,7 +324,7 @@ SSIZE_T ReadString(HANDLE hFile, PSTR pszString, SIZE_T cchStringLen, BOOL bIsTe
 		}
 
 		// Copy the read string into the return buffer
-		strncpy(pszString, (LPSTR)lpData, cchStringLen);
+		lstrcpynA(pszString, (LPSTR)lpData, (int)cchStringLen);
 
 		GlobalFreePtr(lpData);
 	}
@@ -364,12 +376,12 @@ SSIZE_T ReadIdentifier(HANDLE hFile, PIDENTIFIER pId, PSTR pszString, SIZE_T cch
 	if (IS_STRING(dwId) && GET_INDEX(dwId) == 0)
 	{
 		// Read the string
-		SSIZE_T cchLen = ReadString(hFile, pszString, cchStringLen);
+		SSIZE_T CONST cchLen = ReadString(hFile, pszString, cchStringLen);
 
 		// Copy the string to the ID list and increment the index
 		if (cchLen > 0 && pId->dwIndex < ID_DIM)
 		{
-			strncpy(pId->aszList[pId->dwIndex], pszString, _countof(pId->aszList[pId->dwIndex]));
+			lstrcpynA(pId->aszList[pId->dwIndex], pszString, _countof(pId->aszList[pId->dwIndex]));
 			pId->dwIndex++;
 		}
 
@@ -377,7 +389,7 @@ SSIZE_T ReadIdentifier(HANDLE hFile, PIDENTIFIER pId, PSTR pszString, SIZE_T cch
 	}
 
 	// Determine identifier index (delete topmost two MSBs)
-	DWORD dwIndex = GET_INDEX(dwId);
+	DWORD CONST dwIndex = GET_INDEX(dwId);
 	if (dwIndex == 0 || dwIndex > ID_DIM)
 	{
 		pszString[0] = '\0';
@@ -385,7 +397,7 @@ SSIZE_T ReadIdentifier(HANDLE hFile, PIDENTIFIER pId, PSTR pszString, SIZE_T cch
 	}
 
 	// Get the string from the ID list
-	strncpy(pszString, pId->aszList[dwIndex-1], cchStringLen);
+	lstrcpynA(pszString, pId->aszList[dwIndex-1], (int)cchStringLen);
 
 	return strlen(pszString);
 }
@@ -401,149 +413,150 @@ SIZE_T GetCollectionString(DWORD dwId, LPSTR lpszCollection, SIZE_T cchStringLen
 	switch (dwId)
 	{
 		case 0: // Speed
-			strncpy(lpszCollection, "Desert", cchStringLen);
+			lstrcpynA(lpszCollection, "Desert", (int)cchStringLen);
 			break;
 		case 1: // Alpine
-			strncpy(lpszCollection, "Snow", cchStringLen);
+			lstrcpynA(lpszCollection, "Snow", (int)cchStringLen);
 			break;
 		case 2: // Rally
-			strncpy(lpszCollection, "Rally", cchStringLen);
+			lstrcpynA(lpszCollection, "Rally", (int)cchStringLen);
 			break;
 		case 3: // Island
-			strncpy(lpszCollection, "Island", cchStringLen);
+			lstrcpynA(lpszCollection, "Island", (int)cchStringLen);
 			break;
 		case 4: // Bay
-			strncpy(lpszCollection, "Bay", cchStringLen);
+			lstrcpynA(lpszCollection, "Bay", (int)cchStringLen);
 			break;
 		case 5: // Coast
-			strncpy(lpszCollection, "Coast", cchStringLen);
+			lstrcpynA(lpszCollection, "Coast", (int)cchStringLen);
 			break;
 		case 6: // Stadium
-			strncpy(lpszCollection, "Stadium", cchStringLen);
+			lstrcpynA(lpszCollection, "Stadium", (int)cchStringLen);
 			break;
 		case 7: // Basic
-			strncpy(lpszCollection, "Basic", cchStringLen);
+			lstrcpynA(lpszCollection, "Basic", (int)cchStringLen);
 			break;
 		case 8: // Plain
-			strncpy(lpszCollection, "Plain", cchStringLen);
+			lstrcpynA(lpszCollection, "Plain", (int)cchStringLen);
 			break;
 		case 9: // Moon
-			strncpy(lpszCollection, "Moon", cchStringLen);
+			lstrcpynA(lpszCollection, "Moon", (int)cchStringLen);
 			break;
 		case 10: // Toy
-			strncpy(lpszCollection, "Toy", cchStringLen);
+			lstrcpynA(lpszCollection, "Toy", (int)cchStringLen);
 			break;
 		case 11: // Valley
-			strncpy(lpszCollection, "Valley", cchStringLen);
+			lstrcpynA(lpszCollection, "Valley", (int)cchStringLen);
 			break;
 		case 12: // Canyon
-			strncpy(lpszCollection, "Canyon", cchStringLen);
+			lstrcpynA(lpszCollection, "Canyon", (int)cchStringLen);
 			break;
 		case 13: // Lagoon
-			strncpy(lpszCollection, "Lagoon", cchStringLen);
+			lstrcpynA(lpszCollection, "Lagoon", (int)cchStringLen);
 			break;
 		case 14: // Deprecated_Arena
-			strncpy(lpszCollection, "Arena", cchStringLen);
+			lstrcpynA(lpszCollection, "Arena", (int)cchStringLen);
 			break;
 		case 15: // TMTest8
-			strncpy(lpszCollection, "TMTest8", cchStringLen);
+			lstrcpynA(lpszCollection, "TMTest8", (int)cchStringLen);
 			break;
 		case 16: // TMTest9
-			strncpy(lpszCollection, "TMTest9", cchStringLen);
+			lstrcpynA(lpszCollection, "TMTest9", (int)cchStringLen);
 			break;
 		case 17: // TMCommon
-			strncpy(lpszCollection, "TMCommon", cchStringLen);
+			lstrcpynA(lpszCollection, "TMCommon", (int)cchStringLen);
 			break;
 		case 18: // Canyon4
-			strncpy(lpszCollection, "Canyon4", cchStringLen);
+			lstrcpynA(lpszCollection, "Canyon4", (int)cchStringLen);
 			break;
 		case 19: // Canyon256
-			strncpy(lpszCollection, "Canyon256", cchStringLen);
+			lstrcpynA(lpszCollection, "Canyon256", (int)cchStringLen);
 			break;
 		case 20: // Valley4
-			strncpy(lpszCollection, "Valley4", cchStringLen);
+			lstrcpynA(lpszCollection, "Valley4", (int)cchStringLen);
 			break;
 		case 21: // Valley256
-			strncpy(lpszCollection, "Valley256", cchStringLen);
+			lstrcpynA(lpszCollection, "Valley256", (int)cchStringLen);
 			break;
 		case 22: // Lagoon4
-			strncpy(lpszCollection, "Lagoon4", cchStringLen);
+			lstrcpynA(lpszCollection, "Lagoon4", (int)cchStringLen);
 			break;
 		case 23: // Lagoon256
-			strncpy(lpszCollection, "Lagoon256", cchStringLen);
+			lstrcpynA(lpszCollection, "Lagoon256", (int)cchStringLen);
 			break;
 		case 24: // Stadium4
-			strncpy(lpszCollection, "Stadium4", cchStringLen);
+			lstrcpynA(lpszCollection, "Stadium4", (int)cchStringLen);
 			break;
 		case 25: // Stadium256
-			strncpy(lpszCollection, "Stadium256", cchStringLen);
+			lstrcpynA(lpszCollection, "Stadium256", (int)cchStringLen);
 			break;
 		case 100: // History
-			strncpy(lpszCollection, "History", cchStringLen);
+			lstrcpynA(lpszCollection, "History", (int)cchStringLen);
 			break;
 		case 101: // Society
-			strncpy(lpszCollection, "Society", cchStringLen);
+			lstrcpynA(lpszCollection, "Society", (int)cchStringLen);
 			break;
 		case 102: // Galaxy
-			strncpy(lpszCollection, "Galaxy", cchStringLen);
+			lstrcpynA(lpszCollection, "Galaxy", (int)cchStringLen);
 			break;
 		case 103: // QMTest1
-			strncpy(lpszCollection, "QMTest1", cchStringLen);
+			lstrcpynA(lpszCollection, "QMTest1", (int)cchStringLen);
 			break;
 		case 104: // QMTest2
-			strncpy(lpszCollection, "QMTest2", cchStringLen);
+			lstrcpynA(lpszCollection, "QMTest2", (int)cchStringLen);
 			break;
 		case 105: // QMTest3
-			strncpy(lpszCollection, "QMTest3", cchStringLen);
+			lstrcpynA(lpszCollection, "QMTest3", (int)cchStringLen);
 			break;
 		case 200: // Gothic
-			strncpy(lpszCollection, "Gothic", cchStringLen);
+			lstrcpynA(lpszCollection, "Gothic", (int)cchStringLen);
 			break;
 		case 201: // Paris
-			strncpy(lpszCollection, "Paris", cchStringLen);
+			lstrcpynA(lpszCollection, "Paris", (int)cchStringLen);
 			break;
 		case 202: // Storm
-			strncpy(lpszCollection, "Storm", cchStringLen);
+			lstrcpynA(lpszCollection, "Storm", (int)cchStringLen);
 			break;
 		case 203: // Cryo
-			strncpy(lpszCollection, "Cryo", cchStringLen);
+			lstrcpynA(lpszCollection, "Cryo", (int)cchStringLen);
 			break;
 		case 204: // Meteor
-			strncpy(lpszCollection, "Meteor", cchStringLen);
+			lstrcpynA(lpszCollection, "Meteor", (int)cchStringLen);
 			break;
 		case 205: // Meteor4
-			strncpy(lpszCollection, "Meteor4", cchStringLen);
+			lstrcpynA(lpszCollection, "Meteor4", (int)cchStringLen);
 			break;
 		case 206: // Meteor256
-			strncpy(lpszCollection, "Meteor256", cchStringLen);
+			lstrcpynA(lpszCollection, "Meteor256", (int)cchStringLen);
 			break;
 		case 207: // SMTest3
-			strncpy(lpszCollection, "SMTest3", cchStringLen);
+			lstrcpynA(lpszCollection, "SMTest3", (int)cchStringLen);
 			break;
 		case 299: // SMCommon
-			strncpy(lpszCollection, "SMCommon", cchStringLen);
+			lstrcpynA(lpszCollection, "SMCommon", (int)cchStringLen);
 			break;
 		case 10000: // Vehicles
-			strncpy(lpszCollection, "Vehicles", cchStringLen);
+			lstrcpynA(lpszCollection, "Vehicles", (int)cchStringLen);
 			break;
 		case 10001: // Orbital
-			strncpy(lpszCollection, "Orbital", cchStringLen);
+			lstrcpynA(lpszCollection, "Orbital", (int)cchStringLen);
 			break;
 		case 10002: // Actors
-			strncpy(lpszCollection, "Actors", cchStringLen);
+			lstrcpynA(lpszCollection, "Actors", (int)cchStringLen);
 			break;
 		case 10003: // Common
-			strncpy(lpszCollection, "Common", cchStringLen);
+			lstrcpynA(lpszCollection, "Common", (int)cchStringLen);
 			break;
 		case 0xFFFFFFFF: // Unassigned
-			strncpy(lpszCollection, "_Unassigned", cchStringLen);
+			lstrcpynA(lpszCollection, "_Unassigned", (int)cchStringLen);
 			break;
 		default:
 			{
 				char szId[32];
-				_snprintf(szId, _countof(szId), "%d", dwId);
+				_snprintf(szId, _countof(szId), "%u", dwId);
+				szId[31] = '\0';
 				if (cchStringLen > strlen(szId))
-					strncpy(lpszCollection, szId, cchStringLen);
+					lstrcpynA(lpszCollection, szId, (int)cchStringLen);
 				else
 				{
 					lpszCollection[0] = '\0';

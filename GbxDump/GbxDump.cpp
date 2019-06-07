@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// GbxDump.cpp - Copyright (c) 2010-2018 by Electron.
+// GbxDump.cpp - Copyright (c) 2010-2019 by Electron.
 //
-// Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
+// Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
 // You may not use this work except in compliance with the Licence.
 // You may obtain a copy of the Licence at:
@@ -28,7 +28,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Forward declarations of functions included in this code module
 //
-BOOL CALLBACK GbxDumpDlgProc(HWND, UINT, WPARAM, LPARAM);
+INT_PTR CALLBACK GbxDumpDlgProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK OutputWndProc(HWND, UINT, WPARAM, LPARAM);
 
 BOOL DumpFile(HWND hwndCtl, LPCTSTR lpszFileName, LPSTR lpszUid, LPSTR lpszEnvi);
@@ -37,15 +37,15 @@ BOOL DumpMux(HWND hwndCtl, HANDLE hFile);
 
 int SelectText(HWND hwndCtl);
 BOOL SetWordWrap(HWND hDlg, BOOL bWordWrap);
-HFONT CreateScaledFont(HDC hDC, LPRECT lpRect, LPCTSTR lpszFormat);
+HFONT CreateScaledFont(HDC hDC, LPCRECT lpRect, LPCTSTR lpszFormat);
 
 HPALETTE DIBCreatePalette(HANDLE hDIB);
 UINT DIBPaletteSize(LPSTR lpbi);
-UINT DIBNumColors(LPSTR lpbi);
+UINT DIBNumColors(LPCSTR lpbi);
 
-void StoreWindowRect(HWND hWnd, LPRECT lprc);
-void RetrieveWindowRect(HWND hWnd, LPRECT lprc);
-void DeleteWindowRect(HWND hWnd);
+void StoreWindowRect(HWND hwnd, LPRECT lprc);
+void RetrieveWindowRect(HWND hwnd, LPRECT lprc);
+void DeleteWindowRect(HWND hwnd);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Global Variables
@@ -57,8 +57,8 @@ void DeleteWindowRect(HWND hWnd);
 #endif
 
 const TCHAR g_szTitle[]   = TEXT("GbxDump");
-const TCHAR g_szAbout[]   = TEXT("Gbx File Dumper 1.61 (") PLATFORM TEXT(")\r\n")
-                            TEXT("Copyright © 2010-2018 by Electron\r\n");
+const TCHAR g_szAbout[]   = TEXT("Gbx File Dumper 1.62 (") PLATFORM TEXT(")\r\n")
+                            TEXT("Copyright © 2010-2019 by Electron\r\n");
 const TCHAR g_szDlgCls[]  = TEXT("GbxDumpDlgClass");
 const TCHAR g_szTop[]     = TEXT("GbxDumpWndTop");
 const TCHAR g_szBottom[]  = TEXT("GbxDumpWndBottom");
@@ -80,7 +80,7 @@ HANDLE g_hDibThumb = NULL;
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Entry-point function of the application
 //
-int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow)
+int APIENTRY _tWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, __in LPTSTR lpCmdLine, __in int nCmdShow)
 {
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(nCmdShow);
@@ -95,7 +95,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 		pszCommandLine = (LPTSTR)GlobalAllocPtr(GHND, (cchCmdLineLen + 1) * sizeof(TCHAR));
 		if (pszCommandLine != NULL)
 		{
-			_tcsncpy(pszCommandLine, lpCmdLine, cchCmdLineLen);
+			lstrcpyn(pszCommandLine, lpCmdLine, (int)cchCmdLineLen);
 			pszFilename = pszCommandLine;
 
 			// Remove quotation marks
@@ -137,7 +137,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 	if (!RegisterClassEx(&wcex))
 	{
 		if (pszCommandLine != NULL)
-			GlobalFreePtr(pszCommandLine);
+			GlobalFreePtr((LPVOID)pszCommandLine);
 		return 0;
 	}
 
@@ -169,7 +169,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 	JpegFreeDib(g_hDibDefault);
 
 	if (pszCommandLine != NULL)
-		GlobalFreePtr(pszCommandLine);
+		GlobalFreePtr((LPVOID)pszCommandLine);
 
 	return (int)nResult;
 }
@@ -177,7 +177,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Window function of the application
 //
-BOOL CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	static POINT s_ptMinTrackSize = {0};
 	static BOOL  s_bAboutBox = FALSE;
@@ -240,7 +240,7 @@ BOOL CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 							nSrcHeight -= 2 * nSrcY;
 						}
 
-						LPSTR pBuf = (LPSTR)lpbi + *(LPDWORD)lpbi + DIBPaletteSize((LPSTR)lpbi);
+						LPCSTR pBuf = (LPSTR)lpbi + *(LPDWORD)lpbi + DIBPaletteSize((LPSTR)lpbi);
 
 						SetStretchBltMode(hdc, HALFTONE);
 						StretchDIBits(hdc, rc.left, rc.top, cx, cy, nSrcX, nSrcY, nSrcWidth, nSrcHeight,
@@ -293,14 +293,14 @@ BOOL CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 				SetTextColor((HDC)wParam, GetSysColor(COLOR_WINDOWTEXT));
 				SetBkColor((HDC)wParam, GetSysColor(COLOR_WINDOW));
 				SetWindowLongPtr(hDlg, DWLP_MSGRESULT, (LONG_PTR)GetSysColorBrush(COLOR_WINDOW));
-				return (BOOL)(UINT_PTR)GetSysColorBrush(COLOR_WINDOW);
+				return (INT_PTR)GetSysColorBrush(COLOR_WINDOW);
 			}
 
 		case WM_CTLCOLORBTN:
 			if (GetDlgItem(hDlg, IDC_THUMB) == (HWND)lParam)
 			{
 				SetWindowLongPtr(hDlg, DWLP_MSGRESULT, (LONG_PTR)GetStockBrush(NULL_BRUSH));
-				return (BOOL)(UINT_PTR)GetStockBrush(NULL_BRUSH);
+				return (INT_PTR)GetStockBrush(NULL_BRUSH);
 			}
 
 		case WM_QUERYNEWPALETTE:
@@ -354,7 +354,7 @@ BOOL CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 				lf.lfHeight = -MulDiv(10, HIWORD(wParam), 72);
 				lf.lfWeight = FW_NORMAL;
 				lf.lfPitchAndFamily = FIXED_PITCH | FF_MODERN;
-				_tcsncpy(lf.lfFaceName, g_szCourier, _countof(lf.lfFaceName));
+				lstrcpyn(lf.lfFaceName, g_szCourier, _countof(lf.lfFaceName));
 
 				HWND hwndCtl = GetDlgItem(hDlg, IDC_OUTPUT);
 				if (hwndCtl != NULL)
@@ -664,7 +664,7 @@ BOOL CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 					{ // Save the current thumbnail as a Windows Bitmap file
 						DWORD dwFilterIndex = 1;
 						TCHAR szFileName[MAX_PATH];
-						_tcsncpy(szFileName, s_szFileName, _countof(szFileName));
+						lstrcpyn(szFileName, s_szFileName, _countof(szFileName));
 
 						if (GetFileName(hDlg, szFileName, _countof(szFileName), &dwFilterIndex, TRUE))
 						{
@@ -675,7 +675,7 @@ BOOL CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 					}
 					return FALSE;
 			}
-			break;
+			return FALSE;
 
 		case WMU_FILEOPEN:
 			{ // Open the GBX file passed by program argument
@@ -884,7 +884,7 @@ BOOL CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 				lf.lfHeight = -MulDiv(10, nDpi, 72);
 				lf.lfWeight = FW_NORMAL;
 				lf.lfPitchAndFamily = FIXED_PITCH | FF_MODERN;
-				_tcsncpy(lf.lfFaceName, g_szCourier, _countof(lf.lfFaceName));
+				lstrcpyn(lf.lfFaceName, g_szCourier, _countof(lf.lfFaceName));
 
 				if (s_hfontEditBox != NULL)
 					DeleteFont(s_hfontEditBox);
@@ -898,7 +898,7 @@ BOOL CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 
 				if ((LPCTSTR)lParam != NULL && ((LPCTSTR)lParam)[0] != TEXT('\0'))
 				{ // Open a GBX file passed by program argument
-					_tcsncpy(s_szFileName, (LPCTSTR)lParam, _countof(s_szFileName));
+					lstrcpyn(s_szFileName, (LPCTSTR)lParam, _countof(s_szFileName));
 					PostMessage(hDlg, WMU_FILEOPEN, 0, lParam);
 				}
 				else
@@ -1129,10 +1129,11 @@ BOOL DumpMux(HWND hwndCtl, HANDLE hFile)
 // Displays a hex dump of the first 1024 bytes of a file.
 
 #define COLUMNS 16
+#define FORMAT_LEN 256
 
 BOOL DumpHex(HWND hwndCtl, HANDLE hFile, SIZE_T cbLen)
 {
-	TCHAR szFormat[256];
+	TCHAR szFormat[FORMAT_LEN];
 	TCHAR szOutput[OUTPUT_LEN];
 
 	if (hwndCtl == NULL || hFile == NULL)
@@ -1147,7 +1148,7 @@ BOOL DumpHex(HWND hwndCtl, HANDLE hFile, SIZE_T cbLen)
 
 	if (!FileSeekBegin(hFile, 0) || !ReadData(hFile, pData, cbLen))
 	{
-		GlobalFreePtr((LPCVOID)pData);
+		GlobalFreePtr((LPVOID)pData);
 		return FALSE;
 	}
 
@@ -1156,12 +1157,13 @@ BOOL DumpHex(HWND hwndCtl, HANDLE hFile, SIZE_T cbLen)
 		szOutput, _countof(szOutput)) > 0)
 	{
 		_sntprintf(szFormat, _countof(szFormat), TEXT("%Iu"), cbLen);
-		LPTSTR lpszText = AllocReplaceString(szOutput, TEXT("{COUNT}"), szFormat);
+		szFormat[FORMAT_LEN - 1] = TEXT('\0');
+		LPCTSTR lpszText = AllocReplaceString(szOutput, TEXT("{COUNT}"), szFormat);
 		if (lpszText != NULL)
 		{
 			OutputText(hwndCtl, lpszText);
 			OutputText(hwndCtl, g_szSep1);
-			GlobalFreePtr((LPCVOID)lpszText);
+			GlobalFreePtr((LPVOID)lpszText);
 		}
 	}
 
@@ -1178,6 +1180,7 @@ BOOL DumpHex(HWND hwndCtl, HANDLE hFile, SIZE_T cbLen)
 		for (j = c, pByte = pData + i; j--; pByte++)
 		{
 			_sntprintf(szFormat, _countof(szFormat), TEXT("%02X "), *pByte);
+			szFormat[FORMAT_LEN - 1] = TEXT('\0');
 			_tcsncat(szOutput, szFormat, _countof(szOutput) - _tcslen(szOutput) - 4);
 		}
 
@@ -1190,6 +1193,7 @@ BOOL DumpHex(HWND hwndCtl, HANDLE hFile, SIZE_T cbLen)
 		for (j = c, pByte = pData + i; j--; pByte++)
 		{
 			_sntprintf(szFormat, _countof(szFormat), TEXT("%hc"), isprint(*pByte) ? *pByte : '.');
+			szFormat[FORMAT_LEN - 1] = TEXT('\0');
 			_tcsncat(szOutput, szFormat, _countof(szOutput) - _tcslen(szOutput) - 4);
 		}
 
@@ -1201,7 +1205,7 @@ BOOL DumpHex(HWND hwndCtl, HANDLE hFile, SIZE_T cbLen)
 		OutputText(hwndCtl, szOutput);
 	}
 
-	GlobalFreePtr((LPCVOID)pData);
+	GlobalFreePtr((LPVOID)pData);
 
 	return TRUE;
 }
@@ -1247,9 +1251,9 @@ int SelectText(HWND hwndCtl)
 
 	TCHAR* pszChar = _tcspbrk(pszLine, pszCutOffChars);
 	if (pszChar == NULL)
-		iEndChar = iChar + nLineLen;
+		iEndChar = (INT_PTR)iChar + nLineLen;
 	else
-		iEndChar = iChar + iCharInLine + (pszChar - pszLine);
+		iEndChar = (INT_PTR)iChar + iCharInLine + (pszChar - pszLine);
 
 	szLine[iCharInLine] = TEXT('\0');
 	pszLine = _tcsrev(szLine);
@@ -1258,7 +1262,7 @@ int SelectText(HWND hwndCtl)
 	if (pszChar == NULL)
 		iStartChar = iChar;
 	else
-		iStartChar = iChar + iCharInLine - (pszChar - pszLine);
+		iStartChar = (INT_PTR)iChar + iCharInLine - (pszChar - pszLine);
 
 	nSelLen = (int)(iEndChar - iStartChar);
 
@@ -1289,7 +1293,7 @@ BOOL SetWordWrap(HWND hDlg, BOOL bWordWrap)
 	RetrieveWindowRect(hwndEditOld, &rcProp);
 	HFONT hFont = GetWindowFont(hwndEditOld);
 	int nLen = Edit_GetTextLength(hwndEditOld);
-	LPTSTR pszSaveText = (LPTSTR)GlobalAllocPtr(GHND, (nLen + 1) * sizeof(TCHAR));
+	LPTSTR pszSaveText = (LPTSTR)GlobalAllocPtr(GHND, ((SIZE_T)nLen + 1) * sizeof(TCHAR));
 	Edit_GetText(hwndEditOld, pszSaveText, nLen+1);
 	DWORD dwSelStart = (DWORD)nLen;
 	DWORD dwSelEnd = (DWORD)nLen;
@@ -1320,7 +1324,7 @@ BOOL SetWordWrap(HWND hDlg, BOOL bWordWrap)
 		hDlg, (HMENU)(UINT_PTR)nID, g_hInstance, NULL);
 	if (hwndEditNew == NULL)
 	{
-		GlobalFreePtr(pszSaveText);
+		GlobalFreePtr((LPVOID)pszSaveText);
 		return FALSE;
 	}
 
@@ -1331,7 +1335,7 @@ BOOL SetWordWrap(HWND hDlg, BOOL bWordWrap)
 
 	// Restore all visible styles
 	Edit_SetText(hwndEditNew, pszSaveText);
-	GlobalFreePtr(pszSaveText);
+	GlobalFreePtr((LPVOID)pszSaveText);
 
 	if (hFont != NULL)
 		SetWindowFont(hwndEditNew, hFont, FALSE);
@@ -1365,7 +1369,7 @@ BOOL SetWordWrap(HWND hDlg, BOOL bWordWrap)
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Create a font that fits the size of the thumbnail window.
 
-HFONT CreateScaledFont(HDC hDC, LPRECT lpRect, LPCTSTR lpszText)
+HFONT CreateScaledFont(HDC hDC, LPCRECT lpRect, LPCTSTR lpszText)
 {
 	if (hDC == NULL || lpRect == NULL || lpszText == NULL)
 		return NULL;
@@ -1385,7 +1389,7 @@ HFONT CreateScaledFont(HDC hDC, LPRECT lpRect, LPCTSTR lpszText)
 	lf.lfHeight = -sizeTextMax.cy; // Set the max practicable font size
 	lf.lfWeight = FW_BOLD;
 	lf.lfPitchAndFamily = DEFAULT_PITCH | FF_SWISS;
-	_tcsncpy(lf.lfFaceName, g_szArial, _countof(lf.lfFaceName));
+	lstrcpyn(lf.lfFaceName, g_szArial, _countof(lf.lfFaceName));
 
 	HFONT hFont = CreateFontIndirect(&lf);
 	if (hFont == NULL)
@@ -1435,18 +1439,20 @@ HPALETTE DIBCreatePalette(HANDLE hDIB)
 	HPALETTE hPal = NULL;
 	LPSTR lpbi = (LPSTR)GlobalLock((HGLOBAL)hDIB);
 	LPBITMAPINFO lpbmi = (LPBITMAPINFO)lpbi;
+	if (lpbmi == NULL)
+		return NULL;
 
 	UINT uNumColors = DIBNumColors(lpbi);
 	if (uNumColors != 0)
 	{ // Create palette from the colors of the DIB
-		HGLOBAL hLogPal = GlobalAlloc(GHND, sizeof(LOGPALETTE) + sizeof(PALETTEENTRY) * uNumColors);
-		if (hLogPal == NULL)
+		LPLOGPALETTE lpPal = (LPLOGPALETTE)GlobalAllocPtr(GHND,
+			sizeof(LOGPALETTE) + sizeof(PALETTEENTRY) * uNumColors);
+		if (lpPal == NULL)
 		{
 			GlobalUnlock((HGLOBAL)hDIB);
 			return NULL;
 		}
 
-		LPLOGPALETTE lpPal = (LPLOGPALETTE)GlobalLock((HGLOBAL)hLogPal);
 		lpPal->palVersion    = 0x300;
 		lpPal->palNumEntries = (WORD)uNumColors;
 
@@ -1460,8 +1466,7 @@ HPALETTE DIBCreatePalette(HANDLE hDIB)
 
 		hPal = CreatePalette(lpPal);
 
-		GlobalUnlock((HGLOBAL)hLogPal);
-		GlobalFree((HGLOBAL)hLogPal);
+		GlobalFreePtr((LPVOID)lpPal);
 	}
 	else
 	{ // Create a halftone palette
@@ -1490,7 +1495,7 @@ __inline UINT DIBPaletteSize(LPSTR lpbi)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-__inline UINT DIBNumColors(LPSTR lpbi)
+__inline UINT DIBNumColors(LPCSTR lpbi)
 {
 	DWORD dwClrUsed = ((LPBITMAPINFOHEADER)lpbi)->biClrUsed;
 	if (dwClrUsed != 0)
@@ -1507,42 +1512,47 @@ __inline UINT DIBNumColors(LPSTR lpbi)
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Save the size of a window in the property list of the window.
 
-void StoreWindowRect(HWND hWnd, LPRECT lprc)
+void StoreWindowRect(HWND hwnd, LPRECT lprc)
 {
-	if (hWnd != NULL && lprc != NULL)
+	if (hwnd != NULL && lprc != NULL)
 	{
-		SetProp(hWnd, g_szTop,    (HANDLE)(LONG_PTR)lprc->top);
-		SetProp(hWnd, g_szBottom, (HANDLE)(LONG_PTR)lprc->bottom);
-		SetProp(hWnd, g_szLeft,   (HANDLE)(LONG_PTR)lprc->left);
-		SetProp(hWnd, g_szRight,  (HANDLE)(LONG_PTR)lprc->right);
+		SetProp(hwnd, g_szTop,    (HANDLE)(LONG_PTR)lprc->top);
+		SetProp(hwnd, g_szBottom, (HANDLE)(LONG_PTR)lprc->bottom);
+		SetProp(hwnd, g_szLeft,   (HANDLE)(LONG_PTR)lprc->left);
+		SetProp(hwnd, g_szRight,  (HANDLE)(LONG_PTR)lprc->right);
 	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Retrieve a saved window size from the property list of a window.
 
-void RetrieveWindowRect(HWND hWnd, LPRECT lprc)
+void RetrieveWindowRect(HWND hwnd, LPRECT lprc)
 {
-	if (hWnd != NULL && lprc != NULL)
+	if (lprc != NULL)
 	{
-		lprc->top    = (LONG)(LONG_PTR)GetProp(hWnd, g_szTop);
-		lprc->bottom = (LONG)(LONG_PTR)GetProp(hWnd, g_szBottom);
-		lprc->left   = (LONG)(LONG_PTR)GetProp(hWnd, g_szLeft);
-		lprc->right  = (LONG)(LONG_PTR)GetProp(hWnd, g_szRight);
+		if (hwnd == NULL)
+			SetRectEmpty(lprc);
+		else
+		{
+			lprc->top = (LONG)(LONG_PTR)GetProp(hwnd, g_szTop);
+			lprc->bottom = (LONG)(LONG_PTR)GetProp(hwnd, g_szBottom);
+			lprc->left = (LONG)(LONG_PTR)GetProp(hwnd, g_szLeft);
+			lprc->right = (LONG)(LONG_PTR)GetProp(hwnd, g_szRight);
+		}
 	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Remove previously created entries from the property list of a window.
 
-void DeleteWindowRect(HWND hWnd)
+void DeleteWindowRect(HWND hwnd)
 {
-	if (hWnd != NULL)
+	if (hwnd != NULL)
 	{
-		RemoveProp(hWnd, g_szTop);
-		RemoveProp(hWnd, g_szBottom);
-		RemoveProp(hWnd, g_szLeft);
-		RemoveProp(hWnd, g_szRight);
+		RemoveProp(hwnd, g_szTop);
+		RemoveProp(hwnd, g_szBottom);
+		RemoveProp(hwnd, g_szLeft);
+		RemoveProp(hwnd, g_szRight);
 	}
 }
 

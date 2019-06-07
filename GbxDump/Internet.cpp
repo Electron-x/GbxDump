@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Internet.cpp - Copyright (c) 2010-2018 by Electron.
+// Internet.cpp - Copyright (c) 2010-2019 by Electron.
 //
-// Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
+// Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
 // You may not use this work except in compliance with the Licence.
 // You may obtain a copy of the Licence at:
@@ -19,6 +19,7 @@
 #include "stdafx.h"
 #include "internet.h"
 
+#define TITLE_LEN 256
 #define TIMEOUT 10000 // 10 Seconds
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -30,7 +31,7 @@ void LastInternetError(HWND hwndCtl, DWORD dwError);
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // String Constants
 //
-const TCHAR g_szUserAgent[]  = TEXT("GbxDump/1.61");
+const TCHAR g_szUserAgent[]  = TEXT("GbxDump/1.62");
 const TCHAR g_szWininetDll[] = TEXT("wininet.dll");
 const TCHAR g_szConnecting[] = TEXT("%s - Connecting...");
 const TCHAR g_szDownload[]   = TEXT("%s - Downloading...");
@@ -43,7 +44,7 @@ BOOL ReadInternetFile(HWND hwndCtl, LPCTSTR lpszUrl, LPSTR lpszData, DWORD dwSiz
 	if (hwndCtl == NULL || lpszUrl == NULL || lpszData == NULL || dwSize == 0)
 		return FALSE;
 
-	TCHAR szTitle[256];
+	TCHAR szTitle[TITLE_LEN];
 	HWND hwndDlg = GetParent(hwndCtl);
 
 	HINTERNET hInternet = InternetOpen(g_szUserAgent, INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
@@ -58,6 +59,7 @@ BOOL ReadInternetFile(HWND hwndCtl, LPCTSTR lpszUrl, LPSTR lpszData, DWORD dwSiz
 	InternetSetOption(hInternet, INTERNET_OPTION_RECEIVE_TIMEOUT, &dwTimeout, sizeof(dwTimeout));
 
 	_sntprintf(szTitle, _countof(szTitle), g_szConnecting, g_szTitle);
+	szTitle[TITLE_LEN - 1] = TEXT('\0');
 	SetWindowText(hwndDlg, szTitle);
 
 	HINTERNET hInternetFile = InternetOpenUrl(hInternet, lpszUrl, NULL, 0, 0, 0);
@@ -80,7 +82,7 @@ BOOL ReadInternetFile(HWND hwndCtl, LPCTSTR lpszUrl, LPSTR lpszData, DWORD dwSiz
 			return FALSE;
 		}
 
-		hInternetFile = InternetOpenUrl(hInternet, lpszUrl, NULL, 0, 0, 0);
+		hInternetFile = InternetOpenUrl(hInternet, lpszUrl, NULL, 0, 0, INTERNET_NO_CALLBACK);
 		if (hInternetFile == NULL)
 		{
 			LastInternetError(hwndCtl, GetLastError());
@@ -91,6 +93,7 @@ BOOL ReadInternetFile(HWND hwndCtl, LPCTSTR lpszUrl, LPSTR lpszData, DWORD dwSiz
 	}
 
 	_sntprintf(szTitle, _countof(szTitle), g_szDownload, g_szTitle);
+	szTitle[TITLE_LEN - 1] = TEXT('\0');
 	SetWindowText(hwndDlg, szTitle);
 
 	DWORD dwRead = 0;
@@ -153,7 +156,7 @@ void LastInternetError(HWND hwndCtl, DWORD dwError)
 
 	if (dwLen > 0 && lpMsgBuf != NULL)
 	{
-		_tcsncpy(szOutput, (LPTSTR)lpMsgBuf, _countof(szOutput));
+		lstrcpyn(szOutput, (LPTSTR)lpMsgBuf, _countof(szOutput));
 		if (hwndCtl != NULL)
 		{
 			int nLen = Edit_GetTextLength(hwndCtl);

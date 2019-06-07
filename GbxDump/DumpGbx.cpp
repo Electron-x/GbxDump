@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// DumpGbx.cpp - Copyright (c) 2010-2018 by Electron.
+// DumpGbx.cpp - Copyright (c) 2010-2019 by Electron.
 //
-// Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
+// Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
 // You may not use this work except in compliance with the Licence.
 // You may obtain a copy of the Licence at:
@@ -70,7 +70,7 @@ typedef struct _CHUNK
 //
 BASECLASS GetBaseClass(HWND hwndCtl, DWORD dwClassId);
 DWORD ReadRefTable(HWND hwndCtl, HANDLE hFile, WORD wVersion, PBYTE achStorageSettings);
-BOOL ReadSubFolders(HWND hwndCtl, HANDLE hFile, PDWORD pdwIndex, LPSTR lpszFolder, BOOL bIsText);
+BOOL ReadSubFolders(HWND hwndCtl, HANDLE hFile, PDWORD pdwIndex, LPCSTR lpszFolder, BOOL bIsText);
 BOOL ReadSkin(HWND hwndCtl, HANDLE hFile);
 
 BOOL DumpChallenge(HWND hwndCtl, HANDLE hFile, LPSTR lpszUid, LPSTR lpszEnvi);
@@ -120,7 +120,6 @@ BOOL FolderDepChunk(HWND hwndCtl, HANDLE hFile, PCHUNK chunkFolder);
 // String Constants
 //
 const TCHAR g_chNil        = TEXT('\0');
-const TCHAR g_szOR[]       = TEXT("|");
 const TCHAR g_szAsterisk[] = TEXT("*");
 const TCHAR g_szCRLF[]     = TEXT("\r\n");
 const TCHAR g_szYes[]      = TEXT("Yes");
@@ -1618,7 +1617,7 @@ DWORD ReadRefTable(HWND hwndCtl, HANDLE hFile, WORD wVersion, PBYTE achStorageSe
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Recursive; called by ReadRefTable
 //
-BOOL ReadSubFolders(HWND hwndCtl, HANDLE hFile, PDWORD pdwIndex, LPSTR lpszFolder, BOOL bIsText)
+BOOL ReadSubFolders(HWND hwndCtl, HANDLE hFile, PDWORD pdwIndex, LPCSTR lpszFolder, BOOL bIsText)
 {
 	SSIZE_T nRet = 0;
 	CHAR szRead[MAX_PATH];
@@ -1627,7 +1626,7 @@ BOOL ReadSubFolders(HWND hwndCtl, HANDLE hFile, PDWORD pdwIndex, LPSTR lpszFolde
 
 	szFolder[0] = '\0';
 	if (lpszFolder != NULL)
-		strncpy(szFolder, lpszFolder, _countof(szFolder));
+		lstrcpynA(szFolder, lpszFolder, _countof(szFolder));
 
 	// Directory name
 	if ((nRet = ReadString(hFile, szRead, _countof(szRead), bIsText)) < 0)
@@ -1805,13 +1804,13 @@ BOOL ReadSkin(HWND hwndCtl, HANDLE hFile)
 BOOL ChallengeTmDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckTmDesc)
 {
 	BYTE  cVersion = 0;
-	DWORD dwGold = (DWORD)-1;
-	DWORD dwSilver = (DWORD)-1;
-	DWORD dwBronze = (DWORD)-1;
-	DWORD dwAuthortime = (DWORD)-1;
-	DWORD dwAuthorscore = (DWORD)-1;
-	DWORD dwTrackType = (DWORD)-1;
-	DWORD dwEditorMode = (DWORD)-1;
+	DWORD dwGold = UNASSIGNED;
+	DWORD dwSilver = UNASSIGNED;
+	DWORD dwBronze = UNASSIGNED;
+	DWORD dwAuthortime = UNASSIGNED;
+	DWORD dwAuthorscore = UNASSIGNED;
+	DWORD dwTrackType = UNASSIGNED;
+	DWORD dwEditorMode = UNASSIGNED;
 	DWORD dwCopperPrice = 0;
 	DWORD dwCheckpoints = 0;
 	DWORD dwNbLaps = 0;
@@ -2034,6 +2033,8 @@ BOOL ChallengeTmDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckTmDesc)
 #endif
 		OutputTextFmt(hwndCtl, szOutput, TEXT("Simple Editor:\t%s\r\n"),
 			IS_UNASSIGNED(dwEditorMode) ? g_szUnknown : ((dwEditorMode & 0x1) ? g_szTrue : g_szFalse));
+		OutputTextFmt(hwndCtl, szOutput, TEXT("Party Editor:\t%s\r\n"),
+			IS_UNASSIGNED(dwEditorMode) ? g_szUnknown : ((dwEditorMode & 0x4) ? g_szTrue : g_szFalse));
 		OutputTextFmt(hwndCtl, szOutput, TEXT("Ghost Blocks:\t%s\r\n"),
 			IS_UNASSIGNED(dwEditorMode) ? g_szUnknown : ((dwEditorMode & 0x2) ? g_szTrue : g_szFalse));
 	}
@@ -2084,7 +2085,7 @@ BOOL ChallengeCommonChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckCommon, LPSTR lp
 
 	if (nRet > 0)
 	{
-		strncpy(lpszUid, szRead, UID_LENGTH);
+		lstrcpynA(lpszUid, szRead, UID_LENGTH);
 		OutputText(hwndCtl, TEXT("Map UID:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
 		OutputText(hwndCtl, szOutput);
@@ -2096,7 +2097,7 @@ BOOL ChallengeCommonChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckCommon, LPSTR lp
 
 	if (nRet > 0)
 	{
-		strncpy(lpszEnvi, szRead, ENVI_LENGTH);
+		lstrcpynA(lpszEnvi, szRead, ENVI_LENGTH);
 		OutputText(hwndCtl, TEXT("Collection:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
 		OutputText(hwndCtl, szOutput);
@@ -2648,7 +2649,7 @@ BOOL ChallengeVskDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVskDesc)
 	OutputText(hwndCtl, g_szCRLF);
 
 	// Start Time
-	DWORD dwDayTime = 0;
+	DWORD dwDayTime = UNASSIGNED;
 	if (!ReadNat32(hFile, &dwDayTime))
 		return FALSE;
 
@@ -2660,7 +2661,7 @@ BOOL ChallengeVskDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVskDesc)
 		return TRUE;
 
 	// Time Limit
-	DWORD dwTimeLimit = 0;
+	DWORD dwTimeLimit = UNASSIGNED;
 	if (!ReadNat32(hFile, &dwTimeLimit))
 		return FALSE;
 
@@ -2721,7 +2722,7 @@ BOOL ChallengeVskDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVskDesc)
 	}
 
 	// Wind Shift Duration
-	DWORD dwWindShiftDur = 0;
+	DWORD dwWindShiftDur = UNASSIGNED;
 	if (!ReadNat32(hFile, &dwWindShiftDur))
 		return FALSE;
 
@@ -2986,7 +2987,7 @@ BOOL ChallengeThumbnailChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckThumbnail)
 
 		if (dwCommentsSize > 0)
 		{
-			lpData = GlobalAllocPtr(GHND, dwCommentsSize + 1);
+			lpData = GlobalAllocPtr(GHND, (SIZE_T)dwCommentsSize + 1);
 			if (lpData == NULL)
 				return FALSE;
 
@@ -3068,7 +3069,7 @@ BOOL ReplayVersionChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVersion, LPSTR lps
 
 		if (nRet > 0)
 		{
-			strncpy(lpszUid, szRead, UID_LENGTH);
+			lstrcpynA(lpszUid, szRead, UID_LENGTH);
 			OutputText(hwndCtl, TEXT("Map UID:\t"));
 			ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
 			OutputText(hwndCtl, szOutput);
@@ -3080,7 +3081,7 @@ BOOL ReplayVersionChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVersion, LPSTR lps
 
 		if (nRet > 0)
 		{
-			strncpy(lpszEnvi, szRead, ENVI_LENGTH);
+			lstrcpynA(lpszEnvi, szRead, ENVI_LENGTH);
 			OutputText(hwndCtl, TEXT("Collection:\t"));
 			ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
 			OutputText(hwndCtl, szOutput);
@@ -3113,7 +3114,7 @@ BOOL ReplayVersionChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVersion, LPSTR lps
 		}
 
 		// Best Time
-		DWORD dwBest = (DWORD)-1;
+		DWORD dwBest = UNASSIGNED;
 		if (!ReadNat32(hFile, &dwBest))
 			return FALSE;
 
@@ -3196,7 +3197,7 @@ BOOL ChallengeReplayCommunityChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckCommuni
 		return FALSE;
 
 	// Output Community chunk
-	LPVOID pXmlData = GlobalAllocPtr(GHND, dwXmlSize + 1); // 1 additional character for terminating null
+	LPVOID pXmlData = GlobalAllocPtr(GHND, (SIZE_T)dwXmlSize + 1); // 1 additional character for terminating null
 	if (pXmlData == NULL)
 		return FALSE;
 
@@ -3207,16 +3208,16 @@ BOOL ChallengeReplayCommunityChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckCommuni
 	}
 
 	// Allocate memory for Unicode
-	LPVOID pXmlString = GlobalAllocPtr(GHND, 2 * (dwXmlSize + 3));
+	LPVOID pXmlString = GlobalAllocPtr(GHND, 2 * ((SIZE_T)dwXmlSize + 3));
 	if (pXmlString != NULL)
 	{
 		__try
 		{
 			// Convert to Unicode
-			ConvertGbxString(pXmlData, dwXmlSize, (LPTSTR)pXmlString, dwXmlSize + 3);
+			ConvertGbxString(pXmlData, dwXmlSize, (LPTSTR)pXmlString, (SIZE_T)dwXmlSize + 3);
 
 			// Insert line breaks
-			LPTSTR lpszTemp = AllocReplaceString((LPCTSTR)pXmlString, TEXT("><"), TEXT(">\r\n<"));
+			LPCTSTR lpszTemp = AllocReplaceString((LPCTSTR)pXmlString, TEXT("><"), TEXT(">\r\n<"));
 			if (lpszTemp == NULL)
 				OutputText(hwndCtl, (LPCTSTR)pXmlString);
 			else
@@ -3447,40 +3448,24 @@ BOOL CollectorDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckDesc)
 			szOutput[0] = g_chNil;
 
 			if (pFlags->IsInternal)
-			{
-				if (szOutput[0] != g_chNil)
-					_tcsncat(szOutput, g_szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-				_tcsncat(szOutput, TEXT("IsInternal"), _countof(szOutput) - _tcslen(szOutput) - 1);
-			}
+				AppendFlagName(szOutput, _countof(szOutput), TEXT("IsInternal"));
 
 			if (pFlags->IsAdvanced)
-			{
-				if (szOutput[0] != g_chNil)
-					_tcsncat(szOutput, g_szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-				_tcsncat(szOutput, TEXT("IsAdvanced"), _countof(szOutput) - _tcslen(szOutput) - 1);
-			}
+				AppendFlagName(szOutput, _countof(szOutput), TEXT("IsAdvanced"));
 
 			switch (pFlags->IconDesc)
 			{
 				//case 0:
-				//	if (szOutput[0] != g_chNil)
-				//		_tcsncat(szOutput, g_szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-				//	_tcsncat(szOutput, TEXT("IconDesc_Unknown"), _countof(szOutput) - _tcslen(szOutput) - 1);
+				//	AppendFlagName(szOutput, _countof(szOutput), TEXT("IconDesc_Unknown"));
 				//	break;
 				case 1:
-					if (szOutput[0] != g_chNil)
-						_tcsncat(szOutput, g_szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-					_tcsncat(szOutput, TEXT("IconDesc_NoIcon"), _countof(szOutput) - _tcslen(szOutput) - 1);
+					AppendFlagName(szOutput, _countof(szOutput), TEXT("IconDesc_NoIcon"));
 					break;
 				case 2:
-					if (szOutput[0] != g_chNil)
-						_tcsncat(szOutput, g_szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-					_tcsncat(szOutput, TEXT("IconDesc_BGRA_64x64"), _countof(szOutput) - _tcslen(szOutput) - 1);
+					AppendFlagName(szOutput, _countof(szOutput), TEXT("IconDesc_BGRA_64x64"));
 					break;
 				case 3:
-					if (szOutput[0] != g_chNil)
-						_tcsncat(szOutput, g_szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-					_tcsncat(szOutput, TEXT("IconDesc_BGRA_128x128"), _countof(szOutput) - _tcslen(szOutput) - 1);
+					AppendFlagName(szOutput, _countof(szOutput), TEXT("IconDesc_BGRA_128x128"));
 					break;
 			}
 
@@ -3723,7 +3708,7 @@ BOOL ObjectInfoTypeChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckType)
 		return FALSE;
 
 	// Type
-	DWORD dwType = (DWORD)-1;
+	DWORD dwType = UNASSIGNED;
 	if (!ReadNat32(hFile, &dwType))
 		return FALSE;
 
@@ -4387,7 +4372,7 @@ BOOL ProfileChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckProfile)
 
 	if (dwLen > 0)
 	{
-		LPVOID lpData = GlobalAllocPtr(GHND, dwLen + 1);
+		LPVOID lpData = GlobalAllocPtr(GHND, (SIZE_T)dwLen + 1);
 		if (lpData == NULL)
 			return FALSE;
 

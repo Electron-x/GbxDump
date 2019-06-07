@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// DumpPak.cpp - Copyright (c) 2010-2018 by Electron.
+// DumpPak.cpp - Copyright (c) 2010-2019 by Electron.
 //
-// Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
+// Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
 // You may not use this work except in compliance with the Licence.
 // You may obtain a copy of the Licence at:
@@ -64,7 +64,6 @@ BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderM
 // String Constants
 //
 const TCHAR g_chNil        = TEXT('\0');
-const TCHAR g_szOR[]       = TEXT("|");
 const TCHAR g_szAsterisk[] = TEXT("*");
 const TCHAR g_szCRLF[]     = TEXT("\r\n");
 
@@ -120,39 +119,19 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 	szOutput[0] = g_chNil;
 
 	if (pCryptFlags->IsHeaderPrivate)
-	{
-		if (szOutput[0] != g_chNil)
-			_tcsncat(szOutput, g_szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-		_tcsncat(szOutput, TEXT("IsHeaderPrivate"), _countof(szOutput) - _tcslen(szOutput) - 1);
-	}
+		AppendFlagName(szOutput, _countof(szOutput), TEXT("IsHeaderPrivate"));
 
 	if (pCryptFlags->UseDefaultHeaderKey)
-	{
-		if (szOutput[0] != g_chNil)
-			_tcsncat(szOutput, g_szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-		_tcsncat(szOutput, TEXT("UseDefaultHeaderKey"), _countof(szOutput) - _tcslen(szOutput) - 1);
-	}
+		AppendFlagName(szOutput, _countof(szOutput), TEXT("UseDefaultHeaderKey"));
 
 	if (pCryptFlags->IsDataPrivate)
-	{
-		if (szOutput[0] != g_chNil)
-			_tcsncat(szOutput, g_szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-		_tcsncat(szOutput, TEXT("IsDataPrivate"), _countof(szOutput) - _tcslen(szOutput) - 1);
-	}
+		AppendFlagName(szOutput, _countof(szOutput), TEXT("IsDataPrivate"));
 
 	if (pCryptFlags->IsImpostor)
-	{
-		if (szOutput[0] != g_chNil)
-			_tcsncat(szOutput, g_szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-		_tcsncat(szOutput, TEXT("IsImpostor"), _countof(szOutput) - _tcslen(szOutput) - 1);
-	}
+		AppendFlagName(szOutput, _countof(szOutput), TEXT("IsImpostor"));
 
 	if (pCryptFlags->__Unused__)
-	{
-		if (szOutput[0] != g_chNil)
-			_tcsncat(szOutput, g_szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-		_tcsncat(szOutput, g_szAsterisk, _countof(szOutput) - _tcslen(szOutput) - 1);
-	}
+		AppendFlagName(szOutput, _countof(szOutput), g_szAsterisk);
 
 	if (szOutput[0] != g_chNil)
 	{
@@ -286,7 +265,7 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 
 	if (dwTxtSize > 0)
 	{
-		lpDataTxt = GlobalAllocPtr(GHND, dwTxtSize + 1); // 1 more character for terminating zero
+		lpDataTxt = GlobalAllocPtr(GHND, (SIZE_T)dwTxtSize + 1); // 1 more character for terminating zero
 		if (lpDataTxt == NULL)
 			return FALSE;
 
@@ -315,7 +294,7 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 
 		if (dwXmlSize > 0)
 		{
-			lpDataXml = GlobalAllocPtr(GHND, dwXmlSize + 1); // 1 more character for terminating zero
+			lpDataXml = GlobalAllocPtr(GHND, (SIZE_T)dwXmlSize + 1); // 1 more character for terminating zero
 			if (lpDataXml == NULL)
 			{
 				if (lpDataTxt != NULL)
@@ -441,16 +420,16 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 	if (lpDataXml != NULL)
 	{ // Output XML
 		// Allocate memory for Unicode
-		LPVOID pXmlString = GlobalAllocPtr(GHND, 2 * (dwXmlSize + 3));
+		LPVOID pXmlString = GlobalAllocPtr(GHND, 2 * ((SIZE_T)dwXmlSize + 3));
 		if (pXmlString != NULL)
 		{
 			__try
 			{
 				// Convert to Unicode
-				ConvertGbxString(lpDataXml, dwXmlSize, (LPTSTR)pXmlString, dwXmlSize + 3);
+				ConvertGbxString(lpDataXml, dwXmlSize, (LPTSTR)pXmlString, (SIZE_T)dwXmlSize + 3);
 
 				// Insert line breaks
-				LPTSTR lpszTemp = AllocReplaceString((LPCTSTR)pXmlString, TEXT("><"), TEXT(">\r\n<"));
+				LPCTSTR lpszTemp = AllocReplaceString((LPCTSTR)pXmlString, TEXT("><"), TEXT(">\r\n<"));
 
 				OutputText(hwndCtl, g_szSep1);
 
@@ -890,74 +869,34 @@ BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderM
 		szOutput[0] = g_chNil;
 
 		if (pFileFlags->IsHashed)
-		{
-			if (szOutput[0] != g_chNil)
-				_tcsncat(szOutput, g_szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-			_tcsncat(szOutput, TEXT("IsHashed"), _countof(szOutput) - _tcslen(szOutput) - 1);
-		}
+			AppendFlagName(szOutput, _countof(szOutput), TEXT("IsHashed"));
 
 		if (pFileFlags->PublishFid)
-		{
-			if (szOutput[0] != g_chNil)
-				_tcsncat(szOutput, g_szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-			_tcsncat(szOutput, TEXT("PublishFid"), _countof(szOutput) - _tcslen(szOutput) - 1);
-		}
+			AppendFlagName(szOutput, _countof(szOutput), TEXT("PublishFid"));
 
 		if (pFileFlags->Compression)
-		{
-			if (szOutput[0] != g_chNil)
-				_tcsncat(szOutput, g_szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-			_tcsncat(szOutput, TEXT("Compressed"), _countof(szOutput) - _tcslen(szOutput) - 1);
-		}
+			AppendFlagName(szOutput, _countof(szOutput), TEXT("Compressed"));
 
 		if (pFileFlags->IsSeekable)
-		{
-			if (szOutput[0] != g_chNil)
-				_tcsncat(szOutput, g_szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-			_tcsncat(szOutput, TEXT("IsSeekable"), _countof(szOutput) - _tcslen(szOutput) - 1);
-		}
+			AppendFlagName(szOutput, _countof(szOutput), TEXT("IsSeekable"));
 
 		if (pFileFlags->_Unknown_)
-		{
-			if (szOutput[0] != g_chNil)
-				_tcsncat(szOutput, g_szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-			_tcsncat(szOutput, TEXT("_Unknown_"), _countof(szOutput) - _tcslen(szOutput) - 1);
-		}
+			AppendFlagName(szOutput, _countof(szOutput), TEXT("_Unknown_"));
 
 		if (pFileFlags->DontUseDummyWrite)
-		{
-			if (szOutput[0] != g_chNil)
-				_tcsncat(szOutput, g_szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-			_tcsncat(szOutput, TEXT("DontUseDummyWrite"), _countof(szOutput) - _tcslen(szOutput) - 1);
-		}
+			AppendFlagName(szOutput, _countof(szOutput), TEXT("DontUseDummyWrite"));
 
 		if (pFileFlags->OpaqueUserData)
-		{
-			if (szOutput[0] != g_chNil)
-				_tcsncat(szOutput, g_szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-			_tcsncat(szOutput, TEXT("OpaqueUserData"), _countof(szOutput) - _tcslen(szOutput) - 1);
-		}
+			AppendFlagName(szOutput, _countof(szOutput), TEXT("OpaqueUserData"));
 
 		if (pFileFlags->PublicFile)
-		{
-			if (szOutput[0] != g_chNil)
-				_tcsncat(szOutput, g_szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-			_tcsncat(szOutput, TEXT("PublicFile"), _countof(szOutput) - _tcslen(szOutput) - 1);
-		}
+			AppendFlagName(szOutput, _countof(szOutput), TEXT("PublicFile"));
 
 		if (pFileFlags->ForceNoCrypt)
-		{
-			if (szOutput[0] != g_chNil)
-				_tcsncat(szOutput, g_szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-			_tcsncat(szOutput, TEXT("ForceNoCrypt"), _countof(szOutput) - _tcslen(szOutput) - 1);
-		}
+			AppendFlagName(szOutput, _countof(szOutput), TEXT("ForceNoCrypt"));
 
 		if (pFileFlags->__Unused1__ || pFileFlags->__Unused2__)
-		{
-			if (szOutput[0] != g_chNil)
-				_tcsncat(szOutput, g_szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-			_tcsncat(szOutput, g_szAsterisk, _countof(szOutput) - _tcslen(szOutput) - 1);
-		}
+			AppendFlagName(szOutput, _countof(szOutput), g_szAsterisk);
 
 		if (szOutput[0] != g_chNil)
 		{

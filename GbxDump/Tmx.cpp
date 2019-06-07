@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Tmx.cpp - Copyright (c) 2010-2018 by Electron.
+// Tmx.cpp - Copyright (c) 2010-2019 by Electron.
 //
-// Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
+// Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
 // You may not use this work except in compliance with the Licence.
 // You may obtain a copy of the Licence at:
@@ -148,19 +148,19 @@ BOOL PrintTmxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 	switch (nGame)
 	{
 		case GAME_TMNF:
-			_tcsncpy(szSubDomain, g_szForever, _countof(szSubDomain));
+			lstrcpyn(szSubDomain, g_szForever, _countof(szSubDomain));
 			break;
 		case GAME_TMU:
-			_tcsncpy(szSubDomain, g_szUnited, _countof(szSubDomain));
+			lstrcpyn(szSubDomain, g_szUnited, _countof(szSubDomain));
 			break;
 		case GAME_TMN:
-			_tcsncpy(szSubDomain, g_szNations, _countof(szSubDomain));
+			lstrcpyn(szSubDomain, g_szNations, _countof(szSubDomain));
 			break;
 		case GAME_TMS:
-			_tcsncpy(szSubDomain, g_szSunrise, _countof(szSubDomain));
+			lstrcpyn(szSubDomain, g_szSunrise, _countof(szSubDomain));
 			break;
 		case GAME_TMO:
-			_tcsncpy(szSubDomain, g_szOriginal, _countof(szSubDomain));
+			lstrcpyn(szSubDomain, g_szOriginal, _countof(szSubDomain));
 			break;
 		default:
 			return TRUE;
@@ -180,13 +180,13 @@ BOOL PrintTmxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 	_sntprintf(szTmxUrl, _countof(szTmxUrl), g_szUrlTmx, szSubDomain, g_szParamInfo, lpszUid);
 	if (!ReadInternetFile(hwndCtl, szTmxUrl, lpszData, dwSize))
 	{
-		GlobalFreePtr((HGLOBAL)lpszData);
+		GlobalFreePtr((LPVOID)lpszData);
 		return FALSE;
 	}
 
 	if (lpszData[0] == '\0' || strchr(lpszData, '\t') == NULL)
 	{ // No valid track data available
-		GlobalFreePtr((HGLOBAL)lpszData);
+		GlobalFreePtr((LPVOID)lpszData);
 		return TRUE;
 	}
 
@@ -196,9 +196,9 @@ BOOL PrintTmxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 
 	// Initialize TMX ID and track version for string comparison
 	char szVersion[32];
-	szVersion[0] = '\0';
 	char szTrackId[32];
-	strncpy(szTrackId, "0", _countof(szTrackId));
+	szVersion[0] = '\0';
+	strcpy(szTrackId, "0");
 
 	// Place the cursor at the end of the edit control
 	int nLen = Edit_GetTextLength(hwndCtl);
@@ -214,7 +214,7 @@ BOOL PrintTmxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 		switch (i)
 		{
 			case 1:
-				strncpy(szTrackId, token, _countof(szTrackId));
+				lstrcpynA(szTrackId, token, _countof(szTrackId));
 				OutputTextFmt(hwndCtl, szOutput, TEXT("Track ID:\t%hs\r\n"), token);
 				break;
 			case 2:
@@ -230,11 +230,11 @@ BOOL PrintTmxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 				OutputText(hwndCtl, TEXT("\r\n"));
 				break;
 			case 5:
-				strncpy(szVersion, token, _countof(szVersion));
+				lstrcpynA(szVersion, token, _countof(szVersion));
 				OutputTextFmt(hwndCtl, szOutput, TEXT("Uploaded:\t%hs\r\n"), token);
 				break;
 			case 6:
-				strncpy(szVersion, token, _countof(szVersion));
+				lstrcpynA(szVersion, token, _countof(szVersion));
 				OutputTextFmt(hwndCtl, szOutput, TEXT("Updated:\t%hs\r\n"), token);
 				break;
 			case 7:
@@ -280,7 +280,7 @@ BOOL PrintTmxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 	// Do we have a valid TMX Track ID?
 	if (strcmp(szTrackId, "0") == 0)
 	{
-		GlobalFreePtr((HGLOBAL)lpszData);
+		GlobalFreePtr((LPVOID)lpszData);
 		return TRUE;
 	}
 
@@ -288,13 +288,13 @@ BOOL PrintTmxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 	_sntprintf(szTmxUrl, _countof(szTmxUrl), g_szUrlTmx, szSubDomain, g_szParamSearch, szTrackId);
 	if (!ReadInternetFile(hwndCtl, szTmxUrl, lpszData, dwSize))
 	{
-		GlobalFreePtr((HGLOBAL)lpszData);
+		GlobalFreePtr((LPVOID)lpszData);
 		return FALSE;
 	}
 
 	if (lpszData[0] == '\0' || strchr(lpszData, '\t') == NULL)
 	{ // No valid track data available
-		GlobalFreePtr((HGLOBAL)lpszData);
+		GlobalFreePtr((LPVOID)lpszData);
 		return TRUE;
 	}
 
@@ -325,13 +325,13 @@ BOOL PrintTmxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 	_sntprintf(szTmxUrl, _countof(szTmxUrl), g_szUrlTmx, szSubDomain, g_szParamRecord, szTrackId);
 	if (!ReadInternetFile(hwndCtl, szTmxUrl, lpszData, dwSize))
 	{
-		GlobalFreePtr((HGLOBAL)lpszData);
+		GlobalFreePtr((LPVOID)lpszData);
 		return FALSE;
 	}
 
 	if (lpszData[0] == '\0' || strchr(lpszData, '\t') == NULL)
 	{ // No valid track data available
-		GlobalFreePtr((HGLOBAL)lpszData);
+		GlobalFreePtr((LPVOID)lpszData);
 		return TRUE;
 	}
 
@@ -412,7 +412,7 @@ BOOL PrintTmxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 		lpsz = lpszNewLine;
 	}
 
-	GlobalFreePtr((HGLOBAL)lpszData);
+	GlobalFreePtr((LPVOID)lpszData);
 	return TRUE;
 }
 
@@ -434,13 +434,13 @@ BOOL PrintMxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 	switch (nGame)
 	{
 		case GAME_TM2:
-			_tcsncpy(szSubDomain, g_szTrackMania, _countof(szSubDomain));
+			lstrcpyn(szSubDomain, g_szTrackMania, _countof(szSubDomain));
 			break;
 		case GAME_SM:
-			_tcsncpy(szSubDomain, g_szShootMania, _countof(szSubDomain));
+			lstrcpyn(szSubDomain, g_szShootMania, _countof(szSubDomain));
 			break;
 		case GAME_QM:
-			_tcsncpy(szSubDomain, g_szQuestMania, _countof(szSubDomain));
+			lstrcpyn(szSubDomain, g_szQuestMania, _countof(szSubDomain));
 			break;
 		default:
 			return TRUE;
@@ -461,7 +461,7 @@ BOOL PrintMxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 		nGame == GAME_TM2 ? g_szTracks : g_szMaps, lpszUid);
 	if (!ReadInternetFile(hwndCtl, szMxUrl, lpszData, dwSize))
 	{
-		GlobalFreePtr((HGLOBAL)lpszData);
+		GlobalFreePtr((LPVOID)lpszData);
 		return FALSE;
 	}
 
@@ -470,7 +470,7 @@ BOOL PrintMxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 		strstr(lpszData, "<SmMapInfo") == NULL &&
 		strstr(lpszData, "<QmMapInfo") == NULL))
 	{ // No valid map data available
-		GlobalFreePtr((HGLOBAL)lpszData);
+		GlobalFreePtr((LPVOID)lpszData);
 		return TRUE;
 	}
 
@@ -479,8 +479,8 @@ BOOL PrintMxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 	// Initialize MX Track ID for string comparison
 	TCHAR szTrackId[32];
 	TCHAR szTrackType[64];
-	_tcsncpy(szTrackId, TEXT("0"), _countof(szTrackId));
 	szTrackType[0] = TEXT('\0');
+	_tcscpy(szTrackId, TEXT("0"));
 
 	// Place the cursor at the end of the edit control
 	int nLen = Edit_GetTextLength(hwndCtl);
@@ -536,14 +536,14 @@ BOOL PrintMxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 	// Do we have a valid MX Track ID?
 	if (_tcscmp(szTrackId, TEXT("0")) == 0)
 	{
-		GlobalFreePtr((HGLOBAL)lpszData);
+		GlobalFreePtr((LPVOID)lpszData);
 		return TRUE;
 	}
 
 	// Replay data is only available for TrackMania²
 	if (nGame != GAME_TM2)
 	{
-		GlobalFreePtr((HGLOBAL)lpszData);
+		GlobalFreePtr((LPVOID)lpszData);
 		return TRUE;
 	}
 
@@ -551,14 +551,14 @@ BOOL PrintMxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 	_sntprintf(szMxUrl, _countof(szMxUrl), g_szUrlMx2, szSubDomain, szTrackId);
 	if (!ReadInternetFile(hwndCtl, szMxUrl, lpszData, dwSize))
 	{
-		GlobalFreePtr((HGLOBAL)lpszData);
+		GlobalFreePtr((LPVOID)lpszData);
 		return FALSE;
 	}
 
 	LPSTR lpsz = (LPSTR)lpszData;
 	if (lpsz[0] == '\0' || strstr(lpsz, "<Replay>") == NULL)
 	{ // No valid track data available
-		GlobalFreePtr((HGLOBAL)lpszData);
+		GlobalFreePtr((LPVOID)lpszData);
 		return TRUE;
 	}
 
@@ -617,7 +617,7 @@ BOOL PrintMxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 		OutputText(hwndCtl, TEXT("\r\n"));
 	}
 
-	GlobalFreePtr((HGLOBAL)lpszData);
+	GlobalFreePtr((LPVOID)lpszData);
 	return TRUE;
 }
 
@@ -629,7 +629,7 @@ BOOL GetReplayData(UINT uCodePage, LPSTR* lpszData, LPCSTR lpszMarker, LPTSTR sz
 	char szElement[64];
 	char szValue[896];
 
-	strncpy(szElement, "<", _countof(szElement));
+	strcpy(szElement, "<");
 	strncat(szElement, lpszMarker, _countof(szElement) - strlen(szElement) - 1);
 	strncat(szElement, ">", _countof(szElement) - strlen(szElement) - 1);
 
@@ -638,7 +638,7 @@ BOOL GetReplayData(UINT uCodePage, LPSTR* lpszData, LPCSTR lpszMarker, LPTSTR sz
 		return FALSE;
 
 	lpszBegin += strlen(szElement);
-	strncpy(szElement, "</", _countof(szElement));
+	strcpy(szElement, "</");
 	strncat(szElement, lpszMarker, _countof(szElement) - strlen(szElement) - 1);
 	strncat(szElement, ">", _countof(szElement) - strlen(szElement) - 1);
 
@@ -670,7 +670,7 @@ BOOL OutputXmlData(HWND hwndCtl, UINT uCodePage, LPCSTR lpszData, LPCSTR lpszMar
 	char szValue[896];
 	TCHAR szOutput[OUTPUT_LEN];
 
-	strncpy(szElement, "<", _countof(szElement));
+	strcpy(szElement, "<");
 	strncat(szElement, lpszMarker, _countof(szElement) - strlen(szElement) - 1);
 	strncat(szElement, ">", _countof(szElement) - strlen(szElement) - 1);
 
@@ -679,7 +679,7 @@ BOOL OutputXmlData(HWND hwndCtl, UINT uCodePage, LPCSTR lpszData, LPCSTR lpszMar
 		return FALSE;
 
 	lpszBegin += strlen(szElement);
-	strncpy(szElement, "</", _countof(szElement));
+	strcpy(szElement, "</");
 	strncat(szElement, lpszMarker, _countof(szElement) - strlen(szElement) - 1);
 	strncat(szElement, ">", _countof(szElement) - strlen(szElement) - 1);
 
@@ -700,7 +700,7 @@ BOOL OutputXmlData(HWND hwndCtl, UINT uCodePage, LPCSTR lpszData, LPCSTR lpszMar
 	OutputText(hwndCtl, TEXT("\r\n"));
 
 	if (lpszValue != NULL)
-		_tcsncpy(lpszValue, szOutput, cchValueLen);
+		lstrcpyn(lpszValue, szOutput, (int)cchValueLen);
 
 	return TRUE;
 }

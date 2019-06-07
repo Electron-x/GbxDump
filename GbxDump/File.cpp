@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// File.cpp - Copyright (c) 2010-2018 by Electron.
+// File.cpp - Copyright (c) 2010-2019 by Electron.
 //
-// Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
+// Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
 // You may not use this work except in compliance with the Licence.
 // You may obtain a copy of the Licence at:
@@ -41,7 +41,7 @@ BOOL GetFileName(HWND hDlg, LPTSTR lpszFileName, SIZE_T cchStringLen, LPDWORD lp
 	TCHAR* pszInitialDir = szInitialDir;
 	if (lpszFileName != NULL && lpszFileName[0] != TEXT('\0'))
 	{
-		_tcsncpy(pszInitialDir, lpszFileName, _countof(szInitialDir));
+		lstrcpyn(pszInitialDir, lpszFileName, _countof(szInitialDir));
 		TCHAR* token = _tcsrchr(pszInitialDir, TEXT('\\'));
 		if (token != NULL)
 			pszInitialDir[token - szInitialDir] = TEXT('\0');
@@ -56,9 +56,9 @@ BOOL GetFileName(HWND hDlg, LPTSTR lpszFileName, SIZE_T cchStringLen, LPDWORD lp
 	if (bSave)
 	{
 		if (lpszFileName != NULL && lpszFileName[0] != TEXT('\0'))
-			_tcsncpy(szFile, lpszFileName, _countof(szFile));
+			lstrcpyn(szFile, lpszFileName, _countof(szFile));
 		else
-			_tcsncpy(szFile, TEXT("*"), _countof(szFile));
+			_tcscpy(szFile, TEXT("*"));
 		TCHAR* token = _tcsrchr(szFile, TEXT('.'));
 		if (token != NULL)
 			szFile[token - szFile] = TEXT('\0');
@@ -98,7 +98,7 @@ BOOL GetFileName(HWND hDlg, LPTSTR lpszFileName, SIZE_T cchStringLen, LPDWORD lp
 	if (bRet)
 	{
 		if (lpszFileName != NULL)
-			_tcsncpy(lpszFileName, szFile, cchStringLen);
+			lstrcpyn(lpszFileName, szFile, (int)cchStringLen);
 		if (lpdwFilterIndex != NULL)
 			*lpdwFilterIndex = of.nFilterIndex;
 	}
@@ -175,7 +175,7 @@ typedef struct jpeg_decompress_struct j_decompress;
 typedef struct jpeg_error_mgr         j_error_mgr;
 
 // JPEG decompression structure (overloads jpeg_decompress_struct)
-typedef struct
+typedef struct _JPEG_DECOMPRESS
 {
 	j_decompress    jInfo;               // Decompression structure
 	j_error_mgr     jError;              // Error manager
@@ -404,7 +404,7 @@ HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData)
 	// Copy image rows (scanlines)
 	while (pjInfo->output_scanline < pjInfo->output_height)
 	{
-		lpBits = lpDIB + JpegDecompress.dwIncrement * pjInfo->output_scanline;
+		lpBits = lpDIB + (SIZE_T)pjInfo->output_scanline * JpegDecompress.dwIncrement;
 		lpScanlines[0] = lpBits;
 		jpeg_read_scanlines(pjInfo, lpScanlines, 1);  // Decompress one line
 	}

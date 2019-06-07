@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// DumpDds.h - Copyright (c) 2010-2018 by Electron.
+// DumpDds.h - Copyright (c) 2010-2019 by Electron.
 //
-// Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
+// Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
 // You may not use this work except in compliance with the Licence.
 // You may obtain a copy of the Licence at:
@@ -114,7 +114,7 @@ struct DDS_PIXELFORMAT
     DWORD dwABitMask;
 };
 
-typedef struct
+struct DDS_HEADER
 {
     DWORD dwSize;
     DWORD dwHeaderFlags;
@@ -125,21 +125,23 @@ typedef struct
     DWORD dwMipMapCount;
     DWORD dwReserved1[11];
     DDS_PIXELFORMAT ddspf;
-    DWORD dwSurfaceFlags;
-    DWORD dwCubemapFlags;
-    DWORD dwReserved2[3];
-} DDS_HEADER;
+    DWORD dwCaps;
+    DWORD dwCaps2;
+	DWORD dwCaps3;
+	DWORD dwCaps4;
+	DWORD dwReserved2;
+};
 
-typedef struct
+struct DDS_HEADER_DXT10
 {
     DWORD dxgiFormat;
     DWORD resourceDimension;
     DWORD miscFlag;
     DWORD arraySize;
     DWORD miscFlags2;
-} DDS_HEADER_DXT10;
+};
 
-typedef struct
+struct DDS_HEADER_XBOX
 {
     DWORD dxgiFormat;
     DWORD resourceDimension;
@@ -150,7 +152,7 @@ typedef struct
     DWORD baseAlignment;
     DWORD dataSize;
     DWORD xdkVer;
-} DDS_HEADER_XBOX;
+};
 
 #pragma pack(pop)
 

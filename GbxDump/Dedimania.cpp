@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Dedimania.cpp - Copyright (c) 2010-2018 by Electron.
+// Dedimania.cpp - Copyright (c) 2010-2019 by Electron.
 //
-// Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
+// Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
 // You may not use this work except in compliance with the Licence.
 // You may obtain a copy of the Licence at:
@@ -125,8 +125,7 @@ BOOL PrintDedimaniaData(HWND hwndCtl, LPCSTR lpszUid, BOOL bIsManiaPlanet, LPBOO
 	*lpbTrackFound = FALSE;
 
 	// Allocate memory for the Dedimania data
-	DWORD dwSize = DEDI_MAX_DATASIZE;
-	LPSTR lpszData = (LPSTR)GlobalAllocPtr(GHND, dwSize);
+	LPSTR lpszData = (LPSTR)GlobalAllocPtr(GHND, DEDI_MAX_DATASIZE);
 	if (lpszData == NULL)
 	{
 		OutputText(hwndCtl, g_szErrOom);
@@ -137,16 +136,16 @@ BOOL PrintDedimaniaData(HWND hwndCtl, LPCSTR lpszUid, BOOL bIsManiaPlanet, LPBOO
 	TCHAR szDediUrl[512];
 	_sntprintf(szDediUrl, _countof(szDediUrl), g_szUrlDedi, bIsManiaPlanet ? 8080 : 8000,
 		bIsManiaPlanet ? TEXT("MX") : TEXT("TMX"), lpszUid);
-	if (!ReadInternetFile(hwndCtl, szDediUrl, lpszData, dwSize))
+	if (!ReadInternetFile(hwndCtl, szDediUrl, lpszData, DEDI_MAX_DATASIZE))
 	{
-		GlobalFreePtr((HGLOBAL)lpszData);
+		GlobalFreePtr((LPVOID)lpszData);
 		return FALSE;
 	}
 
 	// Have user data been found?
 	if (lpszData[0] == '\0' || strchr(lpszData, ',') == NULL)
 	{
-		GlobalFreePtr((HGLOBAL)lpszData);
+		GlobalFreePtr((LPVOID)lpszData);
 		return TRUE;
 	}
 
@@ -274,7 +273,7 @@ BOOL PrintDedimaniaData(HWND hwndCtl, LPCSTR lpszUid, BOOL bIsManiaPlanet, LPBOO
 	}
 
 	// Release memory
-	GlobalFreePtr((HGLOBAL)lpszData);
+	GlobalFreePtr((LPVOID)lpszData);
 	return TRUE;
 }
 
@@ -289,15 +288,14 @@ BOOL ConvertDediString(LPVOID lpData, SIZE_T cbLenData, LPTSTR lpszOutput, SIZE_
 	if (IsValidCodePage(CP_UTF8))
 		uCodePage = CP_UTF8;
 
-	LPBYTE pByte = (LPBYTE)lpData;
-	MultiByteToWideChar(uCodePage, 0, (LPCSTR)pByte, -1, lpszOutput, (int)cchLenOutput);
+	MultiByteToWideChar(uCodePage, 0, (LPCSTR)lpData, -1, lpszOutput, (int)cchLenOutput);
 
 	SIZE_T cchLen = _tcslen(lpszOutput);
 	LPTSTR lpszTemp = (LPTSTR)GlobalAllocPtr(GHND, cchLen * sizeof(TCHAR));
 	if (lpszTemp != NULL)
 	{
 		if (CleanupString(lpszOutput, lpszTemp, cchLen))
-			_tcsncpy(lpszOutput, lpszTemp, cchLenOutput);
+			lstrcpyn(lpszOutput, lpszTemp, (int)cchLenOutput);
 		GlobalFreePtr((LPVOID)lpszTemp);
 	}
 

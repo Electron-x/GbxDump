@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Misc.cpp - Copyright (c) 2010-2018 by Electron.
+// Misc.cpp - Copyright (c) 2010-2019 by Electron.
 //
-// Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
+// Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
 // You may not use this work except in compliance with the Licence.
 // You may obtain a copy of the Licence at:
@@ -17,6 +17,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "stdafx.h"
+#include "archive.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Inserts the passed text at the current cursor position of an edit control.
@@ -80,7 +81,7 @@ BOOL OutputErrorMessage(HWND hwndCtl, DWORD dwError)
 
 	if (dwLen > 0 && lpMsgBuf != NULL)
 	{
-		_tcsncpy(szOutput, (LPTSTR)lpMsgBuf, _countof(szOutput));
+		lstrcpyn(szOutput, (LPTSTR)lpMsgBuf, _countof(szOutput));
 		OutputText(hwndCtl, g_szSep1);
 		OutputText(hwndCtl, szOutput);
 		LocalFree(lpMsgBuf);
@@ -89,6 +90,16 @@ BOOL OutputErrorMessage(HWND hwndCtl, DWORD dwError)
 	OutputText(hwndCtl, g_szSep2);
 
 	return TRUE;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Appends a string to another string with an OR separator. Is used to list flag names.
+
+PTCHAR AppendFlagName(LPTSTR lpszOutput, SIZE_T cchLenOutput, LPCTSTR lpszFlagName)
+{
+	if (lpszOutput[0] != TEXT('\0'))
+		_tcsncat(lpszOutput, TEXT("|"), cchLenOutput - _tcslen(lpszOutput) - 1);
+	return _tcsncat(lpszOutput, lpszFlagName, cchLenOutput - _tcslen(lpszOutput) - 1);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -127,7 +138,7 @@ BOOL FormatTime(DWORD dwTime, LPTSTR lpszTime, SIZE_T cchStringLen, BOOL bFormat
 	if (lpszTime == NULL)
 		return FALSE;
 
-	if (bFormat && (dwTime != (DWORD)-1))
+	if (bFormat && (dwTime != UNASSIGNED))
 	{
 		if (dwTime < 3600000)
 		{
@@ -135,7 +146,7 @@ BOOL FormatTime(DWORD dwTime, LPTSTR lpszTime, SIZE_T cchStringLen, BOOL bFormat
 			DWORD dwSecond   = (dwTime % 60000 / 1000);
 			DWORD dwMilliSec = (dwTime % 60000 % 1000);
 
-			_sntprintf(lpszTime, cchStringLen, TEXT("%d (%d:%02d.%003d)\r\n"),
+			_sntprintf(lpszTime, cchStringLen, TEXT("%u (%u:%02u.%003u)\r\n"),
 				dwTime, dwMinute, dwSecond, dwMilliSec);
 		}
 		else
@@ -145,12 +156,12 @@ BOOL FormatTime(DWORD dwTime, LPTSTR lpszTime, SIZE_T cchStringLen, BOOL bFormat
 			DWORD dwSecond   = (dwTime % 3600000 % 60000 / 1000);
 			DWORD dwMilliSec = (dwTime % 3600000 % 60000 % 1000);
 
-			_sntprintf(lpszTime, cchStringLen, TEXT("%d (%d:%02d:%02d.%003d)\r\n"),
+			_sntprintf(lpszTime, cchStringLen, TEXT("%u (%u:%02u:%02u.%003u)\r\n"),
 				dwTime, dwHour, dwMinute, dwSecond, dwMilliSec);
 		}
 	}
 	else
-		_sntprintf(lpszTime, cchStringLen, TEXT("%d\r\n"), dwTime);
+		_sntprintf(lpszTime, cchStringLen, TEXT("%d\r\n"), (int)dwTime);
 
 	return TRUE;
 }
@@ -208,12 +219,12 @@ BOOL CleanupString(LPCTSTR lpszInput, LPTSTR lpszOutput, SIZE_T cchLenOutput)
 	__try
 	{
 		// Replace dollar signs with alert escape characters
-		LPTSTR lpszTemp1 = AllocReplaceString(lpszInput, TEXT("$$"), TEXT("\a"));
+		LPCTSTR lpszTemp1 = AllocReplaceString(lpszInput, TEXT("$$"), TEXT("\a"));
 		if (lpszTemp1 == NULL)
 			return FALSE;
 
 		// Remove formatting characters
-		LPTSTR lpszTemp2 = AllocCleanupString(lpszTemp1);
+		LPCTSTR lpszTemp2 = AllocCleanupString(lpszTemp1);
 		if (lpszTemp2 == NULL)
 		{
 			GlobalFreePtr((LPVOID)lpszTemp1);
@@ -221,7 +232,7 @@ BOOL CleanupString(LPCTSTR lpszInput, LPTSTR lpszOutput, SIZE_T cchLenOutput)
 		}
 
 		// Replace alert escape characters back to dollar signs
-		LPTSTR lpszTemp3 = AllocReplaceString(lpszTemp2, TEXT("\a"), TEXT("$"));
+		LPCTSTR lpszTemp3 = AllocReplaceString(lpszTemp2, TEXT("\a"), TEXT("$"));
 		if (lpszTemp3 == NULL)
 		{
 			GlobalFreePtr((LPVOID)lpszTemp2);
@@ -229,7 +240,7 @@ BOOL CleanupString(LPCTSTR lpszInput, LPTSTR lpszOutput, SIZE_T cchLenOutput)
 			return FALSE;
 		}
 
-		_tcsncpy(lpszOutput, lpszTemp3, cchLenOutput);
+		lstrcpyn(lpszOutput, lpszTemp3, (int)cchLenOutput);
 
 		GlobalFreePtr((LPVOID)lpszTemp3);
 		GlobalFreePtr((LPVOID)lpszTemp2);

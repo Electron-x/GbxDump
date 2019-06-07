@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// DumpDds.cpp - Copyright (c) 2010-2018 by Electron.
+// DumpDds.cpp - Copyright (c) 2010-2019 by Electron.
 //
-// Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
+// Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
 // You may not use this work except in compliance with the Licence.
 // You may obtain a copy of the Licence at:
@@ -20,19 +20,229 @@
 #include "archive.h"
 #include "dumpdds.h"
 
+#define FLAGS_LEN 32
+
+const TCHAR chNil = TEXT('\0');
+const TCHAR szCRLF[] = TEXT("\r\n");
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+void PrintD3DFormat(HWND hwndCtl, DWORD dwFourCC)
+{
+	if (hwndCtl == NULL)
+		return;
+
+	switch (dwFourCC)
+	{
+		case 0:
+			OutputText(hwndCtl, TEXT(" (Unknown)"));
+			break;
+		case 36:
+			OutputText(hwndCtl, TEXT(" (A16B16G16R16)"));
+			break;
+		case 110:
+			OutputText(hwndCtl, TEXT(" (Q16W16V16U16)"));
+			break;
+		case 111:
+			OutputText(hwndCtl, TEXT(" (R16F)"));
+			break;
+		case 112:
+			OutputText(hwndCtl, TEXT(" (G16R16F)"));
+			break;
+		case 113:
+			OutputText(hwndCtl, TEXT(" (A16B16G16R16F)"));
+			break;
+		case 114:
+			OutputText(hwndCtl, TEXT(" (R32F)"));
+			break;
+		case 115:
+			OutputText(hwndCtl, TEXT(" (G32R32F)"));
+			break;
+		case 116:
+			OutputText(hwndCtl, TEXT(" (A32B32G32R32F)"));
+			break;
+		case 117:
+			OutputText(hwndCtl, TEXT(" (CxV8U8)"));
+			break;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+void PrintDXGIFormat(HWND hwndCtl, DWORD dwDxgiFormat)
+{
+	if (hwndCtl == NULL)
+		return;
+
+	switch (dwDxgiFormat)
+	{
+		case 0:
+			OutputText(hwndCtl, TEXT(" (Unknown)"));
+			break;
+		case 2:
+			OutputText(hwndCtl, TEXT(" (R32G32B32A32 FLOAT)"));
+			break;
+		case 10:
+			OutputText(hwndCtl, TEXT(" (R16G16B16A16 FLOAT)"));
+			break;
+		case 11:
+			OutputText(hwndCtl, TEXT(" (R16G16B16A16 UNORM)"));
+			break;
+		case 13:
+			OutputText(hwndCtl, TEXT(" (R16G16B16A16 SNORM)"));
+			break;
+		case 16:
+			OutputText(hwndCtl, TEXT(" (R32G32 FLOAT)"));
+			break;
+		case 24:
+			OutputText(hwndCtl, TEXT(" (R10G10B10A2 UNORM)"));
+			break;
+		case 26:
+			OutputText(hwndCtl, TEXT(" (R11G11B10 FLOAT)"));
+			break;
+		case 28:
+			OutputText(hwndCtl, TEXT(" (R8G8B8A8 UNORM)"));
+			break;
+		case 29:
+			OutputText(hwndCtl, TEXT(" (R8G8B8A8 UNORM SRGB)"));
+			break;
+		case 31:
+			OutputText(hwndCtl, TEXT(" (R8G8B8A8 SNORM)"));
+			break;
+		case 34:
+			OutputText(hwndCtl, TEXT(" (R16G16 FLOAT)"));
+			break;
+		case 35:
+			OutputText(hwndCtl, TEXT(" (R16G16 UNORM)"));
+			break;
+		case 37:
+			OutputText(hwndCtl, TEXT(" (R16G16 SNORM)"));
+			break;
+		case 41:
+			OutputText(hwndCtl, TEXT(" (R32 FLOAT)"));
+			break;
+		case 49:
+			OutputText(hwndCtl, TEXT(" (R8G8 UNORM)"));
+			break;
+		case 51:
+			OutputText(hwndCtl, TEXT(" (R8G8 SNORM)"));
+			break;
+		case 54:
+			OutputText(hwndCtl, TEXT(" (R16 FLOAT)"));
+			break;
+		case 56:
+			OutputText(hwndCtl, TEXT(" (R16 UNORM)"));
+			break;
+		case 61:
+			OutputText(hwndCtl, TEXT(" (R8 UNORM)"));
+			break;
+		case 65:
+			OutputText(hwndCtl, TEXT(" (A8 UNORM)"));
+			break;
+		case 66:
+			OutputText(hwndCtl, TEXT(" (R1 UNORM)"));
+			break;
+		case 67:
+			OutputText(hwndCtl, TEXT(" (R9G9B9E5 SHAREDEXP)"));
+			break;
+		case 68:
+			OutputText(hwndCtl, TEXT(" (R8G8 B8G8 UNORM)"));
+			break;
+		case 69:
+			OutputText(hwndCtl, TEXT(" (G8R8 G8B8 UNORM)"));
+			break;
+		case 70:
+			OutputText(hwndCtl, TEXT(" (BC1 TYPELESS)"));
+			break;
+		case 71:
+			OutputText(hwndCtl, TEXT(" (BC1 UNORM)"));
+			break;
+		case 72:
+			OutputText(hwndCtl, TEXT(" (BC1 UNORM SRGB)"));
+			break;
+		case 73:
+			OutputText(hwndCtl, TEXT(" (BC2 TYPELESS)"));
+			break;
+		case 74:
+			OutputText(hwndCtl, TEXT(" (BC2 UNORM)"));
+			break;
+		case 75:
+			OutputText(hwndCtl, TEXT(" (BC2 UNORM SRGB)"));
+			break;
+		case 76:
+			OutputText(hwndCtl, TEXT(" (BC3 TYPELESS)"));
+			break;
+		case 77:
+			OutputText(hwndCtl, TEXT(" (BC3 UNORM)"));
+			break;
+		case 78:
+			OutputText(hwndCtl, TEXT(" (BC3 UNORM SRGB)"));
+			break;
+		case 79:
+			OutputText(hwndCtl, TEXT(" (BC4 TYPELESS)"));
+			break;
+		case 80:
+			OutputText(hwndCtl, TEXT(" (BC4 UNORM)"));
+			break;
+		case 81:
+			OutputText(hwndCtl, TEXT(" (BC4 SNORM)"));
+			break;
+		case 82:
+			OutputText(hwndCtl, TEXT(" (BC5 TYPELESS)"));
+			break;
+		case 83:
+			OutputText(hwndCtl, TEXT(" (BC5 UNORM)"));
+			break;
+		case 84:
+			OutputText(hwndCtl, TEXT(" (BC5 SNORM)"));
+			break;
+		case 85:
+			OutputText(hwndCtl, TEXT(" (B5G6R5 UNORM)"));
+			break;
+		case 86:
+			OutputText(hwndCtl, TEXT(" (B5G5R5A1 UNORM)"));
+			break;
+		case 87:
+			OutputText(hwndCtl, TEXT(" (B8G8R8A8 UNORM)"));
+			break;
+		case 88:
+			OutputText(hwndCtl, TEXT(" (B8G8R8X8 UNORM)"));
+			break;
+		case 89:
+			OutputText(hwndCtl, TEXT(" (R10G10B10 XR BIAS A2 UNORM)"));
+			break;
+		case 94:
+			OutputText(hwndCtl, TEXT(" (BC6H TYPELESS)"));
+			break;
+		case 95:
+			OutputText(hwndCtl, TEXT(" (BC6H UF16)"));
+			break;
+		case 96:
+			OutputText(hwndCtl, TEXT(" (BC6H SF16)"));
+			break;
+		case 97:
+			OutputText(hwndCtl, TEXT(" (BC7 TYPELESS)"));
+			break;
+		case 98:
+			OutputText(hwndCtl, TEXT(" (BC7 UNORM)"));
+			break;
+		case 99:
+			OutputText(hwndCtl, TEXT(" (BC7 UNORM SRGB)"));
+			break;
+		case 115:
+			OutputText(hwndCtl, TEXT(" (B4G4R4A4 UNORM)"));
+			break;
+	}
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // DumpDDS is called by DumpFile from GbxDump.cpp
 
 BOOL DumpDDS(HWND hwndCtl, HANDLE hFile)
 {
 	DWORD dwFlags;
-	TCHAR szFlags[32];
+	TCHAR szFlags[FLAGS_LEN];
 	TCHAR szOutput[OUTPUT_LEN];
-
-	const TCHAR chNil = TEXT('\0');
-	const TCHAR szOR[] = TEXT("|");
-	const TCHAR szCRLF[] = TEXT("\r\n");
-	const TCHAR szUnknown[] = TEXT("Unknown");
 
 	if (hwndCtl == NULL || hFile == NULL)
 		return FALSE;
@@ -64,65 +274,48 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile)
 		if (ddsh.dwHeaderFlags & DDSD_HEIGHT)
 		{
 			dwFlags ^= DDSD_HEIGHT;
-			if (szOutput[0] != chNil)
-				_tcsncat(szOutput, szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-			_tcsncat(szOutput, TEXT("HEIGHT"), _countof(szOutput) - _tcslen(szOutput) - 1);
+			AppendFlagName(szOutput, _countof(szOutput), TEXT("HEIGHT"));
 		}
 		if (ddsh.dwHeaderFlags & DDSD_WIDTH)
 		{
 			dwFlags ^= DDSD_WIDTH;
-			if (szOutput[0] != chNil)
-				_tcsncat(szOutput, szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-			_tcsncat(szOutput, TEXT("WIDTH"), _countof(szOutput) - _tcslen(szOutput) - 1);
+			AppendFlagName(szOutput, _countof(szOutput), TEXT("WIDTH"));
 		}
 		if (ddsh.dwHeaderFlags & DDSD_PITCH)
 		{
 			dwFlags ^= DDSD_PITCH;
-			if (szOutput[0] != chNil)
-				_tcsncat(szOutput, szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-			_tcsncat(szOutput, TEXT("PITCH"), _countof(szOutput) - _tcslen(szOutput) - 1);
+			AppendFlagName(szOutput, _countof(szOutput), TEXT("PITCH"));
 		}
 		if (ddsh.dwHeaderFlags & DDSD_LINEARSIZE)
 		{
 			dwFlags ^= DDSD_LINEARSIZE;
-			if (szOutput[0] != chNil)
-				_tcsncat(szOutput, szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-			_tcsncat(szOutput, TEXT("LINEARSIZE"), _countof(szOutput) - _tcslen(szOutput) - 1);
+			AppendFlagName(szOutput, _countof(szOutput), TEXT("LINEARSIZE"));
 		}
 		if (ddsh.dwHeaderFlags & DDSD_DEPTH)
 		{
 			dwFlags ^= DDSD_DEPTH;
-			if (szOutput[0] != chNil)
-				_tcsncat(szOutput, szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-			_tcsncat(szOutput, TEXT("DEPTH"), _countof(szOutput) - _tcslen(szOutput) - 1);
+			AppendFlagName(szOutput, _countof(szOutput), TEXT("DEPTH"));
 		}
 		if (ddsh.dwHeaderFlags & DDSD_MIPMAPCOUNT)
 		{
 			dwFlags ^= DDSD_MIPMAPCOUNT;
-			if (szOutput[0] != chNil)
-				_tcsncat(szOutput, szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-			_tcsncat(szOutput, TEXT("MIPMAPCOUNT"), _countof(szOutput) - _tcslen(szOutput) - 1);
+			AppendFlagName(szOutput, _countof(szOutput), TEXT("MIPMAPCOUNT"));
 		}
 		if (ddsh.dwHeaderFlags & DDSD_PIXELFORMAT)
 		{
 			dwFlags ^= DDSD_PIXELFORMAT;
-			if (szOutput[0] != chNil)
-				_tcsncat(szOutput, szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-			_tcsncat(szOutput, TEXT("PIXELFORMAT"), _countof(szOutput) - _tcslen(szOutput) - 1);
+			AppendFlagName(szOutput, _countof(szOutput), TEXT("PIXELFORMAT"));
 		}
 		if (ddsh.dwHeaderFlags & DDSD_CAPS)
 		{
 			dwFlags ^= DDSD_CAPS;
-			if (szOutput[0] != chNil)
-				_tcsncat(szOutput, szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-			_tcsncat(szOutput, TEXT("CAPS"), _countof(szOutput) - _tcslen(szOutput) - 1);
+			AppendFlagName(szOutput, _countof(szOutput), TEXT("CAPS"));
 		}
 		if (dwFlags != 0 && dwFlags != ddsh.dwHeaderFlags)
 		{
-			if (szOutput[0] != chNil)
-				_tcsncat(szOutput, szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
 			_sntprintf(szFlags, _countof(szFlags), TEXT("%08X"), dwFlags);
-			_tcsncat(szOutput, szFlags, _countof(szOutput) - _tcslen(szOutput) - 1);
+			szFlags[FLAGS_LEN - 1] = TEXT('\0');
+			AppendFlagName(szOutput, _countof(szOutput), szFlags);
 		}
 
 		if (szOutput[0] != chNil)
@@ -173,93 +366,68 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile)
 			if (ddsh.ddspf.dwFlags & DDPF_FOURCC)
 			{
 				dwFlags ^= DDPF_FOURCC;
-				if (szOutput[0] != chNil)
-					_tcsncat(szOutput, szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-				_tcsncat(szOutput, TEXT("FOURCC"), _countof(szOutput) - _tcslen(szOutput) - 1);
+				AppendFlagName(szOutput, _countof(szOutput), TEXT("FOURCC"));
 			}
 			if (ddsh.ddspf.dwFlags & DDPF_RGB)
 			{
 				dwFlags ^= DDPF_RGB;
-				if (szOutput[0] != chNil)
-					_tcsncat(szOutput, szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-				_tcsncat(szOutput, TEXT("RGB"), _countof(szOutput) - _tcslen(szOutput) - 1);
+				AppendFlagName(szOutput, _countof(szOutput), TEXT("RGB"));
 			}
 			if (ddsh.ddspf.dwFlags & DDPF_YUV)
 			{
 				dwFlags ^= DDPF_YUV;
-				if (szOutput[0] != chNil)
-					_tcsncat(szOutput, szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-				_tcsncat(szOutput, TEXT("YUV"), _countof(szOutput) - _tcslen(szOutput) - 1);
+				AppendFlagName(szOutput, _countof(szOutput), TEXT("YUV"));
 			}
 			if (ddsh.ddspf.dwFlags & DDPF_LUMINANCE)
 			{
 				dwFlags ^= DDPF_LUMINANCE;
-				if (szOutput[0] != chNil)
-					_tcsncat(szOutput, szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-				_tcsncat(szOutput, TEXT("LUMINANCE"), _countof(szOutput) - _tcslen(szOutput) - 1);
+				AppendFlagName(szOutput, _countof(szOutput), TEXT("LUMINANCE"));
 			}
 			if (ddsh.ddspf.dwFlags & DDPF_PALETTEINDEXED8)
 			{
 				dwFlags ^= DDPF_PALETTEINDEXED8;
-				if (szOutput[0] != chNil)
-					_tcsncat(szOutput, szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-				_tcsncat(szOutput, TEXT("PAL8"), _countof(szOutput) - _tcslen(szOutput) - 1);
+				AppendFlagName(szOutput, _countof(szOutput), TEXT("PAL8"));
 			}
 			if (ddsh.ddspf.dwFlags & DDPF_ALPHAPIXELS)
 			{
 				dwFlags ^= DDPF_ALPHAPIXELS;
-				if (szOutput[0] != chNil)
-					_tcsncat(szOutput, szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-				_tcsncat(szOutput, TEXT("ALPHAPIXELS"), _countof(szOutput) - _tcslen(szOutput) - 1);
+				AppendFlagName(szOutput, _countof(szOutput), TEXT("ALPHAPIXELS"));
 			}
 			if (ddsh.ddspf.dwFlags & DDPF_ALPHA)
 			{
 				dwFlags ^= DDPF_ALPHA;
-				if (szOutput[0] != chNil)
-					_tcsncat(szOutput, szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-				_tcsncat(szOutput, TEXT("ALPHA"), _countof(szOutput) - _tcslen(szOutput) - 1);
+				AppendFlagName(szOutput, _countof(szOutput), TEXT("ALPHA"));
 			}
 			if (ddsh.ddspf.dwFlags & DDPF_ALPHAPREMULT)
 			{
 				dwFlags ^= DDPF_ALPHAPREMULT;
-				if (szOutput[0] != chNil)
-					_tcsncat(szOutput, szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-				_tcsncat(szOutput, TEXT("ALPHAPREMULT"), _countof(szOutput) - _tcslen(szOutput) - 1);
+				AppendFlagName(szOutput, _countof(szOutput), TEXT("ALPHAPREMULT"));
 			}
 			if (ddsh.ddspf.dwFlags & DDPF_BUMPLUMINANCE)
 			{
 				dwFlags ^= DDPF_BUMPLUMINANCE;
-				if (szOutput[0] != chNil)
-					_tcsncat(szOutput, szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-				_tcsncat(szOutput, TEXT("BUMPLUMINANCE"), _countof(szOutput) - _tcslen(szOutput) - 1);
+				AppendFlagName(szOutput, _countof(szOutput), TEXT("BUMPLUMINANCE"));
 			}
 			if (ddsh.ddspf.dwFlags & DDPF_BUMPDUDV)
 			{
 				dwFlags ^= DDPF_BUMPDUDV;
-				if (szOutput[0] != chNil)
-					_tcsncat(szOutput, szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-				_tcsncat(szOutput, TEXT("BUMPDUDV"), _countof(szOutput) - _tcslen(szOutput) - 1);
+				AppendFlagName(szOutput, _countof(szOutput), TEXT("BUMPDUDV"));
 			}
 			if (ddsh.ddspf.dwFlags & DDPF_NORMAL)
 			{
 				dwFlags ^= DDPF_NORMAL;
-				if (szOutput[0] != chNil)
-					_tcsncat(szOutput, szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-				_tcsncat(szOutput, TEXT("NORMAL"), _countof(szOutput) - _tcslen(szOutput) - 1);
+				AppendFlagName(szOutput, _countof(szOutput), TEXT("NORMAL"));
 			}
 			if (ddsh.ddspf.dwFlags & DDPF_SRGB)
 			{
 				dwFlags ^= DDPF_SRGB;
-				if (szOutput[0] != chNil)
-					_tcsncat(szOutput, szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-				_tcsncat(szOutput, TEXT("SRGB"), _countof(szOutput) - _tcslen(szOutput) - 1);
+				AppendFlagName(szOutput, _countof(szOutput), TEXT("SRGB"));
 			}
 			if (dwFlags != 0 && dwFlags != ddsh.ddspf.dwFlags)
 			{
-				if (szOutput[0] != chNil)
-					_tcsncat(szOutput, szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
 				_sntprintf(szFlags, _countof(szFlags), TEXT("%08X"), dwFlags);
-				_tcsncat(szOutput, szFlags, _countof(szOutput) - _tcslen(szOutput) - 1);
+				szFlags[FLAGS_LEN - 1] = TEXT('\0');
+				AppendFlagName(szOutput, _countof(szOutput), szFlags);
 			}
 
 			if (szOutput[0] != chNil)
@@ -283,111 +451,55 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile)
 					achFourCC[0], achFourCC[1], achFourCC[2], achFourCC[3]);
 			else
 			{
-				if (ddsh.ddspf.dwFourCC != 0)
-				{
-					OutputTextFmt(hwndCtl, szOutput, TEXT("%u"), ddsh.ddspf.dwFourCC);
-
-					switch (ddsh.ddspf.dwFourCC)
-					{
-						case 36:
-							OutputText(hwndCtl, TEXT(" (A16B16G16R16)"));
-							break;
-						case 110:
-							OutputText(hwndCtl, TEXT(" (Q16W16V16U16)"));
-							break;
-						case 111:
-							OutputText(hwndCtl, TEXT(" (R16F)"));
-							break;
-						case 112:
-							OutputText(hwndCtl, TEXT(" (G16R16F)"));
-							break;
-						case 113:
-							OutputText(hwndCtl, TEXT(" (A16B16G16R16F)"));
-							break;
-						case 114:
-							OutputText(hwndCtl, TEXT(" (R32F)"));
-							break;
-						case 115:
-							OutputText(hwndCtl, TEXT(" (G32R32F)"));
-							break;
-						case 116:
-							OutputText(hwndCtl, TEXT(" (A32B32G32R32F)"));
-							break;
-						case 117:
-							OutputText(hwndCtl, TEXT(" (CxV8U8)"));
-							break;
-					}
-				}
-				else
-					OutputText(hwndCtl, szUnknown);
+				OutputTextFmt(hwndCtl, szOutput, TEXT("%u"), ddsh.ddspf.dwFourCC);
+				PrintD3DFormat(hwndCtl, ddsh.ddspf.dwFourCC);
 			}
 			OutputText(hwndCtl, szCRLF);
 		}
 
-		if ((ddsh.ddspf.dwFlags & DDPF_PALETTEINDEXED8) || (ddsh.ddspf.dwFlags & DDPF_RGB) ||
-			(ddsh.ddspf.dwFlags & DDPF_LUMINANCE) || (ddsh.ddspf.dwFlags & DDPF_YUV) ||
-			(ddsh.ddspf.dwFlags & DDPF_ALPHA) || (ddsh.ddspf.dwFlags & DDPF_BUMPDUDV) ||
-			(ddsh.ddspf.dwFlags & DDPF_BUMPLUMINANCE))
-			OutputTextFmt(hwndCtl, szOutput, TEXT("Bit Count:\t%u bits\r\n"), ddsh.ddspf.dwRGBBitCount);
-
-		if ((ddsh.ddspf.dwFlags & DDPF_RGB) || (ddsh.ddspf.dwFlags & DDPF_YUV) ||
-			(ddsh.ddspf.dwFlags & DDPF_LUMINANCE || (ddsh.ddspf.dwFlags & DDPF_BUMPDUDV) ||
-			(ddsh.ddspf.dwFlags & DDPF_BUMPLUMINANCE)))
-			OutputTextFmt(hwndCtl, szOutput, TEXT("Red Mask:\t%08X\r\n"), ddsh.ddspf.dwRBitMask);
-
-		if ((ddsh.ddspf.dwFlags & DDPF_RGB) || (ddsh.ddspf.dwFlags & DDPF_YUV) ||
-			(ddsh.ddspf.dwFlags & DDPF_BUMPDUDV) || (ddsh.ddspf.dwFlags & DDPF_BUMPLUMINANCE))
+		if (ddsh.ddspf.dwRGBBitCount > 0)
 		{
+			OutputTextFmt(hwndCtl, szOutput, TEXT("Bit Count:\t%u bits\r\n"), ddsh.ddspf.dwRGBBitCount);
+			OutputTextFmt(hwndCtl, szOutput, TEXT("Red Mask:\t%08X\r\n"), ddsh.ddspf.dwRBitMask);
 			OutputTextFmt(hwndCtl, szOutput, TEXT("Green Mask:\t%08X\r\n"), ddsh.ddspf.dwGBitMask);
 			OutputTextFmt(hwndCtl, szOutput, TEXT("Blue Mask:\t%08X\r\n"), ddsh.ddspf.dwBBitMask);
-		}
-
-		if ((ddsh.ddspf.dwFlags & DDPF_ALPHAPIXELS) || (ddsh.ddspf.dwFlags & DDPF_ALPHA) ||
-			(ddsh.ddspf.dwFlags & DDPF_BUMPDUDV))
 			OutputTextFmt(hwndCtl, szOutput, TEXT("Alpha Mask:\t%08X\r\n"), ddsh.ddspf.dwABitMask);
+		}
 	}
 
-	if ((ddsh.dwHeaderFlags & DDSD_CAPS) || ddsh.dwSurfaceFlags != 0 || ddsh.dwCubemapFlags != 0)
+	if ((ddsh.dwHeaderFlags & DDSD_CAPS) ||
+		ddsh.dwCaps != 0 || ddsh.dwCaps2 != 0 || ddsh.dwCaps3 != 0 || ddsh.dwCaps4 != 0)
 	{
-		OutputTextFmt(hwndCtl, szOutput, TEXT("Surface Flags:\t%08X"), ddsh.dwSurfaceFlags);
-		if (ddsh.dwSurfaceFlags != 0)
+		OutputTextFmt(hwndCtl, szOutput, TEXT("Surface Flags:\t%08X"), ddsh.dwCaps);
+		if (ddsh.dwCaps != 0)
 		{
 			szOutput[0] = chNil;
-			dwFlags = ddsh.dwSurfaceFlags;
-			if (ddsh.dwSurfaceFlags & DDSCAPS_TEXTURE)
+			dwFlags = ddsh.dwCaps;
+			if (ddsh.dwCaps & DDSCAPS_TEXTURE)
 			{
 				dwFlags ^= DDSCAPS_TEXTURE;
-				if (szOutput[0] != chNil)
-					_tcsncat(szOutput, szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-				_tcsncat(szOutput, TEXT("TEXTURE"), _countof(szOutput) - _tcslen(szOutput) - 1);
+				AppendFlagName(szOutput, _countof(szOutput), TEXT("TEXTURE"));
 			}
-			if (ddsh.dwSurfaceFlags & DDSCAPS_MIPMAP)
+			if (ddsh.dwCaps & DDSCAPS_MIPMAP)
 			{
 				dwFlags ^= DDSCAPS_MIPMAP;
-				if (szOutput[0] != chNil)
-					_tcsncat(szOutput, szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-				_tcsncat(szOutput, TEXT("MIPMAP"), _countof(szOutput) - _tcslen(szOutput) - 1);
+				AppendFlagName(szOutput, _countof(szOutput), TEXT("MIPMAP"));
 			}
-			if (ddsh.dwSurfaceFlags & DDSCAPS_COMPLEX)
+			if (ddsh.dwCaps & DDSCAPS_COMPLEX)
 			{
 				dwFlags ^= DDSCAPS_COMPLEX;
-				if (szOutput[0] != chNil)
-					_tcsncat(szOutput, szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-				_tcsncat(szOutput, TEXT("COMPLEX"), _countof(szOutput) - _tcslen(szOutput) - 1);
+				AppendFlagName(szOutput, _countof(szOutput), TEXT("COMPLEX"));
 			}
-			if (ddsh.dwSurfaceFlags & DDSCAPS_ALPHA)
+			if (ddsh.dwCaps & DDSCAPS_ALPHA)
 			{
 				dwFlags ^= DDSCAPS_ALPHA;
-				if (szOutput[0] != chNil)
-					_tcsncat(szOutput, szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-				_tcsncat(szOutput, TEXT("ALPHA"), _countof(szOutput) - _tcslen(szOutput) - 1);
+				AppendFlagName(szOutput, _countof(szOutput), TEXT("ALPHA"));
 			}
-			if (dwFlags != 0 && dwFlags != ddsh.dwSurfaceFlags)
+			if (dwFlags != 0 && dwFlags != ddsh.dwCaps)
 			{
-				if (szOutput[0] != chNil)
-					_tcsncat(szOutput, szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
 				_sntprintf(szFlags, _countof(szFlags), TEXT("%08X"), dwFlags);
-				_tcsncat(szOutput, szFlags, _countof(szOutput) - _tcslen(szOutput) - 1);
+				szFlags[FLAGS_LEN - 1] = TEXT('\0');
+				AppendFlagName(szOutput, _countof(szOutput), szFlags);
 			}
 
 			if (szOutput[0] != chNil)
@@ -399,74 +511,57 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile)
 		}
 		OutputText(hwndCtl, szCRLF);
 
-		if (ddsh.dwCubemapFlags != 0)
+		if (ddsh.dwCaps2 != 0)
 		{
-			OutputTextFmt(hwndCtl, szOutput, TEXT("Cubemap Flags:\t%08X"), ddsh.dwCubemapFlags);
+			OutputTextFmt(hwndCtl, szOutput, TEXT("Cubemap Flags:\t%08X"), ddsh.dwCaps2);
 
 			szOutput[0] = chNil;
-			dwFlags = ddsh.dwCubemapFlags;
-			if (ddsh.dwCubemapFlags & DDSCAPS2_CUBEMAP)
+			dwFlags = ddsh.dwCaps2;
+			if (ddsh.dwCaps2 & DDSCAPS2_CUBEMAP)
 			{
 				dwFlags ^= DDSCAPS2_CUBEMAP;
-				if (szOutput[0] != chNil)
-					_tcsncat(szOutput, szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-				_tcsncat(szOutput, TEXT("CUBEMAP"), _countof(szOutput) - _tcslen(szOutput) - 1);
+				AppendFlagName(szOutput, _countof(szOutput), TEXT("CUBEMAP"));
 			}
-			if (ddsh.dwCubemapFlags & DDSCAPS2_CUBEMAP_POSITIVEX)
+			if (ddsh.dwCaps2 & DDSCAPS2_CUBEMAP_POSITIVEX)
 			{
 				dwFlags ^= DDSCAPS2_CUBEMAP_POSITIVEX;
-				if (szOutput[0] != chNil)
-					_tcsncat(szOutput, szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-				_tcsncat(szOutput, TEXT("POSX"), _countof(szOutput) - _tcslen(szOutput) - 1);
+				AppendFlagName(szOutput, _countof(szOutput), TEXT("POSX"));
 			}
-			if (ddsh.dwCubemapFlags & DDSCAPS2_CUBEMAP_NEGATIVEX)
+			if (ddsh.dwCaps2 & DDSCAPS2_CUBEMAP_NEGATIVEX)
 			{
 				dwFlags ^= DDSCAPS2_CUBEMAP_NEGATIVEX;
-				if (szOutput[0] != chNil)
-					_tcsncat(szOutput, szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-				_tcsncat(szOutput, TEXT("NEGX"), _countof(szOutput) - _tcslen(szOutput) - 1);
+				AppendFlagName(szOutput, _countof(szOutput), TEXT("NEGX"));
 			}
-			if (ddsh.dwCubemapFlags & DDSCAPS2_CUBEMAP_POSITIVEY)
+			if (ddsh.dwCaps2 & DDSCAPS2_CUBEMAP_POSITIVEY)
 			{
 				dwFlags ^= DDSCAPS2_CUBEMAP_POSITIVEY;
-				if (szOutput[0] != chNil)
-					_tcsncat(szOutput, szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-				_tcsncat(szOutput, TEXT("POSY"), _countof(szOutput) - _tcslen(szOutput) - 1);
+				AppendFlagName(szOutput, _countof(szOutput), TEXT("POSY"));
 			}
-			if (ddsh.dwCubemapFlags & DDSCAPS2_CUBEMAP_NEGATIVEY)
+			if (ddsh.dwCaps2 & DDSCAPS2_CUBEMAP_NEGATIVEY)
 			{
 				dwFlags ^= DDSCAPS2_CUBEMAP_NEGATIVEY;
-				if (szOutput[0] != chNil)
-					_tcsncat(szOutput, szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-				_tcsncat(szOutput, TEXT("NEGY"), _countof(szOutput) - _tcslen(szOutput) - 1);
+				AppendFlagName(szOutput, _countof(szOutput), TEXT("NEGY"));
 			}
-			if (ddsh.dwCubemapFlags & DDSCAPS2_CUBEMAP_POSITIVEZ)
+			if (ddsh.dwCaps2 & DDSCAPS2_CUBEMAP_POSITIVEZ)
 			{
 				dwFlags ^= DDSCAPS2_CUBEMAP_POSITIVEZ;
-				if (szOutput[0] != chNil)
-					_tcsncat(szOutput, szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-				_tcsncat(szOutput, TEXT("POSZ"), _countof(szOutput) - _tcslen(szOutput) - 1);
+				AppendFlagName(szOutput, _countof(szOutput), TEXT("POSZ"));
 			}
-			if (ddsh.dwCubemapFlags & DDSCAPS2_CUBEMAP_NEGATIVEZ)
+			if (ddsh.dwCaps2 & DDSCAPS2_CUBEMAP_NEGATIVEZ)
 			{
 				dwFlags ^= DDSCAPS2_CUBEMAP_NEGATIVEZ;
-				if (szOutput[0] != chNil)
-					_tcsncat(szOutput, szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-				_tcsncat(szOutput, TEXT("NEGZ"), _countof(szOutput) - _tcslen(szOutput) - 1);
+				AppendFlagName(szOutput, _countof(szOutput), TEXT("NEGZ"));
 			}
-			if (ddsh.dwCubemapFlags & DDSCAPS2_VOLUME)
+			if (ddsh.dwCaps2 & DDSCAPS2_VOLUME)
 			{
 				dwFlags ^= DDSCAPS2_VOLUME;
-				if (szOutput[0] != chNil)
-					_tcsncat(szOutput, szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-				_tcsncat(szOutput, TEXT("VOLUME"), _countof(szOutput) - _tcslen(szOutput) - 1);
+				AppendFlagName(szOutput, _countof(szOutput), TEXT("VOLUME"));
 			}
-			if (dwFlags != 0 && dwFlags != ddsh.dwCubemapFlags)
+			if (dwFlags != 0 && dwFlags != ddsh.dwCaps2)
 			{
-				if (szOutput[0] != chNil)
-					_tcsncat(szOutput, szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
 				_sntprintf(szFlags, _countof(szFlags), TEXT("%08X"), dwFlags);
-				_tcsncat(szOutput, szFlags, _countof(szOutput) - _tcslen(szOutput) - 1);
+				szFlags[FLAGS_LEN - 1] = TEXT('\0');
+				AppendFlagName(szOutput, _countof(szOutput), szFlags);
 			}
 
 			if (szOutput[0] != chNil)
@@ -478,6 +573,12 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile)
 
 			OutputText(hwndCtl, szCRLF);
 		}
+
+		if (ddsh.dwCaps3 != 0)
+			OutputTextFmt(hwndCtl, szOutput, TEXT("Caps3 Flags:\t%08X\r\n"), ddsh.dwCaps3);
+
+		if (ddsh.dwCaps4 != 0)
+			OutputTextFmt(hwndCtl, szOutput, TEXT("Caps4 Flags:\t%08X\r\n"), ddsh.dwCaps4);
 	}
 
 	// DX10 or XBOX header present?
@@ -497,117 +598,30 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile)
 		// Output data
 		OutputText(hwndCtl, g_szSep1);
 
-		OutputText(hwndCtl, TEXT("Pixel Format:\t"));
-		if (ddsexth.dxgiFormat != 0)
-		{
-			OutputTextFmt(hwndCtl, szOutput, TEXT("%u"), ddsexth.dxgiFormat);
-
-			switch (ddsexth.dxgiFormat)
-			{
-				case 10:
-					OutputText(hwndCtl, TEXT(" (R16G16B16A16 FLOAT)"));
-					break;
-				case 24:
-					OutputText(hwndCtl, TEXT(" (R10G10B10A2 UNORM)"));
-					break;
-				case 26:
-					OutputText(hwndCtl, TEXT(" (R11G11B10 FLOAT)"));
-					break;
-				case 66:
-					OutputText(hwndCtl, TEXT(" (R1 UNORM)"));
-					break;
-				case 67:
-					OutputText(hwndCtl, TEXT(" (R9G9B9E5 SHAREDEXP)"));
-					break;
-				case 70:
-					OutputText(hwndCtl, TEXT(" (BC1 TYPELESS)"));
-					break;
-				case 71:
-					OutputText(hwndCtl, TEXT(" (BC1 UNORM)"));
-					break;
-				case 72:
-					OutputText(hwndCtl, TEXT(" (BC1 UNORM SRGB)"));
-					break;
-				case 73:
-					OutputText(hwndCtl, TEXT(" (BC2 TYPELESS)"));
-					break;
-				case 74:
-					OutputText(hwndCtl, TEXT(" (BC2 UNORM)"));
-					break;
-				case 75:
-					OutputText(hwndCtl, TEXT(" (BC2 UNORM SRGB)"));
-					break;
-				case 76:
-					OutputText(hwndCtl, TEXT(" (BC3 TYPELESS)"));
-					break;
-				case 77:
-					OutputText(hwndCtl, TEXT(" (BC3 UNORM)"));
-					break;
-				case 78:
-					OutputText(hwndCtl, TEXT(" (BC3 UNORM SRGB)"));
-					break;
-				case 79:
-					OutputText(hwndCtl, TEXT(" (BC4 TYPELESS)"));
-					break;
-				case 80:
-					OutputText(hwndCtl, TEXT(" (BC4 UNORM)"));
-					break;
-				case 81:
-					OutputText(hwndCtl, TEXT(" (BC4 SNORM)"));
-					break;
-				case 82:
-					OutputText(hwndCtl, TEXT(" (BC5 TYPELESS)"));
-					break;
-				case 83:
-					OutputText(hwndCtl, TEXT(" (BC5 UNORM)"));
-					break;
-				case 84:
-					OutputText(hwndCtl, TEXT(" (BC5 SNORM)"));
-					break;
-				case 89:
-					OutputText(hwndCtl, TEXT(" (R10G10B10 XR BIAS A2 UNORM)"));
-					break;
-				case 94:
-					OutputText(hwndCtl, TEXT(" (BC6H TYPELESS)"));
-					break;
-				case 95:
-					OutputText(hwndCtl, TEXT(" (BC6H UF16)"));
-					break;
-				case 96:
-					OutputText(hwndCtl, TEXT(" (BC6H SF16)"));
-					break;
-				case 97:
-					OutputText(hwndCtl, TEXT(" (BC7 TYPELESS)"));
-					break;
-				case 98:
-					OutputText(hwndCtl, TEXT(" (BC7 UNORM)"));
-					break;
-				case 99:
-					OutputText(hwndCtl, TEXT(" (BC7 UNORM SRGB)"));
-					break;
-			}
-		}
-		else
-			OutputText(hwndCtl, szUnknown);
+		OutputTextFmt(hwndCtl, szOutput, TEXT("Pixel Format:\t%u"), ddsexth.dxgiFormat);
+		PrintDXGIFormat(hwndCtl, ddsexth.dxgiFormat);
 		OutputText(hwndCtl, szCRLF);
 
 		OutputText(hwndCtl, TEXT("Dimension:\t"));
 		switch (ddsexth.resourceDimension)
 		{
 			case DDS_DIMENSION_UNKNOWN:
-				OutputText(hwndCtl, szUnknown);
+				OutputText(hwndCtl, TEXT("Unknown"));
 				break;
 			case DDS_DIMENSION_BUFFER:
 				OutputText(hwndCtl, TEXT("Buffer"));
 				break;
 			case DDS_DIMENSION_TEXTURE1D:
-				OutputText(hwndCtl, TEXT("Texture1D"));
+				OutputText(hwndCtl, ddsexth.arraySize > 1 ? TEXT("1D Array") : TEXT("1D"));
 				break;
 			case DDS_DIMENSION_TEXTURE2D:
-				OutputText(hwndCtl, TEXT("Texture2D"));
+				if (ddsexth.miscFlag & DDS_RESOURCE_MISC_TEXTURECUBE)
+					OutputText(hwndCtl, ddsexth.arraySize > 1 ? TEXT("Cube Array") : TEXT("Cube"));
+				else
+					OutputText(hwndCtl, ddsexth.arraySize > 1 ? TEXT("2D Array") : TEXT("2D"));
 				break;
 			case DDS_DIMENSION_TEXTURE3D:
-				OutputText(hwndCtl, TEXT("Texture3D"));
+				OutputText(hwndCtl, TEXT("3D"));
 				break;
 			default:
 				OutputTextFmt(hwndCtl, szOutput, TEXT("%u"), ddsexth.resourceDimension);
@@ -622,30 +636,23 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile)
 			if (ddsexth.miscFlag & DDS_RESOURCE_MISC_GENERATE_MIPS)
 			{
 				dwFlags ^= DDS_RESOURCE_MISC_GENERATE_MIPS;
-				if (szOutput[0] != chNil)
-					_tcsncat(szOutput, szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-				_tcsncat(szOutput, TEXT("GENERATEMIPS"), _countof(szOutput) - _tcslen(szOutput) - 1);
+				AppendFlagName(szOutput, _countof(szOutput), TEXT("GENERATEMIPS"));
 			}
 			if (ddsexth.miscFlag & DDS_RESOURCE_MISC_SHARED)
 			{
 				dwFlags ^= DDS_RESOURCE_MISC_SHARED;
-				if (szOutput[0] != chNil)
-					_tcsncat(szOutput, szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-				_tcsncat(szOutput, TEXT("SHARED"), _countof(szOutput) - _tcslen(szOutput) - 1);
+				AppendFlagName(szOutput, _countof(szOutput), TEXT("SHARED"));
 			}
 			if (ddsexth.miscFlag & DDS_RESOURCE_MISC_TEXTURECUBE)
 			{
 				dwFlags ^= DDS_RESOURCE_MISC_TEXTURECUBE;
-				if (szOutput[0] != chNil)
-					_tcsncat(szOutput, szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
-				_tcsncat(szOutput, TEXT("TEXTURECUBE"), _countof(szOutput) - _tcslen(szOutput) - 1);
+				AppendFlagName(szOutput, _countof(szOutput), TEXT("TEXTURECUBE"));
 			}
 			if (dwFlags != 0 && dwFlags != ddsexth.miscFlag)
 			{
-				if (szOutput[0] != chNil)
-					_tcsncat(szOutput, szOR, _countof(szOutput) - _tcslen(szOutput) - 1);
 				_sntprintf(szFlags, _countof(szFlags), TEXT("%08X"), dwFlags);
-				_tcsncat(szOutput, szFlags, _countof(szOutput) - _tcslen(szOutput) - 1);
+				szFlags[FLAGS_LEN - 1] = TEXT('\0');
+				AppendFlagName(szOutput, _countof(szOutput), szFlags);
 			}
 
 			if (szOutput[0] != chNil)
@@ -664,7 +671,7 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile)
 		switch (dwAlphaMode)
 		{
 			case DDS_ALPHA_MODE_UNKNOWN:
-				OutputText(hwndCtl, szUnknown);
+				OutputText(hwndCtl, TEXT("Unknown"));
 				break;
 			case DDS_ALPHA_MODE_STRAIGHT:
 				OutputText(hwndCtl, TEXT("Straight"));
