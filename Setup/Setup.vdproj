@@ -27,12 +27,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_52E9DC9F52D4902B56E209D87172C28F"
-        "OwnerKey" = "8:_7D5433958B284E92ABC3B7F2EF037C84"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_779E99837475401CAA6AB3EAF49C6A6A"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -41,12 +35,6 @@
         {
         "MsmKey" = "8:_7D5433958B284E92ABC3B7F2EF037C84"
         "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_DF8D585C22599D15E3C951152AFD1C95"
-        "OwnerKey" = "8:_7D5433958B284E92ABC3B7F2EF037C84"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -76,11 +64,6 @@
             "ComponentsUrl" = "8:"
                 "Items"
                 {
-                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:Microsoft.Windows.Installer.2.0"
-                    {
-                    "Name" = "8:Windows Installer 2.0"
-                    "ProductCode" = "8:Microsoft.Windows.Installer.2.0"
-                    }
                 }
             }
         }
@@ -108,11 +91,6 @@
             "ComponentsUrl" = "8:"
                 "Items"
                 {
-                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:Microsoft.Windows.Installer.2.0"
-                    {
-                    "Name" = "8:Windows Installer 2.0"
-                    "ProductCode" = "8:Microsoft.Windows.Installer.2.0"
-                    }
                 }
             }
         }
@@ -176,26 +154,6 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_52E9DC9F52D4902B56E209D87172C28F"
-            {
-            "SourcePath" = "8:WININET.dll"
-            "TargetName" = "8:WININET.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_E6604048C2CC47F8A083D8E24B5F76BE"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:TRUE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_779E99837475401CAA6AB3EAF49C6A6A"
             {
             "SourcePath" = "8:Licence.rtf"
@@ -214,26 +172,6 @@
             "Register" = "3:1"
             "Exclude" = "11:TRUE"
             "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_DF8D585C22599D15E3C951152AFD1C95"
-            {
-            "SourcePath" = "8:COMDLG32.dll"
-            "TargetName" = "8:COMDLG32.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_E6604048C2CC47F8A083D8E24B5F76BE"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:TRUE"
-            "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
         }
@@ -282,8 +220,8 @@
             "{836E08B8-0285-4809-BA42-01DB6754A45D}:_5F37B6891AC14BEA83BCB10027F911C2"
             {
             "Name" = "8:NT-Only"
-            "Condition" = "8:VersionNT>=400"
-            "Message" = "8:GbxDump uses UNICODE and requires Windows NT 4.0, Windows 2000 or higher.  This setup cannot be installed on Windows 95, Windows 98, or Windows Me."
+            "Condition" = "8:VersionNT>=501"
+            "Message" = "8:GbxDump requires Windows XP, Windows Vista or higher. This setup cannot be installed on Windows 95, Windows 98, or Windows Me."
             "InstallUrl" = "8:"
             }
         }
@@ -293,19 +231,21 @@
         "MsiBootstrapper"
         {
         "LangId" = "3:1033"
+        "RequiresElevation" = "11:FALSE"
         }
         "Product"
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:GbxDump"
-        "ProductCode" = "8:{000F629D-4B36-4A9F-89BE-2017C9468831}"
-        "PackageCode" = "8:{996E177E-DC2E-464D-937F-28BF3ECE13BB}"
+        "ProductCode" = "8:{05AD14A1-3CC4-4A2C-A7F0-D4048D9CC08F}"
+        "PackageCode" = "8:{BDE032C6-E9AF-431D-862E-2FA34A8BE76A}"
         "UpgradeCode" = "8:{27EEECFA-0807-4728-A6A4-843278BFDEDB}"
+        "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:1.61"
+        "ProductVersion" = "8:1.62"
         "Manufacturer" = "8:Electron"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:http://www.wolfgang-rolke.de/gbxdump/"
@@ -313,7 +253,7 @@
         "Subject" = "8:Gbx File Dumper (32-bit)"
         "ARPCONTACT" = "8:Electron"
         "Keywords" = "8:Installer,MSI,GbxDump,x86"
-        "ARPCOMMENTS" = "8:Copyright (c) 2010-2018 by Electron"
+        "ARPCOMMENTS" = "8:Copyright (c) 2010-2019 by Electron"
         "ARPURLINFOABOUT" = "8:http://www.wolfgang-rolke.de/gbxdump/"
         "ARPPRODUCTICON" = "8:_7D5433958B284E92ABC3B7F2EF037C84"
         "ARPIconIndex" = "3:101"
@@ -924,7 +864,7 @@
                             "ContextData" = "8:"
                             "Attributes" = "3:0"
                             "Setting" = "3:2"
-                            "Value" = "8:This tool dumps the file header of GameBox Maps, Challenges, Replays, Packs, Blocks, Objects and Items. Copyright © 2010-2018 by Electron"
+                            "Value" = "8:This tool dumps the file header of GameBox Maps, Challenges, Replays, Packs, Blocks, Objects and Items. Copyright © 2010-2019 by Electron"
                             "DefaultValue" = "8:#1202"
                             "UsePlugInResources" = "11:TRUE"
                             }
@@ -1088,7 +1028,7 @@
                             "ContextData" = "8:"
                             "Attributes" = "3:0"
                             "Setting" = "3:2"
-                            "Value" = "8:This tool dumps the file header of GameBox Maps, Challenges, Replays, Packs, Blocks, Objects and Items. Copyright © 2010-2018 by Electron"
+                            "Value" = "8:This tool dumps the file header of GameBox Maps, Challenges, Replays, Packs, Blocks, Objects and Items. Copyright © 2010-2019 by Electron"
                             "DefaultValue" = "8:#1202"
                             "UsePlugInResources" = "11:TRUE"
                             }
