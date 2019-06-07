@@ -40,16 +40,14 @@ The main reason for this was the formerly proprietary license of GbxDump. It was
 
 ## Building the project ##
 
-This is a generic C/C++ Win32 desktop project created with Visual Studio 2005. The workspace consists of the main project GbxDump, the subproject libjpeg with the [Independent JPEG Group's JPEG software](http://www.ijg.org/) and two Setup projects for 32 and 64 bit. The [Microsoft Windows SDK 7.1](https://www.microsoft.com/en-us/download/details.aspx?id=8279) for Windows 7 and .NET Framework 4 is used as the platform toolset. There are no other dependencies or prerequisites.
+This is a generic C/C++ Win32 desktop project created with Microsoft Visual Studio. The workspace consists of the main project GbxDump, the subproject libjpeg with the [Independent JPEG Group's JPEG software](http://www.ijg.org/) and two Setup projects for 32 and 64 bit. This repository contains two VC++ project files for Visual Studio 2005 and Visual Studio 2017. VS2005 requires the [Microsoft Windows SDK 7.1](https://www.microsoft.com/en-us/download/details.aspx?id=8279) and VS2017 requires the Windows XP platform toolset. There are no other dependencies or prerequisites.
 
-To support all target platforms down to Windows NT 4.0, the project has not yet been migrated to newer versions of Visual Studio. In addition, there are problems with the Setup projects starting with Visual Studio 2012 (see below).
-
-However, to create the project with newer versions of Visual Studio, please note the following points:
+To create the project with versions between VS2005 and VS2017, please note the following points:
 - For all configurations, the Windows XP platform toolset "Visual Studio 20xx - Windows XP (v1xx_xp)" should be selected.
 - All manifest files that Visual Studio manages on its own must be removed from the project configurations. For example, starting with Visual Studio 2008, the reference to the file "TrustInfo.manifest" has to be removed and starting with Visual Studio 2010, the reference to the file "DeclareDPIAware.manifest" has to be removed, etc. The corresponding metadata must then be set in the project settings.
 - Starting with Visual Studio 2012, Setup projects are no longer provided out-of-the-box. For each version, however, a corresponding extension is available for download in the [Visual Studio Marketplace](https://marketplace.visualstudio.com/vs).
 
-Note: The Setup projects from the Marketplace are unfortunately not completely bug free. For example, the installation of the created MSI files fails under Windows XP and older. And after restarting the IDE, the Setup project no longer recognizes the active configuration correctly. A workaround is to create the Setup for each configuration one after the other. To do this, first change the configuration e.g. from "Debug (Win32)" to "Release (Win32)" and then restart the IDE. Now you can create the Setup for "Release (Win32)" (but not for other configurations). Then change the configuration to e.g. "Release (x64)" and restart the IDE. Now you can create the Setup for "Release (x64)", etc. In the Project Explorer, the icon of the Setup project indicates whether the configuration has been loaded correctly.
+Note: The Setup projects from the Marketplace are unfortunately not completely bug free. For example, the installation of the created MSI files fails under Windows XP and older. And after restarting the IDE, the Setup project no longer recognizes the active configuration correctly. A workaround is to create the Setup for each configuration one after the other. To do this, first change the configuration e.g. from "Debug (Win32)" to "Release (Win32)" and then restart the IDE. Now you can create the Setup for "Release (Win32)" (but not for other configurations). Then change the configuration to e.g. "Release (x64)" and restart the IDE. Now you can create the Setup for "Release (x64)", etc. In the Project Explorer, the icon of the Primary Output indicates whether the configuration has been loaded correctly.
 
 ## Contributing ##
 
@@ -66,9 +64,9 @@ Licensed under the [EUPL](https://joinup.ec.europa.eu/software/page/eupl), Versi
 This software is based in part on the work of the Independent JPEG Group.
 
 ## Links ##
-- [Gbx File Dumper](http://www.wolfgang-rolke.de/gbxdump/)
-- [Gbx file format](https://wiki.xaseco.org/wiki/GBX)
-- [Microsoft Windows SDK for Windows 7 and .NET Framework 4 (VS2005/VS2008/VS2010)](https://www.microsoft.com/en-us/download/details.aspx?id=8279)
+- [Gbx File Dumper web page](http://www.wolfgang-rolke.de/gbxdump/)
+- [Gbx file format specification](https://wiki.xaseco.org/wiki/GBX)
+- [Microsoft Windows SDK for Windows 7 (VS2005/VS2008/VS2010)](https://www.microsoft.com/en-us/download/details.aspx?id=8279)
 - [Microsoft Visual Studio 2013 Installer Projects](https://marketplace.visualstudio.com/items?itemName=UnniRavindranathan-MSFT.MicrosoftVisualStudio2013InstallerProjects)
 - [Microsoft Visual Studio 2015 Installer Projects](https://marketplace.visualstudio.com/items?itemName=VisualStudioProductTeam.MicrosoftVisualStudio2015InstallerProjects)
 - [Microsoft Visual Studio 2017/2019 Installer Projects](https://marketplace.visualstudio.com/items?itemName=VisualStudioProductTeam.MicrosoftVisualStudio2017InstallerProjects)

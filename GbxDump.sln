@@ -1,16 +1,20 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 9.00
-# Visual Studio 2005
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GbxDump", "GbxDump\GbxDump.vcproj", "{82C3901E-B3C0-414A-850C-A7460A86A759}"
-	ProjectSection(ProjectDependencies) = postProject
-		{7BABB96F-3AC9-4F1C-9ADB-9FD0AA550C59} = {7BABB96F-3AC9-4F1C-9ADB-9FD0AA550C59}
-	EndProjectSection
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.572
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GbxDump", "GbxDump\GbxDump.vcxproj", "{82C3901E-B3C0-414A-850C-A7460A86A759}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libjpeg", "libjpeg\libjpeg.vcproj", "{7BABB96F-3AC9-4F1C-9ADB-9FD0AA550C59}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libjpeg", "libjpeg\libjpeg.vcxproj", "{7BABB96F-3AC9-4F1C-9ADB-9FD0AA550C59}"
 EndProject
 Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Setup", "Setup\Setup.vdproj", "{AB00CA89-44C7-40A3-8B0C-E0032B1555A2}"
 EndProject
 Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Setup64", "Setup64\Setup64.vdproj", "{3CC402AD-4AED-4B83-8067-1492BDBE7C4F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{465DEF76-1A7C-4C11-85E6-DF7BFBB0A5D1}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -49,5 +53,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E3C0AA80-AE54-4899-97F1-9863491E333B}
 	EndGlobalSection
 EndGlobal

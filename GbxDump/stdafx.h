@@ -7,12 +7,12 @@
 
 // Ändern Sie folgende Definitionen für Plattformen, die älter als die unten angegebenen sind.
 // In MSDN finden Sie die neuesten Informationen über die entsprechenden Werte für die unterschiedlichen Plattformen.
-#ifndef WINVER				// Lassen Sie die Verwendung spezifischer Features von Windows NT oder später zu.
-#define WINVER 0x0400		// Ändern Sie dies in den geeigneten Wert für andere Versionen von Windows.
+#ifndef WINVER				// Lassen Sie die Verwendung spezifischer Features von Windows XP oder später zu.
+#define WINVER 0x0501		// Ändern Sie dies in den geeigneten Wert für andere Versionen von Windows.
 #endif
 
-#ifndef _WIN32_WINNT		// Lassen Sie die Verwendung spezifischer Features von Windows NT oder später zu.
-#define _WIN32_WINNT 0x0400	// Ändern Sie dies in den geeigneten Wert für andere Versionen von Windows.
+#ifndef _WIN32_WINNT		// Lassen Sie die Verwendung spezifischer Features von Windows XP oder später zu.
+#define _WIN32_WINNT 0x0501	// Ändern Sie dies in den geeigneten Wert für andere Versionen von Windows.
 #endif
 
 #ifndef _WIN32_WINDOWS		// Lassen Sie die Verwendung spezifischer Features von Windows 95 oder später zu.
@@ -21,6 +21,11 @@
 
 #ifndef _WIN32_IE			// Lassen Sie die Verwendung spezifischer Features von IE 6.0 oder später zu.
 #define _WIN32_IE 0x0600	// Ändern Sie dies in den geeigneten Wert für andere Versionen von IE.
+#endif
+
+#if defined (_MSC_VER) && (_MSC_VER <= 1500)
+#else
+#include <SDKDDKVer.h>
 #endif
 
 #define WIN32_LEAN_AND_MEAN		// Selten verwendete Teile der Windows-Header nicht einbinden.
