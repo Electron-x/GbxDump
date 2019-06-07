@@ -65,8 +65,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalOptions="/OSVERSION:5.01 /SUBSYSTEM:WINDOWS,5.01"
 				AdditionalDependencies="ComCtl32.Lib WinInet.Lib WinMM.Lib &quot;$(OutDir)\libjpeg.lib&quot;"
 				OutputFile="$(OutDir)\$(ProjectName).exe"
+				Version=""
 				LinkIncremental="2"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
@@ -149,8 +151,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalOptions="/OSVERSION:5.02 /SUBSYSTEM:WINDOWS,5.02"
 				AdditionalDependencies="ComCtl32.Lib WinInet.Lib WinMM.Lib &quot;$(OutDir)\libjpeg.lib&quot;"
 				OutputFile="$(OutDir)\$(ProjectName)64.exe"
+				Version=""
 				LinkIncremental="2"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
@@ -233,9 +237,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalOptions="/SAFESEH"
+				AdditionalOptions="/OSVERSION:5.01 /SUBSYSTEM:WINDOWS,5.01"
 				AdditionalDependencies="ComCtl32.Lib WinInet.Lib WinMM.Lib &quot;$(OutDir)\libjpeg.lib&quot;"
 				OutputFile="$(OutDir)\$(ProjectName).exe"
+				Version=""
 				LinkIncremental="1"
 				IgnoreAllDefaultLibraries="false"
 				IgnoreDefaultLibraryNames=""
@@ -243,7 +248,7 @@
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				OptimizeForWindows98="0"
+				OptimizeForWindows98="1"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -322,8 +327,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalOptions="/OSVERSION:5.02 /SUBSYSTEM:WINDOWS,5.02"
 				AdditionalDependencies="ComCtl32.Lib WinInet.Lib WinMM.Lib &quot;$(OutDir)\libjpeg.lib&quot;"
 				OutputFile="$(OutDir)\$(ProjectName)64.exe"
+				Version=""
 				LinkIncremental="1"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="false"
