@@ -1,26 +1,26 @@
-// stdafx.h : Includedatei für Standardsystem-Includedateien
-// oder häufig verwendete projektspezifische Includedateien,
-// die nur in unregelmäßigen Abständen geändert werden.
+// stdafx.h : include file for standard system include files,
+// or project specific include files that are used frequently, but
+// are changed infrequently
 //
 
 #pragma once
 
-// Ändern Sie folgende Definitionen für Plattformen, die älter als die unten angegebenen sind.
-// In MSDN finden Sie die neuesten Informationen über die entsprechenden Werte für die unterschiedlichen Plattformen.
-#ifndef WINVER				// Lassen Sie die Verwendung spezifischer Features von Windows XP oder später zu.
-#define WINVER 0x0501		// Ändern Sie dies in den geeigneten Wert für andere Versionen von Windows.
+// Modify the following defines if you have to target a platform prior to the ones specified below.
+// Refer to MSDN for the latest info on corresponding values for different platforms.
+#ifndef WINVER				// Allow use of features specific to Windows XP or later.
+#define WINVER 0x0501		// Change this to the appropriate value to target other versions of Windows.
 #endif
 
-#ifndef _WIN32_WINNT		// Lassen Sie die Verwendung spezifischer Features von Windows XP oder später zu.
-#define _WIN32_WINNT 0x0501	// Ändern Sie dies in den geeigneten Wert für andere Versionen von Windows.
+#ifndef _WIN32_WINNT		// Allow use of features specific to Windows XP or later.
+#define _WIN32_WINNT 0x0501	// Change this to the appropriate value to target other versions of Windows.
 #endif
 
-#ifndef _WIN32_WINDOWS		// Lassen Sie die Verwendung spezifischer Features von Windows 95 oder später zu.
-#define _WIN32_WINDOWS 0x0400 // Ändern Sie dies in den geeigneten Wert für Windows Me oder höher.
+#ifndef _WIN32_WINDOWS		// Allow use of features specific to Windows 95 or later.
+#define _WIN32_WINDOWS 0x0400 // Change this to the appropriate value to target Windows Me or later.
 #endif
 
-#ifndef _WIN32_IE			// Lassen Sie die Verwendung spezifischer Features von IE 6.0 oder später zu.
-#define _WIN32_IE 0x0600	// Ändern Sie dies in den geeigneten Wert für andere Versionen von IE.
+#ifndef _WIN32_IE			// Allow use of features specific to IE 6.0 or later.
+#define _WIN32_IE 0x0600	// Change this to the appropriate value to target other versions of IE.
 #endif
 
 #if defined (_MSC_VER) && (_MSC_VER <= 1500)
@@ -28,7 +28,7 @@
 #include <SDKDDKVer.h>
 #endif
 
-#define WIN32_LEAN_AND_MEAN		// Selten verwendete Teile der Windows-Header nicht einbinden.
+#define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
 
 #define _CRT_SECURE_NO_WARNINGS
 #define _CRT_NON_CONFORMING_SWPRINTFS
@@ -37,7 +37,7 @@
 #define STRICT
 #endif
 
-// Windows-Headerdateien:
+// Windows Header Files:
 #include <windows.h>
 #include <windowsx.h>
 #include <wininet.h>
@@ -46,7 +46,7 @@
 #include <shellapi.h>
 #include <mmsystem.h>
 
-// C RunTime-Headerdateien
+// C RunTime Header Files
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -56,6 +56,6 @@
 #include <mbstring.h>
 #include <setjmp.h>
 
-// TODO: Hier auf zusätzliche Header, die das Programm erfordert, verweisen.
+// TODO: reference additional headers your program requires here
 #include "gbxdump.h"
 #include "misc.h"

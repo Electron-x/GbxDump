@@ -1,8 +1,8 @@
-// stdafx.cpp : Quelldatei, die nur die Standard-Includes einbindet.
-// GbxDump.pch ist der vorkompilierte Header.
-// stdafx.obj enthält die vorkompilierten Typinformationen.
+// stdafx.cpp : source file that includes just the standard includes
+// GbxDump.pch will be the pre-compiled header
+// stdafx.obj will contain the pre-compiled type information
 
 #include "stdafx.h"
 
-// TODO: Auf zusätzliche Header verweisen, die in STDAFX.H
-// und nicht in dieser Datei erforderlich sind.
+// TODO: reference any additional headers you need in STDAFX.H
+// and not in this file
