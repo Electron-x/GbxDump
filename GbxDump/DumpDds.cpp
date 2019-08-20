@@ -27,7 +27,7 @@ const TCHAR szCRLF[] = TEXT("\r\n");
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-void PrintD3DFormat(HWND hwndCtl, DWORD dwFourCC)
+static void PrintD3DFormat(HWND hwndCtl, DWORD dwFourCC)
 {
 	if (hwndCtl == NULL)
 		return;
@@ -69,7 +69,7 @@ void PrintD3DFormat(HWND hwndCtl, DWORD dwFourCC)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-void PrintDXGIFormat(HWND hwndCtl, DWORD dwDxgiFormat)
+static void PrintDXGIFormat(HWND hwndCtl, DWORD dwDxgiFormat)
 {
 	if (hwndCtl == NULL)
 		return;
@@ -236,6 +236,31 @@ void PrintDXGIFormat(HWND hwndCtl, DWORD dwDxgiFormat)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void PrintFourCC(HWND hwndCtl, DWORD dwFourCC)
+{
+	BYTE achFourCC[4];
+	TCHAR szOutput[OUTPUT_LEN];
+
+	if (hwndCtl == NULL)
+		return;
+
+	CopyMemory(achFourCC, &dwFourCC, 4);
+
+	if (!isprint(achFourCC[0]) || !isprint(achFourCC[1]) ||
+		!isprint(achFourCC[2]) || !isprint(achFourCC[3]))
+	{
+		OutputTextFmt(hwndCtl, szOutput, TEXT("%u"), dwFourCC);
+		PrintD3DFormat(hwndCtl, dwFourCC);
+	}
+	else
+	{
+		OutputTextFmt(hwndCtl, szOutput, TEXT("%hc%hc%hc%hc"),
+			achFourCC[0], achFourCC[1], achFourCC[2], achFourCC[3]);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
 // DumpDDS is called by DumpFile from GbxDump.cpp
 
 BOOL DumpDDS(HWND hwndCtl, HANDLE hFile)
@@ -350,6 +375,35 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile)
 	if ((ddsh.dwHeaderFlags & DDSD_MIPMAPCOUNT) || ddsh.dwMipMapCount != 0)
 		OutputTextFmt(hwndCtl, szOutput, TEXT("Mipmap Levels:\t%u\r\n"), ddsh.dwMipMapCount);
 
+	if (ddsh.dwReserved1[0] == MAKEFOURCC('G', 'I', 'M', 'P') &&
+		ddsh.dwReserved1[1] == MAKEFOURCC('-', 'D', 'D', 'S'))
+	{
+		UINT uMajor = (ddsh.dwReserved1[2] >> 16) & 0xFF;
+		UINT uMinor = (ddsh.dwReserved1[2] >> 8) & 0xFF;
+		UINT uRevision = ddsh.dwReserved1[2] & 0xFF;
+
+		OutputTextFmt(hwndCtl, szOutput, TEXT("GIMP Plug-in:\t%u.%u.%u\r\n"), uMajor, uMinor, uRevision);
+
+		if (ddsh.dwReserved1[3] != 0)
+		{
+			OutputText(hwndCtl, TEXT("Extra FourCC:\t"));
+			PrintFourCC(hwndCtl, ddsh.dwReserved1[3]);
+			OutputText(hwndCtl, szCRLF);
+		}
+	}
+
+	if (ddsh.dwReserved1[9] == MAKEFOURCC('N', 'V', 'T', 'T'))
+	{
+		int nMajor = (ddsh.dwReserved1[10] >> 16) & 0xFF;
+		int nMinor = (ddsh.dwReserved1[10] >> 8) & 0xFF;
+		int nRevision = ddsh.dwReserved1[10] & 0xFF;
+
+		OutputTextFmt(hwndCtl, szOutput, TEXT("NVTT Version:\t%d.%d.%d\r\n"), nMajor, nMinor, nRevision);
+	}
+
+	if (ddsh.dwReserved1[7] == MAKEFOURCC('U', 'V', 'E', 'R'))
+		OutputTextFmt(hwndCtl, szOutput, TEXT("User Version:\t%d\r\n"), ddsh.dwReserved1[8]);
+
 	if ((ddsh.dwHeaderFlags & DDSD_PIXELFORMAT) || ddsh.ddspf.dwSize > 0)
 	{
 		OutputText(hwndCtl, TEXT("PixelFmt Size:\t"));
@@ -441,29 +495,31 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile)
 
 		if (ddsh.ddspf.dwFlags & DDPF_FOURCC)
 		{
-			BYTE achFourCC[4];
-			CopyMemory(achFourCC, &ddsh.ddspf.dwFourCC, 4);
-
 			OutputText(hwndCtl, TEXT("FourCC Tag:\t"));
-			if (isprint(achFourCC[0]) && isprint(achFourCC[1]) &&
-				isprint(achFourCC[2]) && isprint(achFourCC[3]))
-				OutputTextFmt(hwndCtl, szOutput, TEXT("%hc%hc%hc%hc"),
-					achFourCC[0], achFourCC[1], achFourCC[2], achFourCC[3]);
-			else
-			{
-				OutputTextFmt(hwndCtl, szOutput, TEXT("%u"), ddsh.ddspf.dwFourCC);
-				PrintD3DFormat(hwndCtl, ddsh.ddspf.dwFourCC);
-			}
+			PrintFourCC(hwndCtl, ddsh.ddspf.dwFourCC);
 			OutputText(hwndCtl, szCRLF);
 		}
 
 		if (ddsh.ddspf.dwRGBBitCount > 0)
 		{
-			OutputTextFmt(hwndCtl, szOutput, TEXT("Bit Count:\t%u bits\r\n"), ddsh.ddspf.dwRGBBitCount);
-			OutputTextFmt(hwndCtl, szOutput, TEXT("Red Mask:\t%08X\r\n"), ddsh.ddspf.dwRBitMask);
-			OutputTextFmt(hwndCtl, szOutput, TEXT("Green Mask:\t%08X\r\n"), ddsh.ddspf.dwGBitMask);
-			OutputTextFmt(hwndCtl, szOutput, TEXT("Blue Mask:\t%08X\r\n"), ddsh.ddspf.dwBBitMask);
-			OutputTextFmt(hwndCtl, szOutput, TEXT("Alpha Mask:\t%08X\r\n"), ddsh.ddspf.dwABitMask);
+			BYTE achFourCC[4];
+			CopyMemory(achFourCC, &ddsh.ddspf.dwRGBBitCount, 4);
+
+			if ((ddsh.ddspf.dwFlags & DDPF_FOURCC) &&
+				isprint(achFourCC[0]) && isprint(achFourCC[1]) &&
+				isprint(achFourCC[2]) && isprint(achFourCC[3]))
+			{
+				OutputTextFmt(hwndCtl, szOutput, TEXT("Swizzle:\t%hc%hc%hc%hc\r\n"),
+					achFourCC[0], achFourCC[1], achFourCC[2], achFourCC[3]);
+			}
+			else
+			{
+				OutputTextFmt(hwndCtl, szOutput, TEXT("Bit Count:\t%u bits\r\n"), ddsh.ddspf.dwRGBBitCount);
+				OutputTextFmt(hwndCtl, szOutput, TEXT("Red Mask:\t%08X\r\n"), ddsh.ddspf.dwRBitMask);
+				OutputTextFmt(hwndCtl, szOutput, TEXT("Green Mask:\t%08X\r\n"), ddsh.ddspf.dwGBitMask);
+				OutputTextFmt(hwndCtl, szOutput, TEXT("Blue Mask:\t%08X\r\n"), ddsh.ddspf.dwBBitMask);
+				OutputTextFmt(hwndCtl, szOutput, TEXT("Alpha Mask:\t%08X\r\n"), ddsh.ddspf.dwABitMask);
+			}
 		}
 	}
 
