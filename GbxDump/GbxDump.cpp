@@ -57,7 +57,7 @@ void DeleteWindowRect(HWND hwnd);
 #endif
 
 const TCHAR g_szTitle[]   = TEXT("GbxDump");
-const TCHAR g_szAbout[]   = TEXT("Gbx File Dumper 1.62 (") PLATFORM TEXT(")\r\n")
+const TCHAR g_szAbout[]   = TEXT("Gbx File Dumper 1.63 (") PLATFORM TEXT(")\r\n")
                             TEXT("Copyright © 2010-2019 by Electron\r\n");
 const TCHAR g_szDlgCls[]  = TEXT("GbxDumpDlgClass");
 const TCHAR g_szTop[]     = TEXT("GbxDumpWndTop");
@@ -253,7 +253,7 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 					FillRect(hdc, &rc, (HBRUSH)(COLOR_BTNFACE + 1));
 
 				if (bDrawText)
-				{ // Draw "No Thumbnail" lettering over the default thumbnail image
+				{ // Draw "NO THUMBNAIL" lettering over the default thumbnail image
 					TCHAR szText[256];
 					if (LoadString(g_hInstance, g_bGerUI ? IDS_GER_THUMBNAIL : IDS_ENG_THUMBNAIL, szText, _countof(szText)) > 0)
 					{
@@ -724,16 +724,15 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 				UpdateWindow(hwndCtl);
 
 				BOOL bSuccess = FALSE;
-				TCHAR szFile[MAX_PATH];
 				for (UINT iFile = 0; iFile < nFiles; iFile++)
 				{
-					DragQueryFile(hDrop, iFile, szFile, _countof(szFile));
+					DragQueryFile(hDrop, iFile, s_szFileName, _countof(s_szFileName));
 
 					if (iFile > 0)
 						Edit_ReplaceSel(hwndCtl, TEXT("\r\n"));
 
 					// Dump the file
-					bSuccess = DumpFile(hwndCtl, szFile, s_szUid, s_szEnvi) || bSuccess;
+					bSuccess = DumpFile(hwndCtl, s_szFileName, s_szUid, s_szEnvi) || bSuccess;
 				}
 
 				DragFinish(hDrop);
@@ -988,7 +987,7 @@ BOOL DumpFile(HWND hwndCtl, LPCTSTR lpszFileName, LPSTR lpszUid, LPSTR lpszEnvi)
 	lpszUid[0] = '\0';
 	lpszEnvi[0] = '\0';
 
-	// Deactivate the TMX and Dedimania buttons
+	// Disable the TMX and Dedimania buttons
 	HWND hwndButton = GetDlgItem(GetParent(hwndCtl), IDC_TMX);
 	if (IsWindowEnabled(hwndButton))
 		Button_Enable(hwndButton, FALSE);
@@ -1015,7 +1014,7 @@ BOOL DumpFile(HWND hwndCtl, LPCTSTR lpszFileName, LPSTR lpszUid, LPSTR lpszEnvi)
 	// Obtain attribute information about the file
 	WIN32_FILE_ATTRIBUTE_DATA wfad = {0};
 	if (!GetFileAttributesEx(lpszFileName, GetFileExInfoStandard, &wfad))
-	{ // Determine and output error message
+	{
 		OutputErrorMessage(hwndCtl, GetLastError());
 		return FALSE;
 	}
@@ -1035,7 +1034,7 @@ BOOL DumpFile(HWND hwndCtl, LPCTSTR lpszFileName, LPSTR lpszUid, LPSTR lpszEnvi)
 	HANDLE hFile = CreateFile(lpszFileName, GENERIC_READ, FILE_SHARE_READ, NULL,
 		OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (hFile == INVALID_HANDLE_VALUE)
-	{ // Determine and output error message
+	{
 		OutputErrorMessage(hwndCtl, GetLastError());
 		return FALSE;
 	}
@@ -1093,7 +1092,7 @@ BOOL DumpFile(HWND hwndCtl, LPCTSTR lpszFileName, LPSTR lpszUid, LPSTR lpszEnvi)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Displays version and salt of a MUX file.
+// Displays version and salt of a MUX file
 
 BOOL DumpMux(HWND hwndCtl, HANDLE hFile)
 {
@@ -1126,7 +1125,7 @@ BOOL DumpMux(HWND hwndCtl, HANDLE hFile)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Displays a hex dump of the first 1024 bytes of a file.
+// Displays a hex dump of the first 1024 bytes of a file
 
 #define COLUMNS 16
 #define FORMAT_LEN 256
@@ -1155,9 +1154,10 @@ BOOL DumpHex(HWND hwndCtl, HANDLE hFile, SIZE_T cbLen)
 	OutputText(hwndCtl, g_szSep1);
 	if (LoadString(g_hInstance, g_bGerUI ? IDS_GER_HEXDUMP : IDS_ENG_HEXDUMP,
 		szOutput, _countof(szOutput)) > 0)
-	{
+	{ // Keep the printf-style format specifiers under internal control
 		_sntprintf(szFormat, _countof(szFormat), TEXT("%Iu"), cbLen);
 		szFormat[FORMAT_LEN - 1] = TEXT('\0');
+
 		LPCTSTR lpszText = AllocReplaceString(szOutput, TEXT("{COUNT}"), szFormat);
 		if (lpszText != NULL)
 		{
@@ -1211,7 +1211,7 @@ BOOL DumpHex(HWND hwndCtl, HANDLE hFile, SIZE_T cbLen)
 }
 
 /////////////////////////////////////////////////////////////////////////////
-// Selects the complete URL in which the cursor is located.
+// Selects the complete URL in which the cursor is located
 
 int SelectText(HWND hwndCtl)
 {
@@ -1243,7 +1243,7 @@ int SelectText(HWND hwndCtl)
 	int iCharInLine = (int)(iStartChar - iChar);
 
 	// Spaces and parentheses are valid characters for URLs,
-	// but are required for the selection of regular words.
+	// but are required for the selection of regular words
 	const TCHAR* pszCutOffChars = TEXT(" \t\"<>()[]{}|#");
 
 	TCHAR* pszLine = szLine;
@@ -1273,7 +1273,7 @@ int SelectText(HWND hwndCtl)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Activate or deactivate line break of the edit control.
+// Activate or deactivate line break of the edit control
 
 BOOL SetWordWrap(HWND hDlg, BOOL bWordWrap)
 {
@@ -1288,7 +1288,7 @@ BOOL SetWordWrap(HWND hDlg, BOOL bWordWrap)
 	if (g_lpPrevOutputWndProc != NULL)
 		SubclassWindow(hwndEditOld, g_lpPrevOutputWndProc);
 
-	// Save text and status of a control
+	// Save text and status of the edit control
 	RECT rcProp;
 	RetrieveWindowRect(hwndEditOld, &rcProp);
 	HFONT hFont = GetWindowFont(hwndEditOld);
@@ -1328,7 +1328,7 @@ BOOL SetWordWrap(HWND hDlg, BOOL bWordWrap)
 		return FALSE;
 	}
 
-	// To be safe, set the contents of the old text box to zero.
+	// To be safe, clear the content of the old edit control
 	Edit_SetText(hwndEditOld, NULL);
 
 	StoreWindowRect(hwndEditNew, &rcProp);
@@ -1346,7 +1346,7 @@ BOOL SetWordWrap(HWND hDlg, BOOL bWordWrap)
 	SetWindowPos(hwndEditNew, NULL, 0, 0, 0, 0,
 		SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOZORDER | SWP_DRAWFRAME);
 
-	// Destroy old window
+	// Destroy the old edit control
 	SetWindowPos(hwndEditOld, NULL, 0, 0, 0, 0,
 		SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOREDRAW | SWP_HIDEWINDOW);
 	DeleteWindowRect(hwndEditOld);
@@ -1360,14 +1360,14 @@ BOOL SetWordWrap(HWND hDlg, BOOL bWordWrap)
 		SetFocus(hwndEditNew);
 	Edit_SetSel(hwndEditNew, dwSelStart, dwSelEnd);
 
-	// Restore subclass
+	// Restore subclassing
 	g_lpPrevOutputWndProc = SubclassWindow(hwndEditNew, OutputWndProc);
 
 	return TRUE;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Create a font that fits the size of the thumbnail window.
+// Create a font that fits the size of the thumbnail window
 
 HFONT CreateScaledFont(HDC hDC, LPCRECT lpRect, LPCTSTR lpszText)
 {
@@ -1379,7 +1379,7 @@ HFONT CreateScaledFont(HDC hDC, LPCRECT lpRect, LPCTSTR lpszText)
 		return NULL;
 
 	// Define the maximum size of the rectangle in the center
-	// of the thumbnail in which the text must be positioned.
+	// of the thumbnail in which the text must be positioned
 	SIZE sizeTextMax;
 	sizeTextMax.cx = ((lpRect->right - lpRect->left)) * 3 / 4;
 	sizeTextMax.cy = ((lpRect->bottom - lpRect->top)) / 6;
@@ -1406,7 +1406,7 @@ HFONT CreateScaledFont(HDC hDC, LPCRECT lpRect, LPCTSTR lpszText)
 	__try
 	{
 		// If the text has become too wide due to the maximum
-		// font height, reduce the font size until it fits in.
+		// font height, reduce the font size until it fits in
 		if (((sizeTextMax.cy * sizeTextRatio.cx) / sizeTextRatio.cy) > sizeTextMax.cx)
 		{
 			DeleteFont(hFont);
@@ -1429,7 +1429,7 @@ HFONT CreateScaledFont(HDC hDC, LPCRECT lpRect, LPCTSTR lpszText)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Creates a logical color palette from a given DIB.
+// Creates a logical color palette from a given DIB
 
 HPALETTE DIBCreatePalette(HANDLE hDIB)
 {
@@ -1444,7 +1444,7 @@ HPALETTE DIBCreatePalette(HANDLE hDIB)
 
 	UINT uNumColors = DIBNumColors(lpbi);
 	if (uNumColors != 0)
-	{ // Create palette from the colors of the DIB
+	{ // Create a palette from the colors of the DIB
 		LPLOGPALETTE lpPal = (LPLOGPALETTE)GlobalAllocPtr(GHND,
 			sizeof(LOGPALETTE) + sizeof(PALETTEENTRY) * uNumColors);
 		if (lpPal == NULL)
@@ -1510,7 +1510,7 @@ __inline UINT DIBNumColors(LPCSTR lpbi)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Save the size of a window in the property list of the window.
+// Save the size of a window in the property list of the window
 
 void StoreWindowRect(HWND hwnd, LPRECT lprc)
 {
@@ -1524,7 +1524,7 @@ void StoreWindowRect(HWND hwnd, LPRECT lprc)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Retrieve a saved window size from the property list of a window.
+// Retrieve a saved window size from the property list of a window
 
 void RetrieveWindowRect(HWND hwnd, LPRECT lprc)
 {
@@ -1543,7 +1543,7 @@ void RetrieveWindowRect(HWND hwnd, LPRECT lprc)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Remove previously created entries from the property list of a window.
+// Remove previously created entries from the property list of a window
 
 void DeleteWindowRect(HWND hwnd)
 {
