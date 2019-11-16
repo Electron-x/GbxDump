@@ -65,7 +65,7 @@ IDI_GBXDUMP             ICON                    "GbxDump.ico"
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,62,0,102
+ FILEVERSION 1,63,0,103
  PRODUCTVERSION 1,0,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
@@ -84,7 +84,7 @@ BEGIN
             VALUE "Comments", "This software is based in part on the work of the Independent JPEG Group"
             VALUE "CompanyName", "Electron"
             VALUE "FileDescription", "Gbx File Dumper"
-            VALUE "FileVersion", "1.62.0.102"
+            VALUE "FileVersion", "1.63.0.103"
             VALUE "InternalName", "GbxDump"
             VALUE "LegalCopyright", "Copyright © 2010-2019 by Electron"
             VALUE "OriginalFilename", "GbxDump.exe"
@@ -116,8 +116,8 @@ BEGIN
     PUSHBUTTON      "&Zeilenumbruch",IDC_WORDWRAP,411,44,80,16,BS_MULTILINE
     PUSHBUTTON      "&T/MX",IDC_TMX,411,64,80,16,BS_MULTILINE
     PUSHBUTTON      "&Dedimania",IDC_DEDIMANIA,411,84,80,16,BS_MULTILINE
+    CONTROL         "Thumbnail",IDC_THUMB,"Button",BS_OWNERDRAW | BS_BITMAP | WS_GROUP | WS_TABSTOP,411,239,80,75,WS_EX_CLIENTEDGE
     EDITTEXT        IDC_OUTPUT,4,4,402,310,ES_MULTILINE | ES_NOHIDESEL | ES_READONLY | NOT WS_BORDER | WS_VSCROLL | WS_HSCROLL | WS_GROUP,WS_EX_DLGMODALFRAME | WS_EX_CLIENTEDGE
-    CONTROL         "Thumbnail",IDC_THUMB,"Button",BS_OWNERDRAW | BS_BITMAP | WS_GROUP,411,239,80,75,WS_EX_CLIENTEDGE
 END
 
 
@@ -211,11 +211,11 @@ FONT 9, "MS Shell Dlg", 400, 0, 0x0
 BEGIN
     DEFPUSHBUTTON   "&Open...",IDC_OPEN,411,4,80,16,BS_MULTILINE | WS_GROUP
     PUSHBUTTON      "&Copy",IDC_COPY,411,24,80,16,BS_MULTILINE
-    PUSHBUTTON      "&Word Wrap",IDC_WORDWRAP,411,44,80,16,BS_MULTILINE
+    PUSHBUTTON      "&Word wrap",IDC_WORDWRAP,411,44,80,16,BS_MULTILINE
     PUSHBUTTON      "&T/MX",IDC_TMX,411,64,80,16,BS_MULTILINE
     PUSHBUTTON      "&Dedimania",IDC_DEDIMANIA,411,84,80,16,BS_MULTILINE
+    CONTROL         "Thumbnail",IDC_THUMB,"Button",BS_OWNERDRAW | BS_BITMAP | WS_GROUP | WS_TABSTOP,411,239,80,75,WS_EX_CLIENTEDGE
     EDITTEXT        IDC_OUTPUT,4,4,402,310,ES_MULTILINE | ES_NOHIDESEL | ES_READONLY | NOT WS_BORDER | WS_VSCROLL | WS_HSCROLL | WS_GROUP,WS_EX_DLGMODALFRAME | WS_EX_CLIENTEDGE
-    CONTROL         "Thumbnail",IDC_THUMB,"Button",BS_OWNERDRAW | BS_BITMAP | WS_GROUP,411,239,80,75,WS_EX_CLIENTEDGE
 END
 
 
@@ -229,7 +229,7 @@ BEGIN
     POPUP "&Thumbnail"
     BEGIN
         MENUITEM "&Copy",                       IDC_THUMB_COPY
-        MENUITEM "&Save As...",                 IDC_THUMB_SAVE
+        MENUITEM "&Save as...",                 IDC_THUMB_SAVE
     END
 END
 
@@ -273,7 +273,7 @@ BEGIN
     IDP_ENG_ERR_TRACK       "Map not found.\r\n"
     IDP_ENG_ERR_RECORDS     "No records found.\r\n"
     IDS_ENG_HEXDUMP         "Hex dump of the first {COUNT} bytes:\r\n"
-    IDS_ENG_THUMBNAIL       "No Thumbnail"
+    IDS_ENG_THUMBNAIL       "NO THUMBNAIL"
 END
 
 #endif    // Englisch (USA) resources

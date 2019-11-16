@@ -21,12 +21,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_42D0B8232B7A442086FF5F58C671E23A"
-        "OwnerKey" = "8:_5E8AEAFD11C74E80BC3B91263C4DF1B7"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_5E8AEAFD11C74E80BC3B91263C4DF1B7"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -41,12 +35,6 @@
         {
         "MsmKey" = "8:_715DFA8F6D0F4F31B31A530421F5E5B3"
         "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_FCD4CE7E6A67470D3EDED234F29894FA"
-        "OwnerKey" = "8:_5E8AEAFD11C74E80BC3B91263C4DF1B7"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -146,26 +134,6 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_42D0B8232B7A442086FF5F58C671E23A"
-            {
-            "SourcePath" = "8:COMDLG32.dll"
-            "TargetName" = "8:COMDLG32.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_79ECAC9DA6DF4F4FA0D4934AA7ECB9AA"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:TRUE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_65BF90CD6DFD4DEA9AE6CD79EC7F37A3"
             {
             "SourcePath" = "8:Licence.rtf"
@@ -204,26 +172,6 @@
             "Register" = "3:1"
             "Exclude" = "11:TRUE"
             "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_FCD4CE7E6A67470D3EDED234F29894FA"
-            {
-            "SourcePath" = "8:WININET.dll"
-            "TargetName" = "8:WININET.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_79ECAC9DA6DF4F4FA0D4934AA7ECB9AA"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:TRUE"
-            "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
         }
@@ -289,15 +237,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:GbxDump (x64)"
-        "ProductCode" = "8:{07ED9534-8472-41BE-AC74-BB6DD6AD7ECD}"
-        "PackageCode" = "8:{A17A5DC6-071B-4A7D-A66F-DE32D9874886}"
+        "ProductCode" = "8:{00559047-039D-4CF8-8D73-F73AB3DCD338}"
+        "PackageCode" = "8:{DD6B93A2-0D9E-424B-A83A-9E7F933987F1}"
         "UpgradeCode" = "8:{2702E740-3470-47E4-BB3C-6478AA9C3A51}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:1.62"
+        "ProductVersion" = "8:1.63"
         "Manufacturer" = "8:Electron"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:http://www.wolfgang-rolke.de/gbxdump/"
