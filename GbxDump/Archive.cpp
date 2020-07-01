@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Archive.cpp - Copyright (c) 2010-2019 by Electron.
+// Archive.cpp - Copyright (c) 2010-2020 by Electron.
 //
 // Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -430,7 +430,7 @@ SIZE_T GetCollectionString(DWORD dwId, LPSTR lpszCollection, SIZE_T cchStringLen
 		case 5: // Coast
 			lstrcpynA(lpszCollection, "Coast", (int)cchStringLen);
 			break;
-		case 6: // Stadium
+		case 6: // StadiumMP4
 			lstrcpynA(lpszCollection, "Stadium", (int)cchStringLen);
 			break;
 		case 7: // Basic
@@ -489,6 +489,9 @@ SIZE_T GetCollectionString(DWORD dwId, LPSTR lpszCollection, SIZE_T cchStringLen
 			break;
 		case 25: // Stadium256
 			lstrcpynA(lpszCollection, "Stadium256", (int)cchStringLen);
+			break;
+		case 26: // Stadium
+			lstrcpynA(lpszCollection, "Stadium", (int)cchStringLen);
 			break;
 		case 100: // History
 			lstrcpynA(lpszCollection, "History", (int)cchStringLen);
