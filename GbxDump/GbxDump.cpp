@@ -57,8 +57,8 @@ void DeleteWindowRect(HWND hwnd);
 #endif
 
 const TCHAR g_szTitle[]   = TEXT("GbxDump");
-const TCHAR g_szAbout[]   = TEXT("Gbx File Dumper 1.63 (") PLATFORM TEXT(")\r\n")
-                            TEXT("Copyright © 2010-2019 by Electron\r\n");
+const TCHAR g_szAbout[]   = TEXT("Gbx File Dumper 1.64 (") PLATFORM TEXT(")\r\n")
+                            TEXT("Copyright © 2010-2020 by Electron\r\n");
 const TCHAR g_szDlgCls[]  = TEXT("GbxDumpDlgClass");
 const TCHAR g_szTop[]     = TEXT("GbxDumpWndTop");
 const TCHAR g_szBottom[]  = TEXT("GbxDumpWndBottom");

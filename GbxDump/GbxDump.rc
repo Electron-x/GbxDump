@@ -65,7 +65,7 @@ IDI_GBXDUMP             ICON                    "GbxDump.ico"
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,63,0,103
+ FILEVERSION 1,64,0,104
  PRODUCTVERSION 1,0,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
@@ -84,9 +84,9 @@ BEGIN
             VALUE "Comments", "This software is based in part on the work of the Independent JPEG Group"
             VALUE "CompanyName", "Electron"
             VALUE "FileDescription", "Gbx File Dumper"
-            VALUE "FileVersion", "1.63.0.103"
+            VALUE "FileVersion", "1.64.0.104"
             VALUE "InternalName", "GbxDump"
-            VALUE "LegalCopyright", "Copyright © 2010-2019 by Electron"
+            VALUE "LegalCopyright", "Copyright © 2010-2020 by Electron"
             VALUE "OriginalFilename", "GbxDump.exe"
             VALUE "ProductName", "GbxTools"
             VALUE "ProductVersion", "1.0"
