@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// DumpPak.cpp - Copyright (c) 2010-2019 by Electron.
+// DumpPak.cpp - Copyright (c) 2010-2020 by Electron.
 //
 // Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -819,6 +819,9 @@ BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderM
 			case CLSID_FILEDDS_TM:
 				OutputText(hwndCtl, TEXT(" (FileDds)"));
 				break;
+			case CLSID_FILETGA_TM:
+				OutputText(hwndCtl, TEXT(" (FileTga)"));
+				break;
 			case CLSID_FILEPNG_TM:
 				OutputText(hwndCtl, TEXT(" (FilePng)"));
 				break;
@@ -836,6 +839,9 @@ BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderM
 				break;
 			case CLSID_FILEPACK_TM:
 				OutputText(hwndCtl, TEXT(" (FilePack)"));
+				break;
+			case CLSID_FILEZIP_TMF:
+				OutputText(hwndCtl, TEXT(" (FileZip)"));
 				break;
 		}
 		OutputText(hwndCtl, g_szCRLF);

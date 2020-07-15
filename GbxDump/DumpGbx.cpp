@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// DumpGbx.cpp - Copyright (c) 2010-2019 by Electron.
+// DumpGbx.cpp - Copyright (c) 2010-2020 by Electron.
 //
 // Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -474,6 +474,10 @@ BASECLASS GetBaseClass(HWND hwndCtl, DWORD dwClassId)
 
 		case CLSID_MENUMODEL_MP:
 			OutputText(hwndCtl, TEXT(" (ModuleMenuModel)"));
+			break;
+
+		case CLSID_COMMONMODEL_MP:
+			OutputText(hwndCtl, TEXT(" (ModuleModelCommon)"));
 			break;
 
 		case CLSID_INVENTORYMODEL_MP:
@@ -3754,6 +3758,12 @@ BOOL ObjectInfoTypeChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckType)
 			break;
 		case 12:
 			OutputText(hwndCtl, TEXT("EntitySpawner"));
+			break;
+		case 13:
+			OutputText(hwndCtl, TEXT("DeprecV"));
+			break;
+		case 14:
+			OutputText(hwndCtl, TEXT("Procedural"));
 			break;
 		case UNASSIGNED:
 			OutputText(hwndCtl, g_szUnknown);
