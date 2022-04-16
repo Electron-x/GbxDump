@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// DumpGbx.cpp - Copyright (c) 2010-2020 by Electron.
+// DumpGbx.cpp - Copyright (c) 2010-2022 by Electron.
 //
 // Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -3466,10 +3466,10 @@ BOOL CollectorDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckDesc)
 					AppendFlagName(szOutput, _countof(szOutput), TEXT("IconDesc_NoIcon"));
 					break;
 				case 2:
-					AppendFlagName(szOutput, _countof(szOutput), TEXT("IconDesc_BGRA_64x64"));
+					AppendFlagName(szOutput, _countof(szOutput), TEXT("IconDesc_64x64"));
 					break;
 				case 3:
-					AppendFlagName(szOutput, _countof(szOutput), TEXT("IconDesc_BGRA_128x128"));
+					AppendFlagName(szOutput, _countof(szOutput), TEXT("IconDesc_128x128"));
 					break;
 			}
 
@@ -3551,6 +3551,7 @@ BOOL CollectorIconChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckIcon)
 		return FALSE;
 
 	// Determine icon size
+	WORD wVersion = 0;
 	WORD wWidth  = 0;
 	WORD wHeight = 0;
 
@@ -3559,75 +3560,119 @@ BOOL CollectorIconChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckIcon)
 	if (!ReadNat16(hFile, &wHeight))
 		return FALSE;
 
+	if ((SHORT)wWidth < 0 || (SHORT)wHeight < 0)
+	{
+		wVersion = 1;
+		wWidth &= 0x07FF;
+		wHeight &= 0x07FF;
+	}
+
 	OutputTextFmt(hwndCtl, szOutput, TEXT("Icon Width:\t%u pixels\r\n"), wWidth);
 	OutputTextFmt(hwndCtl, szOutput, TEXT("Icon Height:\t%u pixels\r\n"), wHeight);
 
-	// Determining and checking the amount of image data
-	DWORD dwIconSize = (((((DWORD)wWidth * 32) + 31) >> 5) << 2) * (DWORD)wHeight;
-	if (dwIconSize == 0 || dwIconSize != (pckIcon->dwSize - 4))
-		return TRUE;	// no, compressed or corrupted data
+	if (wVersion < 1)
+	{ // Read RGBA image
+		// Determining and checking the amount of image data
+		DWORD dwIconSize = (((((DWORD)wWidth * 32) + 31) >> 5) << 2) * (DWORD)wHeight;
+		if (dwIconSize == 0 || dwIconSize != (pckIcon->dwSize - 4))
+			return TRUE;	// no, compressed or corrupted data
 
-	// Allocate memory
-	LPVOID lpData = GlobalAllocPtr(GHND, dwIconSize);
-	if (lpData == NULL)
-		return FALSE;
+		// Allocate memory
+		LPVOID lpData = GlobalAllocPtr(GHND, dwIconSize);
+		if (lpData == NULL)
+			return FALSE;
 
-	// Read image data
-	if (!ReadData(hFile, lpData, pckIcon->dwSize - 4))
-	{
+		// Read image data
+		if (!ReadData(hFile, lpData, pckIcon->dwSize - 4))
+		{
+			GlobalFreePtr(lpData);
+			return FALSE;
+		}
+
+		// Create a 32-bit DIB
+		HANDLE hDib = GlobalAlloc(GHND, sizeof(BITMAPINFOHEADER) + dwIconSize);
+		if (hDib != NULL)
+		{
+			if (g_hDibThumb != NULL)
+			{
+				JpegFreeDib(g_hDibThumb);
+				g_hDibThumb = NULL;
+			}
+
+			LPBITMAPINFOHEADER lpbi = (LPBITMAPINFOHEADER)GlobalLock(hDib);
+			if (lpbi != NULL)
+			{
+				lpbi->biSize = sizeof(BITMAPINFOHEADER);
+				lpbi->biWidth = wWidth;
+				lpbi->biHeight = wHeight;
+				lpbi->biPlanes = 1;
+				lpbi->biBitCount = 32;
+				lpbi->biCompression = BI_RGB;
+				lpbi->biSizeImage = dwIconSize;
+				lpbi->biXPelsPerMeter = 0;
+				lpbi->biYPelsPerMeter = 0;
+				lpbi->biClrUsed = 0;
+				lpbi->biClrImportant = 0;
+
+				register LPBYTE lpSrc = (LPBYTE)lpData;
+				register LPBYTE lpDest = ((LPBYTE)lpbi) + sizeof(BITMAPINFOHEADER);
+
+				__try
+				{
+					while (dwIconSize--)
+						*lpDest++ = *lpSrc++;
+				}
+				__except (EXCEPTION_EXECUTE_HANDLER) { dwIconSize = 0; }
+
+				GlobalUnlock(hDib);
+				g_hDibThumb = hDib;
+			}
+
+			// View/update thumbnail immediately
+			HWND hwndThumb = GetDlgItem(GetParent(hwndCtl), IDC_THUMB);
+			if (hwndThumb != NULL)
+			{
+				if (InvalidateRect(hwndThumb, NULL, FALSE))
+					UpdateWindow(hwndThumb);
+			}
+		}
+
 		GlobalFreePtr(lpData);
-		return FALSE;
+
+		return TRUE;
 	}
 
-	// Create a 32-bit DIB
-	HANDLE hDib = GlobalAlloc(GHND, sizeof(BITMAPINFOHEADER) + dwIconSize);
-	if (hDib != NULL)
+	// Version
+	if (!ReadNat16(hFile, &wVersion))
+		return FALSE;
+
+	OutputTextFmt(hwndCtl, szOutput, TEXT("Version:\t%d"), wVersion);
+	if (wVersion > 1) OutputText(hwndCtl, g_szAsterisk);
+	OutputText(hwndCtl, g_szCRLF);
+
+	// Size of the following RIFF container
+	DWORD dwImageSize = 0;
+	if (!ReadNat32(hFile, &dwImageSize))
+		return FALSE;
+
+	if (FormatByteSize(dwImageSize, szOutput, _countof(szOutput)))
 	{
-		if (g_hDibThumb != NULL)
+		OutputText(hwndCtl, TEXT("Image Size:\t"));
+		OutputText(hwndCtl, szOutput);
+		OutputText(hwndCtl, g_szCRLF);
+	}
+
+	// Draw "UNSUPPORTED FORMAT" lettering over the default thumbnail image
+	HWND hwndThumb = GetDlgItem(GetParent(hwndCtl), IDC_THUMB);
+	if (hwndThumb != NULL)
+	{
+		if (LoadString(g_hInstance, g_bGerUI ? IDS_GER_UNSUPPORTED : IDS_ENG_UNSUPPORTED, szOutput, _countof(szOutput)) > 0)
 		{
-			JpegFreeDib(g_hDibThumb);
-			g_hDibThumb = NULL;
-		}
-
-		LPBITMAPINFOHEADER lpbi = (LPBITMAPINFOHEADER)GlobalLock(hDib);
-		if (lpbi != NULL)
-		{
-			lpbi->biSize          = sizeof(BITMAPINFOHEADER);
-			lpbi->biWidth         = wWidth;
-			lpbi->biHeight        = wHeight;
-			lpbi->biPlanes        = 1;
-			lpbi->biBitCount      = 32;
-			lpbi->biCompression   = BI_RGB;
-			lpbi->biSizeImage     = dwIconSize;
-			lpbi->biXPelsPerMeter = 0;
-			lpbi->biYPelsPerMeter = 0;
-			lpbi->biClrUsed       = 0;
-			lpbi->biClrImportant  = 0;
-
-			register LPBYTE lpSrc  = (LPBYTE)lpData;
-			register LPBYTE lpDest = ((LPBYTE)lpbi) + sizeof(BITMAPINFOHEADER);
-
-			__try
-			{
-				while (dwIconSize--)
-					*lpDest++ = *lpSrc++;
-			}
-			__except (EXCEPTION_EXECUTE_HANDLER) { dwIconSize = 0; }
-
-			GlobalUnlock(hDib);
-			g_hDibThumb = hDib;
-		}
-
-		// View/update thumbnail immediately
-		HWND hwndThumb = GetDlgItem(GetParent(hwndCtl), IDC_THUMB);
-		if (hwndThumb != NULL)
-		{
+			SetWindowText(hwndThumb, szOutput);
 			if (InvalidateRect(hwndThumb, NULL, FALSE))
 				UpdateWindow(hwndThumb);
 		}
 	}
-
-	GlobalFreePtr(lpData);
 
 	return TRUE;
 }

@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// GbxDump.cpp - Copyright (c) 2010-2019 by Electron.
+// GbxDump.cpp - Copyright (c) 2010-2022 by Electron.
 //
 // Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -57,8 +57,8 @@ void DeleteWindowRect(HWND hwnd);
 #endif
 
 const TCHAR g_szTitle[]   = TEXT("GbxDump");
-const TCHAR g_szAbout[]   = TEXT("Gbx File Dumper 1.64 (") PLATFORM TEXT(")\r\n")
-                            TEXT("Copyright © 2010-2020 by Electron\r\n");
+const TCHAR g_szAbout[]   = TEXT("Gbx File Dumper 1.65 (") PLATFORM TEXT(")\r\n")
+                            TEXT("Copyright © 2010-2022 by Electron\r\n");
 const TCHAR g_szDlgCls[]  = TEXT("GbxDumpDlgClass");
 const TCHAR g_szTop[]     = TEXT("GbxDumpWndTop");
 const TCHAR g_szBottom[]  = TEXT("GbxDumpWndBottom");
@@ -255,7 +255,7 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 				if (bDrawText)
 				{ // Draw "NO THUMBNAIL" lettering over the default thumbnail image
 					TCHAR szText[256];
-					if (LoadString(g_hInstance, g_bGerUI ? IDS_GER_THUMBNAIL : IDS_ENG_THUMBNAIL, szText, _countof(szText)) > 0)
+					if (GetWindowText(lpdis->hwndItem, szText, _countof(szText)) > 0)
 					{
 						COLORREF rgbTextOld = SetTextColor(hdc, RGB(255, 255, 255));
 						int nBkModeOld = SetBkMode(hdc, TRANSPARENT);
@@ -833,6 +833,11 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 				MoveWindow(hwndCtl, rc.left, rc.bottom-(rc.right-rc.left),
 					rc.right-rc.left, rc.right-rc.left, FALSE);
 
+				TCHAR szText[256];
+				// Set the title for the default thumbnail
+				if (LoadString(g_hInstance, g_bGerUI ? IDS_GER_THUMBNAIL : IDS_ENG_THUMBNAIL, szText, _countof(szText)) > 0)
+					SetWindowText(hwndCtl, szText);
+
 				// Set the minimum size of the dialog box
 				GetWindowRect(hDlg, &rc);
 				s_ptMinTrackSize.x = (rc.right - rc.left) * 3 / 4;
@@ -1000,10 +1005,15 @@ BOOL DumpFile(HWND hwndCtl, LPCTSTR lpszFileName, LPSTR lpszUid, LPSTR lpszEnvi)
 	{
 		JpegFreeDib(g_hDibThumb);
 		g_hDibThumb = NULL;
+	}
 
-		HWND hwndThumb = GetDlgItem(GetParent(hwndCtl), IDC_THUMB);
-		if (hwndThumb != NULL)
-			InvalidateRect(hwndThumb, NULL, FALSE);
+	// Reset the title for the default thumbnail
+	HWND hwndThumb = GetDlgItem(GetParent(hwndCtl), IDC_THUMB);
+	if (hwndThumb != NULL)
+	{
+		if (LoadString(g_hInstance, g_bGerUI ? IDS_GER_THUMBNAIL : IDS_ENG_THUMBNAIL, szOutput, _countof(szOutput)) > 0)
+			SetWindowText(hwndThumb, szOutput);
+		InvalidateRect(hwndThumb, NULL, FALSE);
 	}
 
 	// Output file name

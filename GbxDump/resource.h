@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Visual C++ generated include file.
-// Used by GbxDump.rc
+// Von Microsoft Visual C++ generierte Includedatei.
+// Verwendet durch GbxDump.rc
 //
 #define IDI_GBXDUMP                     101
 #define IDR_THUMB                       102
@@ -21,6 +21,7 @@
 #define IDP_GER_ERR_RECORDS             412
 #define IDS_GER_HEXDUMP                 413
 #define IDS_GER_THUMBNAIL               414
+#define IDS_GER_UNSUPPORTED             415
 #define IDD_ENG_GBXDUMP                 800
 #define IDS_ENG_FILTER_GBX              801
 #define IDS_ENG_FILTER_BMP              802
@@ -36,6 +37,7 @@
 #define IDP_ENG_ERR_RECORDS             812
 #define IDS_ENG_HEXDUMP                 813
 #define IDS_ENG_THUMBNAIL               814
+#define IDS_ENG_UNSUPPORTED             815
 #define IDC_OUTPUT                      1001
 #define IDC_OPEN                        1002
 #define IDC_COPY                        1003
@@ -48,7 +50,7 @@
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
-//
+// 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
