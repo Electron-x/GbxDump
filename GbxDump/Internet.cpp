@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Internet.cpp - Copyright (c) 2010-2020 by Electron.
+// Internet.cpp - Copyright (c) 2010-2022 by Electron.
 //
 // Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -31,7 +31,7 @@ void LastInternetError(HWND hwndCtl, DWORD dwError);
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // String Constants
 //
-const TCHAR g_szUserAgent[]  = TEXT("GbxDump/1.64");
+const TCHAR g_szUserAgent[]  = TEXT("GbxDump/1.65");
 const TCHAR g_szWininetDll[] = TEXT("wininet.dll");
 const TCHAR g_szConnecting[] = TEXT("%s - Connecting...");
 const TCHAR g_szDownload[]   = TEXT("%s - Downloading...");

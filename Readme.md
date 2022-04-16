@@ -13,10 +13,10 @@ used by the [Nadeo](https://nadeo.com/) game engine GameBox (.gbx files). The to
 - Online interface to the TMX and MX trackbase
 - Online interface to the Dedimania records database
 
-![Screenshot of GbxDump](http://www.wolfgang-rolke.de/gbxdump/gbxdump.jpg)
+![Screenshot of GbxDump](http://wolfgang-rolke.de/gbxdump/gbxdump.jpg)
 
 After installation the context menu of .gbx files has an additional entry `GbxDump`. Using this command you can view into this .gbx file.
-You can also run the tool from the Start menu and open any .gbx file within the program (Start » Programs » Gbx File Dumper).
+You can also run the tool from the Start menu and open any .gbx file within the program (Start Â» Programs Â» Gbx File Dumper).
 Nevertheless, the easiest way is to use drag-and-drop from Microsoft Windows Explorer. Then several files can immediately be analyzed at once.
 
 GbxDump shows lot of technical data (like block identifiers and sizes) to support all types of .gbx files and to detect future changes of the file format.
@@ -84,7 +84,7 @@ More extensive changes require a new branch. See also the section [Status of the
 
 ## License ##
 
-Copyright © 2010 - 2019 by Electron
+Copyright Â© 2010 - 2019 by Electron
 
 Licensed under the [EUPL](https://joinup.ec.europa.eu/software/page/eupl), Version 1.2 - see the [Licence.txt](Licence.txt) file for details.
 

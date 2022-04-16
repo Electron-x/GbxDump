@@ -65,7 +65,7 @@ IDI_GBXDUMP             ICON                    "GbxDump.ico"
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,64,0,104
+ FILEVERSION 1,65,0,105
  PRODUCTVERSION 1,0,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
@@ -84,9 +84,9 @@ BEGIN
             VALUE "Comments", "This software is based in part on the work of the Independent JPEG Group"
             VALUE "CompanyName", "Electron"
             VALUE "FileDescription", "Gbx File Dumper"
-            VALUE "FileVersion", "1.64.0.104"
+            VALUE "FileVersion", "1.65.0.105"
             VALUE "InternalName", "GbxDump"
-            VALUE "LegalCopyright", "Copyright © 2010-2020 by Electron"
+            VALUE "LegalCopyright", "Copyright © 2010-2022 by Electron"
             VALUE "OriginalFilename", "GbxDump.exe"
             VALUE "ProductName", "GbxTools"
             VALUE "ProductVersion", "1.0"
@@ -184,6 +184,7 @@ BEGIN
     IDP_GER_ERR_RECORDS     "Keine Rekorde gefunden.\r\n"
     IDS_GER_HEXDUMP         "Hexdump der ersten {COUNT} Bytes:\r\n"
     IDS_GER_THUMBNAIL       "Kein Miniaturbild"
+    IDS_GER_UNSUPPORTED     "Nicht unterstütztes Format"
 END
 
 #endif    // Deutsch (Deutschland) resources
@@ -274,6 +275,7 @@ BEGIN
     IDP_ENG_ERR_RECORDS     "No records found.\r\n"
     IDS_ENG_HEXDUMP         "Hex dump of the first {COUNT} bytes:\r\n"
     IDS_ENG_THUMBNAIL       "NO THUMBNAIL"
+    IDS_ENG_UNSUPPORTED     "UNSUPPORTED FORMAT"
 END
 
 #endif    // Englisch (USA) resources
