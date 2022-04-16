@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Tmx.cpp - Copyright (c) 2010-2019 by Electron.
+// Tmx.cpp - Copyright (c) 2010-2022 by Electron.
 //
 // Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -28,6 +28,7 @@
 #define GAME_TM2  6
 #define GAME_SM   7
 #define GAME_QM   8
+#define GAME_TM   9
 
 #define TMX_MAX_DATASIZE 16384
 
@@ -45,11 +46,10 @@ BOOL OutputXmlData(HWND hwndCtl, UINT uCodePage, LPCSTR lpszData, LPCSTR lpszMar
 // String Constants
 //
 const TCHAR g_szTmx[]         = TEXT("Track-/Mania Exchange:\r\n");
-const TCHAR g_szTrackMania[]  = TEXT("tm");
-const TCHAR g_szShootMania[]  = TEXT("sm");
-const TCHAR g_szQuestMania[]  = TEXT("qm");
-const TCHAR g_szTracks[]      = TEXT("tracks");
-const TCHAR g_szMaps[]        = TEXT("maps");
+const TCHAR g_szTM[]          = TEXT("tm");
+const TCHAR g_szSM[]          = TEXT("sm");
+const TCHAR g_szQM[]          = TEXT("qm");
+const TCHAR g_szTrackMania[]  = TEXT("trackmania");
 const TCHAR g_szForever[]     = TEXT("tmnforever");
 const TCHAR g_szUnited[]      = TEXT("united");
 const TCHAR g_szNations[]     = TEXT("nations");
@@ -59,8 +59,10 @@ const TCHAR g_szParamInfo[]   = TEXT("apitrackinfo&uid");
 const TCHAR g_szParamSearch[] = TEXT("apisearch&trackid");
 const TCHAR g_szParamRecord[] = TEXT("apitrackrecords&id");
 const TCHAR g_szUrlTmx[]      = TEXT("http://%s.tm-exchange.com/apiget.aspx?action=%s=%hs");
-const TCHAR g_szUrlMx1[]      = TEXT("http://api.mania-exchange.com/%s/%s/%hs?format=xml");
-const TCHAR g_szUrlMx2[]      = TEXT("http://api.mania-exchange.com/%s/replays/%s/10?format=xml");
+const TCHAR g_szUrlMpMaps[]   = TEXT("https://%s.mania.exchange/api/maps/get_map_info/multi/%hs?format=xml");
+const TCHAR g_szUrlMpRepl[]   = TEXT("https://%s.mania.exchange/api/replays/get_replays/%s?amount=10&format=xml");
+const TCHAR g_szUrlTmMaps[]   = TEXT("https://%s.exchange/api/maps/get_map_info/multi/%hs?format=xml");
+const TCHAR g_szUrlTmRepl[]   = TEXT("https://%s.exchange/api/replays/get_replays/%s?amount=10&format=xml");
 const TCHAR g_szErrOom[]      = TEXT("Out of memory.\r\n");
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -90,15 +92,19 @@ BOOL GetTmxData(HWND hwndCtl, LPCSTR lpszUid, LPCSTR lpszEnvi)
 		bSuccess = PrintMxData(hwndCtl, lpszUid, GAME_QM, &bTrackFound);
 	else if (strcmp(lpszEnvi, "Stadium") == 0)
 	{
-		bSuccess = PrintMxData(hwndCtl, lpszUid, GAME_TM2, &bTrackFound);
+		bSuccess = PrintMxData(hwndCtl, lpszUid, GAME_TM, &bTrackFound);
 		if (bSuccess && bTrackFound == FALSE)
 		{
-			bSuccess = PrintTmxData(hwndCtl, lpszUid, GAME_TMNF, &bTrackFound);
+			bSuccess = PrintMxData(hwndCtl, lpszUid, GAME_TM2, &bTrackFound);
 			if (bSuccess && bTrackFound == FALSE)
 			{
-				bSuccess = PrintTmxData(hwndCtl, lpszUid, GAME_TMU, &bTrackFound);
+				bSuccess = PrintTmxData(hwndCtl, lpszUid, GAME_TMNF, &bTrackFound);
 				if (bSuccess && bTrackFound == FALSE)
-					bSuccess = PrintTmxData(hwndCtl, lpszUid, GAME_TMN, &bTrackFound);
+				{
+					bSuccess = PrintTmxData(hwndCtl, lpszUid, GAME_TMU, &bTrackFound);
+					if (bSuccess && bTrackFound == FALSE)
+						bSuccess = PrintTmxData(hwndCtl, lpszUid, GAME_TMN, &bTrackFound);
+				}
 			}
 		}
 	}
@@ -433,14 +439,17 @@ BOOL PrintMxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 	TCHAR szSubDomain[16];
 	switch (nGame)
 	{
-		case GAME_TM2:
+		case GAME_TM:
 			lstrcpyn(szSubDomain, g_szTrackMania, _countof(szSubDomain));
 			break;
+		case GAME_TM2:
+			lstrcpyn(szSubDomain, g_szTM, _countof(szSubDomain));
+			break;
 		case GAME_SM:
-			lstrcpyn(szSubDomain, g_szShootMania, _countof(szSubDomain));
+			lstrcpyn(szSubDomain, g_szSM, _countof(szSubDomain));
 			break;
 		case GAME_QM:
-			lstrcpyn(szSubDomain, g_szQuestMania, _countof(szSubDomain));
+			lstrcpyn(szSubDomain, g_szQM, _countof(szSubDomain));
 			break;
 		default:
 			return TRUE;
@@ -457,8 +466,8 @@ BOOL PrintMxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 
 	// Create query URL and retrieve data via map UID
 	TCHAR szMxUrl[512];
-	_sntprintf(szMxUrl, _countof(szMxUrl), g_szUrlMx1, szSubDomain,
-		nGame == GAME_TM2 ? g_szTracks : g_szMaps, lpszUid);
+	_sntprintf(szMxUrl, _countof(szMxUrl),
+		nGame == GAME_TM ? g_szUrlTmMaps : g_szUrlMpMaps, szSubDomain, lpszUid);
 	if (!ReadInternetFile(hwndCtl, szMxUrl, lpszData, dwSize))
 	{
 		GlobalFreePtr((LPVOID)lpszData);
@@ -487,7 +496,7 @@ BOOL PrintMxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 	Edit_SetSel(hwndCtl, (WPARAM)nLen, (LPARAM)nLen);
 
 	// Parse and output the MX data
-	if (nGame == GAME_TM2)
+	if (nGame == GAME_TM || nGame == GAME_TM2)
 	{
 		OutputXmlData(hwndCtl, uCodePage, lpszData, "TrackID", TEXT("Track ID:\t"), szTrackId, _countof(szTrackId));
 		OutputXmlData(hwndCtl, uCodePage, lpszData, "TrackUID", TEXT("Track UID:\t"));
@@ -504,9 +513,13 @@ BOOL PrintMxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 	OutputXmlData(hwndCtl, uCodePage, lpszData, "UpdatedAt", TEXT("Version:\t"));
 	OutputXmlData(hwndCtl, uCodePage, lpszData, "UploadedAt", TEXT("Uploaded:\t"));
 	OutputXmlData(hwndCtl, uCodePage, lpszData, "Unreleased", TEXT("Unreleased:\t"));
+	OutputXmlData(hwndCtl, uCodePage, lpszData, "Unlisted", TEXT("Unlisted:\t"));
+	OutputXmlData(hwndCtl, uCodePage, lpszData, "Downloadable", TEXT("Downloadable:\t"));
 	OutputXmlData(hwndCtl, uCodePage, lpszData, "UnlimiterRequired", TEXT("Unlimiter:\t"));
 	OutputXmlData(hwndCtl, uCodePage, lpszData, "HasGhostBlocks", TEXT("Ghost Blocks:\t"));
 	OutputXmlData(hwndCtl, uCodePage, lpszData, "EmbeddedObjectsCount", TEXT("Embedded Items:\t"));
+	OutputXmlData(hwndCtl, uCodePage, lpszData, "EmbeddedItemsSize", TEXT("Items Size:\t"));
+	OutputXmlData(hwndCtl, uCodePage, lpszData, "SizeWarning", TEXT("Size Warning:\t"));
 	OutputXmlData(hwndCtl, uCodePage, lpszData, "HasScreenshot", TEXT("Has Screenshot:\t"));
 	OutputXmlData(hwndCtl, uCodePage, lpszData, "HasThumbnail", TEXT("Has Thumbnail:\t"));
 	OutputXmlData(hwndCtl, uCodePage, lpszData, "ExeVersion", TEXT("Exe Version:\t"));
@@ -526,9 +539,6 @@ BOOL PrintMxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 	OutputXmlData(hwndCtl, uCodePage, lpszData, "DifficultyName", TEXT("Difficulty:\t"));
 	OutputXmlData(hwndCtl, uCodePage, lpszData, "Laps", TEXT("Laps:\t\t"));
 	OutputXmlData(hwndCtl, uCodePage, lpszData, "TrackValue", TEXT("Track Value:\t"));
-	OutputXmlData(hwndCtl, uCodePage, lpszData, "Rating", TEXT("Rating:\t\t"));
-	OutputXmlData(hwndCtl, uCodePage, lpszData, "RatingExact", TEXT("Rating Exact:\t"));
-	OutputXmlData(hwndCtl, uCodePage, lpszData, "RatingCount", TEXT("Rating Count:\t"));
 	OutputXmlData(hwndCtl, uCodePage, lpszData, "AwardCount", TEXT("Award Count:\t"));
 	OutputXmlData(hwndCtl, uCodePage, lpszData, "ReplayCount", TEXT("Replay Count:\t"));
 	OutputXmlData(hwndCtl, uCodePage, lpszData, "CommentCount", TEXT("Comment Count:\t"));
@@ -540,15 +550,16 @@ BOOL PrintMxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 		return TRUE;
 	}
 
-	// Replay data is only available for TrackMania²
-	if (nGame != GAME_TM2)
+	// Replay data is only available for TrackMania² and Trackmania 2020
+	if (nGame != GAME_TM && nGame != GAME_TM2)
 	{
 		GlobalFreePtr((LPVOID)lpszData);
 		return TRUE;
 	}
 
 	// Request additional MX data (Replays) via MX Track ID
-	_sntprintf(szMxUrl, _countof(szMxUrl), g_szUrlMx2, szSubDomain, szTrackId);
+	_sntprintf(szMxUrl, _countof(szMxUrl),
+		nGame == GAME_TM ? g_szUrlTmRepl : g_szUrlMpRepl, szSubDomain, szTrackId);
 	if (!ReadInternetFile(hwndCtl, szMxUrl, lpszData, dwSize))
 	{
 		GlobalFreePtr((LPVOID)lpszData);
