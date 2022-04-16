@@ -84,7 +84,7 @@ More extensive changes require a new branch. See also the section [Status of the
 
 ## License ##
 
-Copyright © 2010 - 2019 by Electron
+Copyright © 2010 - 2022 by Electron
 
 Licensed under the [EUPL](https://joinup.ec.europa.eu/software/page/eupl), Version 1.2 - see the [Licence.txt](Licence.txt) file for details.
 
