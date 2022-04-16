@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// DumpPak.cpp - Copyright (c) 2010-2020 by Electron.
+// DumpPak.cpp - Copyright (c) 2010-2022 by Electron.
 //
 // Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -155,18 +155,13 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 		OutputText(hwndCtl, TEXT("Header Size:\t"));
 		OutputTextFmt(hwndCtl, szOutput, TEXT("%08X"), dwHeaderMaxSize);
 
-		switch (dwHeaderMaxSize)
+		if (FormatByteSize(dwHeaderMaxSize, szOutput, _countof(szOutput)))
 		{
-			case 0x4000:	// 16 KB
-				OutputText(hwndCtl, TEXT(" (small)"));
-				break;
-			case 0x100000:	// 1 MB
-				OutputText(hwndCtl, TEXT(" (big)"));
-				break;
-			case 0x1000000:	// 16 MB
-				OutputText(hwndCtl, TEXT(" (huge)"));
-				break;
+			OutputText(hwndCtl, TEXT(" ("));
+			OutputText(hwndCtl, szOutput);
+			OutputText(hwndCtl, TEXT(")"));
 		}
+
 		OutputText(hwndCtl, g_szCRLF);
 	}
 
