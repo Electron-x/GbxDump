@@ -2922,7 +2922,7 @@ BOOL ChallengeThumbnailChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckThumbnail)
 			if (hDib != NULL)
 			{
 				if (g_hDibThumb != NULL)
-					JpegFreeDib(g_hDibThumb);
+					FreeDib(g_hDibThumb);
 				g_hDibThumb = hDib;
 
 				LPBITMAPINFOHEADER lpbi = (LPBITMAPINFOHEADER)GlobalLock(g_hDibThumb);
@@ -3595,7 +3595,7 @@ BOOL CollectorIconChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckIcon)
 		{
 			if (g_hDibThumb != NULL)
 			{
-				JpegFreeDib(g_hDibThumb);
+				FreeDib(g_hDibThumb);
 				g_hDibThumb = NULL;
 			}
 
@@ -3662,17 +3662,55 @@ BOOL CollectorIconChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckIcon)
 		OutputText(hwndCtl, g_szCRLF);
 	}
 
-	// Draw "UNSUPPORTED FORMAT" lettering over the default thumbnail image
-	HWND hwndThumb = GetDlgItem(GetParent(hwndCtl), IDC_THUMB);
-	if (hwndThumb != NULL)
+	if (dwImageSize == 0)
+		return TRUE;
+
+	// Read and display the WebP image
+	LPVOID lpData = GlobalAllocPtr(GHND, dwImageSize);
+	if (lpData == NULL)
+		return FALSE;
+
+	if (!ReadData(hFile, lpData, dwImageSize))
 	{
-		if (LoadString(g_hInstance, g_bGerUI ? IDS_GER_UNSUPPORTED : IDS_ENG_UNSUPPORTED, szOutput, _countof(szOutput)) > 0)
+		GlobalFreePtr(lpData);
+		return FALSE;
+	}
+
+	// Decode the thumbnail image
+	HANDLE hDib = NULL;
+	__try { hDib = WebpToDib(lpData, dwImageSize); }
+	__except (EXCEPTION_EXECUTE_HANDLER) { hDib = NULL; }
+	if (hDib != NULL)
+	{
+		if (g_hDibThumb != NULL)
+			FreeDib(g_hDibThumb);
+		g_hDibThumb = hDib;
+
+		// View/update thumbnail immediately
+		HWND hwndThumb = GetDlgItem(GetParent(hwndCtl), IDC_THUMB);
+		if (hwndThumb != NULL)
 		{
-			SetWindowText(hwndThumb, szOutput);
 			if (InvalidateRect(hwndThumb, NULL, FALSE))
 				UpdateWindow(hwndThumb);
 		}
 	}
+	else
+	{
+		// Draw "UNSUPPORTED FORMAT" lettering over the default thumbnail image
+		HWND hwndThumb = GetDlgItem(GetParent(hwndCtl), IDC_THUMB);
+		if (hwndThumb != NULL)
+		{
+			if (LoadString(g_hInstance, g_bGerUI ? IDS_GER_UNSUPPORTED : IDS_ENG_UNSUPPORTED,
+				szOutput, _countof(szOutput)) > 0)
+			{
+				SetWindowText(hwndThumb, szOutput);
+				if (InvalidateRect(hwndThumb, NULL, FALSE))
+					UpdateWindow(hwndThumb);
+			}
+		}
+	}
+
+	GlobalFreePtr(lpData);
 
 	return TRUE;
 }

@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// File.h - Copyright (c) 2010-2019 by Electron.
+// File.h - Copyright (c) 2010-2022 by Electron.
 //
 // Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -21,6 +21,8 @@ BOOL GetFileName(HWND hDlg, LPTSTR lpszFileName, SIZE_T cchStringLen, LPDWORD lp
 BOOL SaveBmpFile(LPCTSTR lpszFileName, HANDLE hDIB);
 
 HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData);
-BOOL JpegFreeDib(HANDLE hDib);
+HANDLE WebpToDib(LPVOID lpWebpData, DWORD dwLenData);
+
+BOOL FreeDib(HANDLE hDib);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////

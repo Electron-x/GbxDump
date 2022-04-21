@@ -103,7 +103,7 @@
       <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>ComCtl32.Lib;WinInet.Lib;WinMM.Lib;$(OutDir)libjpeg.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ComCtl32.Lib;WinInet.Lib;WinMM.Lib;$(OutDir)libjpeg.lib;$(SolutionDir)libwebp\output\debug-static\x86\lib\libwebpdecoder_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(ProjectName).exe</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
@@ -133,7 +133,7 @@
       <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>ComCtl32.Lib;WinInet.Lib;WinMM.Lib;$(OutDir)libjpeg.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ComCtl32.Lib;WinInet.Lib;WinMM.Lib;$(OutDir)libjpeg.lib;$(SolutionDir)libwebp\output\debug-static\x64\lib\libwebpdecoder_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(ProjectName)64.exe</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
@@ -161,7 +161,7 @@
     </ClCompile>
     <Link>
       <AdditionalOptions>/PDBALTPATH:%_PDB% %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>ComCtl32.Lib;WinInet.Lib;WinMM.Lib;$(OutDir)libjpeg.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ComCtl32.Lib;WinInet.Lib;WinMM.Lib;$(OutDir)libjpeg.lib;$(SolutionDir)libwebp\output\release-static\x86\lib\libwebpdecoder.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(ProjectName).exe</OutputFile>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateDebugInformation>false</GenerateDebugInformation>
@@ -195,7 +195,7 @@
       <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>ComCtl32.Lib;WinInet.Lib;WinMM.Lib;$(OutDir)libjpeg.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ComCtl32.Lib;WinInet.Lib;WinMM.Lib;$(OutDir)libjpeg.lib;$(SolutionDir)libwebp\output\release-static\x64\lib\libwebpdecoder.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(ProjectName)64.exe</OutputFile>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>

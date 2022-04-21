@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// File.cpp - Copyright (c) 2010-2019 by Electron.
+// File.cpp - Copyright (c) 2010-2022 by Electron.
 //
 // Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -14,11 +14,16 @@
 // See the Licence for the specific language governing permissions and
 // limitations under the Licence.
 //
+// This software includes code from the WebP encoding and decoding library
+// libwebp. This part of the code is subject to its own copyright and license
+// terms, which can be found in the libwebp directory.
+//
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "stdafx.h"
 #include "file.h"
 #include "..\libjpeg\jpeglib.h"
+#include "..\libwebp\src\webp\decode.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Displays the File Open or Save As dialog box
@@ -203,7 +208,7 @@ METHODDEF(void my_output_message(j_common_ptr pjInfo));
 METHODDEF(void my_emit_message(j_common_ptr pjInfo, int nMessageLevel));
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// JpegToDib: Converts a JPEG file to a DIB
+// JpegToDib: Converts a JPEG image to a DIB
 
 HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData)
 {
@@ -423,22 +428,6 @@ HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-// JpegFreeDib: Releases the DIB memory
-BOOL JpegFreeDib(HANDLE hDib)
-{
-	if (hDib == NULL)
-		return FALSE;
-
-	if (GlobalFree(hDib) != NULL)
-		return FALSE;
-
-	hDib = NULL;
-
-	return TRUE;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////
-
 // cleanup_jpeg_to_dib: Performs housekeeping
 void cleanup_jpeg_to_dib(LPJPEG_DECOMPRESS lpJpegDecompress, HANDLE hDIB)
 {
@@ -550,4 +539,90 @@ void my_emit_message(j_common_ptr pjInfo, int nMessageLevel)
 	}
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////
+// WebpToDib: Decodes a WebP image into a DIB using libwebp
+
+HANDLE WebpToDib(LPVOID lpWebpData, DWORD dwLenData)
+{
+#if defined (_MSC_VER) && (_MSC_VER <= 1500)
+	return NULL;
+#else
+	int nWidth = 0;
+	int nHeight = 0;
+
+	if (lpWebpData == NULL || dwLenData == 0 ||
+		WebPGetInfo((LPBYTE)lpWebpData, dwLenData, &nWidth, &nHeight) == 0)
+		return NULL;
+
+	LPBYTE lpBits = WebPDecodeBGRA((LPBYTE)lpWebpData, dwLenData, &nWidth, &nHeight);
+	if (lpBits == NULL)
+		return NULL;
+	
+	DWORD dwSize = ((((nWidth * 32) + 31) >> 5) << 2) * nHeight;
+	if (dwSize == 0)
+	{
+		WebPFree(lpBits);
+		return NULL;
+	}
+
+	HANDLE hDib = GlobalAlloc(GHND, sizeof(BITMAPINFOHEADER) + dwSize);
+	if (hDib == NULL)
+	{
+		WebPFree(lpBits);
+		return NULL;
+	}
+
+	LPBITMAPINFOHEADER lpbi = (LPBITMAPINFOHEADER)GlobalLock(hDib);
+	if (lpbi == NULL)
+	{
+		GlobalFree(hDib);
+		WebPFree(lpBits);
+		return NULL;
+	}
+
+	lpbi->biSize = sizeof(BITMAPINFOHEADER);
+	lpbi->biWidth = nWidth;
+	lpbi->biHeight = nHeight;
+	lpbi->biPlanes = 1;
+	lpbi->biBitCount = 32;
+	lpbi->biCompression = BI_RGB;
+	lpbi->biSizeImage = dwSize;
+	lpbi->biXPelsPerMeter = 0;
+	lpbi->biYPelsPerMeter = 0;
+	lpbi->biClrUsed = 0;
+	lpbi->biClrImportant = 0;
+
+	register LPBYTE lpSrc = lpBits;
+	register LPBYTE lpDest = ((LPBYTE)lpbi) + sizeof(BITMAPINFOHEADER);
+
+	__try
+	{
+		while (dwSize--)
+			*lpDest++ = *lpSrc++;
+	}
+	__except (EXCEPTION_EXECUTE_HANDLER) { dwSize = 0; }
+
+	GlobalUnlock(hDib);
+	WebPFree(lpBits);
+
+	return hDib;
+#endif
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+// FreeDib: Frees the memory allocated for the DIB
+BOOL FreeDib(HANDLE hDib)
+{
+	if (hDib == NULL)
+		return FALSE;
+
+	if (GlobalFree(hDib) != NULL)
+		return FALSE;
+
+	hDib = NULL;
+
+	return TRUE;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////

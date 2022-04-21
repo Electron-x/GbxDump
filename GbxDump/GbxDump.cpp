@@ -57,7 +57,7 @@ void DeleteWindowRect(HWND hwnd);
 #endif
 
 const TCHAR g_szTitle[]   = TEXT("GbxDump");
-const TCHAR g_szAbout[]   = TEXT("Gbx File Dumper 1.65 (") PLATFORM TEXT(")\r\n")
+const TCHAR g_szAbout[]   = TEXT("Gbx File Dumper 1.66 (") PLATFORM TEXT(")\r\n")
                             TEXT("Copyright © 2010-2022 by Electron\r\n");
 const TCHAR g_szDlgCls[]  = TEXT("GbxDumpDlgClass");
 const TCHAR g_szTop[]     = TEXT("GbxDumpWndTop");
@@ -165,8 +165,8 @@ int APIENTRY _tWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstanc
 	INT_PTR nResult = DialogBoxParam(g_hInstance, MAKEINTRESOURCE(g_bGerUI ? IDD_GER_GBXDUMP : IDD_ENG_GBXDUMP),
 		NULL, (DLGPROC)GbxDumpDlgProc, (LPARAM)pszFilename);
 
-	JpegFreeDib(g_hDibThumb);
-	JpegFreeDib(g_hDibDefault);
+	FreeDib(g_hDibThumb);
+	FreeDib(g_hDibDefault);
 
 	if (pszCommandLine != NULL)
 		GlobalFreePtr((LPVOID)pszCommandLine);
@@ -835,7 +835,8 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 
 				TCHAR szText[256];
 				// Set the title for the default thumbnail
-				if (LoadString(g_hInstance, g_bGerUI ? IDS_GER_THUMBNAIL : IDS_ENG_THUMBNAIL, szText, _countof(szText)) > 0)
+				if (LoadString(g_hInstance, g_bGerUI ? IDS_GER_THUMBNAIL : IDS_ENG_THUMBNAIL,
+					szText, _countof(szText)) > 0)
 					SetWindowText(hwndCtl, szText);
 
 				// Set the minimum size of the dialog box
@@ -1003,7 +1004,7 @@ BOOL DumpFile(HWND hwndCtl, LPCTSTR lpszFileName, LPSTR lpszUid, LPSTR lpszEnvi)
 	// Release old thumbnail
 	if (g_hDibThumb != NULL)
 	{
-		JpegFreeDib(g_hDibThumb);
+		FreeDib(g_hDibThumb);
 		g_hDibThumb = NULL;
 	}
 
@@ -1011,7 +1012,8 @@ BOOL DumpFile(HWND hwndCtl, LPCTSTR lpszFileName, LPSTR lpszUid, LPSTR lpszEnvi)
 	HWND hwndThumb = GetDlgItem(GetParent(hwndCtl), IDC_THUMB);
 	if (hwndThumb != NULL)
 	{
-		if (LoadString(g_hInstance, g_bGerUI ? IDS_GER_THUMBNAIL : IDS_ENG_THUMBNAIL, szOutput, _countof(szOutput)) > 0)
+		if (LoadString(g_hInstance, g_bGerUI ? IDS_GER_THUMBNAIL : IDS_ENG_THUMBNAIL,
+			szOutput, _countof(szOutput)) > 0)
 			SetWindowText(hwndThumb, szOutput);
 		InvalidateRect(hwndThumb, NULL, FALSE);
 	}
