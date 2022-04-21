@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
-<assemblyIdentity type="win32" name="Electron.GbxTools.GbxDump" version="1.65.0.105" processorArchitecture="amd64"></assemblyIdentity>
+<assemblyIdentity type="win32" name="Electron.GbxTools.GbxDump" version="1.66.0.106" processorArchitecture="amd64"></assemblyIdentity>
 <description>GbxDump</description>
 <dependency>
 <dependentAssembly>
