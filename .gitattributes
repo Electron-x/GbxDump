@@ -1,2 +1,3 @@
 # Vendoring libjpeg files
 libjpeg/* linguist-vendored
+libwebp/* linguist-vendored
