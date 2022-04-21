@@ -1,6 +1,6 @@
-# GbxDump #
+# GbxDump
 
-## GBX file header viewer application ##
+## GBX file header viewer application
 
 GbxDump is a little Windows application that displays the contents of the file header of mainly maps, challenges, replays, packs, blocks, objects and items
 used by the [Nadeo](https://nadeo.com/) game engine GameBox (.gbx files). The tool is also able to display the file header of DirectDraw Surface files (.dds files).
@@ -35,7 +35,7 @@ The tool was originally used to examine the [.gbx](https://wiki.xaseco.org/wiki/
 Both formats have been well documented by several members of the Trackmania community in the [Mania Tech Wiki](https://wiki.xaseco.org/).
 The file parsers of GbxDump are almost completely based on the information of this wiki.
 
-## Status of the project ##
+## Status of the project
 
 The development of the application is basically finished. It is not intended to add many new functionalities or to change the structure of the source code significantly.
 However, the project will continue to be maintained. For example, there will be updates when changes to the header of .gbx files become known.
@@ -50,13 +50,14 @@ The main reason for this was the formerly proprietary license of GbxDump. It was
 In addition, complete information about the structure of the complex MediaTracker block, which is required for proper data parsing, is still missing.
 Furthermore, the file body may contain information that is not intended for the public.
 
-## Building the project ##
+## Building the project
 
 This is a generic C/C++ Win32 desktop project created with Microsoft Visual Studio. The workspace consists of the main project `GbxDump`,
 the subproject `libjpeg` with the [Independent JPEG Group's JPEG software](http://www.ijg.org/) and two setup projects for 32 and 64 bit.  
 This repository contains two VC++ project files for Visual Studio 2005 and Visual Studio 2017.
-VS2005 requires the [Microsoft Windows SDK 7.1](https://www.microsoft.com/en-us/download/details.aspx?id=8279) and VS2017 requires the Windows XP platform toolset.
-There are no other dependencies or prerequisites.
+VS2005 requires the [Microsoft Windows SDK 7.1](https://www.microsoft.com/en-us/download/details.aspx?id=8279) and VS2017 requires the Windows XP platform toolset.  
+The project file for Visual Studio 2017 includes the WebP decoder libraries `libwebpdecoder.lib` and `libwebpdecoder_debug.lib`.
+These must be created separately. For details, see the libwebp/doc folder.
 
 To create the project with versions between VS2005 and VS2017, please note the following points:
 -   For all configurations, the Windows XP platform toolset `Visual Studio 20xx - Windows XP (v1xx_xp)` should be selected.
@@ -76,28 +77,32 @@ To create the project with versions between VS2005 and VS2017, please note the f
     > Now you can create the setup for `Release (x64)`, etc.
     > In the Solution Explorer, the icon of the primary output indicates whether the configuration has been loaded correctly.
 
-## Contributing ##
+## Contributing
 
 The project was mainly published for reference purposes. However, contributions leading to better code are very welcome.
 New functionalities are only included if the ratio of costs (source code, external libraries, resources) to benefits is appropriate.
 More extensive changes require a new branch. See also the section [Status of the project](#status-of-the-project) above.
 
-## License ##
+## Licenses
 
 Copyright © 2010 - 2022 by Electron
 
-Licensed under the [EUPL](https://joinup.ec.europa.eu/software/page/eupl), Version 1.2 - see the [Licence.txt](Licence.txt) file for details.
+Licensed under the [European Union Public Licence (EUPL)](https://joinup.ec.europa.eu/software/page/eupl), Version 1.2 - see the [Licence.txt](Licence.txt) file for details.
+
+The WebP codec used in this software is released under the license of the WebM project. For details, see https://www.webmproject.org/license/software/ or the COPYING file in the libwebp directory.
 
 This software is based in part on the work of the Independent JPEG Group.
 
-## Links ##
+## Links
 - [Gbx File Dumper web page](http://www.wolfgang-rolke.de/gbxdump/)
 - [Gbx file format specification](https://wiki.xaseco.org/wiki/GBX)
 - [Microsoft Windows SDK for Windows 7 (VS2005/VS2008/VS2010)](https://www.microsoft.com/en-us/download/details.aspx?id=8279)
 - [Microsoft Visual Studio 2013 Installer Projects](https://marketplace.visualstudio.com/items?itemName=UnniRavindranathan-MSFT.MicrosoftVisualStudio2013InstallerProjects)
 - [Microsoft Visual Studio 2015 Installer Projects](https://marketplace.visualstudio.com/items?itemName=VisualStudioProductTeam.MicrosoftVisualStudio2015InstallerProjects)
 - [Microsoft Visual Studio 2017/2019 Installer Projects](https://marketplace.visualstudio.com/items?itemName=VisualStudioProductTeam.MicrosoftVisualStudio2017InstallerProjects)
+- [Microsoft Visual Studio Installer Projects 2022](https://marketplace.visualstudio.com/items?itemName=VisualStudioClient.MicrosoftVisualStudio2022InstallerProjects)
 - [Independent JPEG Group's JPEG software](http://www.ijg.org/)
+- [WebP API Documentation](https://developers.google.com/speed/webp/docs/api)
 - [European Union Public Licence 1.1 & 1.2](https://joinup.ec.europa.eu/software/page/eupl)
 - [EUPL Guidelines for users and developers](https://joinup.ec.europa.eu/collection/eupl/guidelines-users-and-developers)
 - [Managing copyright information within a free software project](https://softwarefreedom.org/resources/2012/ManagingCopyrightInformation.html)
