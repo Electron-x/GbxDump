@@ -95,7 +95,7 @@ int APIENTRY _tWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstanc
 		pszCommandLine = (LPTSTR)GlobalAllocPtr(GHND, (cchCmdLineLen + 1) * sizeof(TCHAR));
 		if (pszCommandLine != NULL)
 		{
-			lstrcpyn(pszCommandLine, lpCmdLine, (int)cchCmdLineLen);
+			lstrcpyn(pszCommandLine, lpCmdLine, (int)cchCmdLineLen + 1);
 			pszFilename = pszCommandLine;
 
 			// Remove quotation marks
