@@ -1,3 +1,4 @@
-# Vendoring libjpeg and libwebp files
+# Vendoring libjpeg, libwebp and crunch files
 libjpeg/* linguist-vendored
 libwebp/** linguist-vendored
+crunch/** linguist-vendored

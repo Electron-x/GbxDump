@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// DumpDds.h - Copyright (c) 2010-2019 by Electron.
+// DumpDds.h - Copyright (c) 2010-2022 by Electron.
 //
 // Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -16,7 +16,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL DumpDDS(HWND hwndCtl, HANDLE hFile);
+BOOL DumpDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Constants and structures from dds.h and ddraw.h

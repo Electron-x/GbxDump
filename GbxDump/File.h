@@ -21,6 +21,7 @@ BOOL GetFileName(HWND hDlg, LPTSTR lpszFileName, SIZE_T cchStringLen, LPDWORD lp
 BOOL SaveBmpFile(LPCTSTR lpszFileName, HANDLE hDIB);
 
 HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData);
+HANDLE DdsToDib(LPVOID lpDdsData, DWORD dwLenData);
 HANDLE WebpToDib(LPVOID lpWebpData, DWORD dwLenData);
 
 BOOL FreeDib(HANDLE hDib);

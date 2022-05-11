@@ -53,10 +53,11 @@ Furthermore, the file body may contain information that is not intended for the 
 ## Building the project
 
 This is a generic C/C++ Win32 desktop project created with Microsoft Visual Studio. The workspace consists of the main project `GbxDump`,
-the subproject `libjpeg` with the [Independent JPEG Group's JPEG software](http://www.ijg.org/) and two setup projects for 32 and 64 bit.  
+the subprojects `libjpeg` with the [Independent JPEG Group's JPEG software](http://www.ijg.org/) and `crnlib` with the
+[Advanced DXTn texture compression library](https://github.com/BinomialLLC/crunch) as well as two setup projects for 32 and 64 bit.  
 This repository contains two VC++ project files for Visual Studio 2005 and Visual Studio 2017.
 VS2005 requires the [Microsoft Windows SDK 7.1](https://www.microsoft.com/en-us/download/details.aspx?id=8279) and VS2017 requires the Windows XP platform toolset.  
-The project file for Visual Studio 2017 includes the WebP decoder libraries `libwebpdecoder.lib` and `libwebpdecoder_debug.lib`.
+The project file for Visual Studio 2017 includes the decoder libraries `libwebpdecoder.lib` and `libwebpdecoder_debug.lib` from the [WebP Codec](https://github.com/webmproject/libwebp).
 These must be created separately. For details, see the libwebp/doc folder.
 
 To create the project with versions between VS2005 and VS2017, please note the following points:
@@ -91,6 +92,8 @@ Licensed under the [European Union Public Licence (EUPL)](https://joinup.ec.euro
 
 The WebP codec used in this software is released under the license of the WebM project. For details, see https://www.webmproject.org/license/software/ or the COPYING file in the libwebp directory.
 
+The used Advanced DXTn texture compression library is in the public domain. Please see license.txt in the crunch directory.
+
 This software is based in part on the work of the Independent JPEG Group.
 
 ## Links
@@ -101,8 +104,9 @@ This software is based in part on the work of the Independent JPEG Group.
 - [Microsoft Visual Studio 2015 Installer Projects](https://marketplace.visualstudio.com/items?itemName=VisualStudioProductTeam.MicrosoftVisualStudio2015InstallerProjects)
 - [Microsoft Visual Studio 2017/2019 Installer Projects](https://marketplace.visualstudio.com/items?itemName=VisualStudioProductTeam.MicrosoftVisualStudio2017InstallerProjects)
 - [Microsoft Visual Studio Installer Projects 2022](https://marketplace.visualstudio.com/items?itemName=VisualStudioClient.MicrosoftVisualStudio2022InstallerProjects)
-- [Independent JPEG Group's JPEG software](http://www.ijg.org/)
 - [WebP API Documentation](https://developers.google.com/speed/webp/docs/api)
+- [Advanced DXTn texture compression library](https://github.com/BinomialLLC/crunch)
+- [Independent JPEG Group's JPEG software](http://www.ijg.org/)
 - [European Union Public Licence 1.1 & 1.2](https://joinup.ec.europa.eu/software/page/eupl)
 - [EUPL Guidelines for users and developers](https://joinup.ec.europa.eu/collection/eupl/guidelines-users-and-developers)
 - [Managing copyright information within a free software project](https://softwarefreedom.org/resources/2012/ManagingCopyrightInformation.html)

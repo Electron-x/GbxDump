@@ -57,7 +57,7 @@ void DeleteWindowRect(HWND hwnd);
 #endif
 
 const TCHAR g_szTitle[]   = TEXT("GbxDump");
-const TCHAR g_szAbout[]   = TEXT("Gbx File Dumper 1.66 (") PLATFORM TEXT(")\r\n")
+const TCHAR g_szAbout[]   = TEXT("Gbx File Dumper 1.67 (") PLATFORM TEXT(")\r\n")
                             TEXT("Copyright © 2010-2022 by Electron\r\n");
 const TCHAR g_szDlgCls[]  = TEXT("GbxDumpDlgClass");
 const TCHAR g_szTop[]     = TEXT("GbxDumpWndTop");
@@ -1086,7 +1086,7 @@ BOOL DumpFile(HWND hwndCtl, LPCTSTR lpszFileName, LPSTR lpszUid, LPSTR lpszEnvi)
 	{ // DDS
 		OutputText(hwndCtl, TEXT("File Type:\tDirectDraw Surface\r\n"));
 
-		if (!(bRet = DumpDDS(hwndCtl, hFile)))
+		if (!(bRet = DumpDDS(hwndCtl, hFile, wfad.nFileSizeLow)))
 			OutputTextErr(hwndCtl, g_bGerUI ? IDP_GER_ERR_READ : IDP_ENG_ERR_READ);
 	}
 	else

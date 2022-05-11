@@ -14,9 +14,11 @@
 // See the Licence for the specific language governing permissions and
 // limitations under the Licence.
 //
-// This software includes code from the WebP encoding and decoding library
-// libwebp. This part of the code is subject to its own copyright and license
-// terms, which can be found in the libwebp directory.
+// This software includes code from the Independent JPEG Group's JPEG software
+// (libjpeg), the WebP encoding and decoding library (libwebp) and the Advanced
+// DXTn texture compression library (crunch/crnlib). These parts of the code are
+// subject to their own copyright and license terms, which can be found in the
+// libjpeg, libwebp and crunch directories.
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -24,6 +26,7 @@
 #include "file.h"
 #include "..\libjpeg\jpeglib.h"
 #include "..\libwebp\src\webp\decode.h"
+#include "..\crunch\inc\crnlib.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Displays the File Open or Save As dialog box
@@ -127,7 +130,7 @@ BOOL SaveBmpFile(LPCTSTR lpszFileName, HANDLE hDIB)
 	if (lpbi->biBitCount <= 8)
 		dwPaletteSize = ((WORD)1 << lpbi->biBitCount) * (DWORD)sizeof(RGBQUAD);
 	DWORD dwDIBSize = *(LPDWORD)lpbi + dwPaletteSize;
-	DWORD dwBmBitsSize = (((lpbi->biWidth * (DWORD)lpbi->biBitCount)+31)/32*4) * lpbi->biHeight;
+	DWORD dwBmBitsSize = (((lpbi->biWidth * (DWORD)lpbi->biBitCount)+31)/32*4) * abs(lpbi->biHeight);
 	dwDIBSize += dwBmBitsSize;
 	lpbi->biSizeImage = dwBmBitsSize;
 
@@ -558,14 +561,14 @@ HANDLE WebpToDib(LPVOID lpWebpData, DWORD dwLenData)
 	if (lpBits == NULL)
 		return NULL;
 	
-	DWORD dwSize = ((((nWidth * 32) + 31) >> 5) << 2) * nHeight;
-	if (dwSize == 0)
+	DWORD dwSizeImage = nWidth * nHeight * 4;
+	if (dwSizeImage == 0)
 	{
 		WebPFree(lpBits);
 		return NULL;
 	}
 
-	HANDLE hDib = GlobalAlloc(GHND, sizeof(BITMAPINFOHEADER) + dwSize);
+	HANDLE hDib = GlobalAlloc(GHND, sizeof(BITMAPINFOHEADER) + dwSizeImage);
 	if (hDib == NULL)
 	{
 		WebPFree(lpBits);
@@ -586,7 +589,7 @@ HANDLE WebpToDib(LPVOID lpWebpData, DWORD dwLenData)
 	lpbi->biPlanes = 1;
 	lpbi->biBitCount = 32;
 	lpbi->biCompression = BI_RGB;
-	lpbi->biSizeImage = dwSize;
+	lpbi->biSizeImage = dwSizeImage;
 	lpbi->biXPelsPerMeter = 0;
 	lpbi->biYPelsPerMeter = 0;
 	lpbi->biClrUsed = 0;
@@ -597,16 +600,93 @@ HANDLE WebpToDib(LPVOID lpWebpData, DWORD dwLenData)
 
 	__try
 	{
-		while (dwSize--)
+		while (dwSizeImage--)
 			*lpDest++ = *lpSrc++;
 	}
-	__except (EXCEPTION_EXECUTE_HANDLER) { dwSize = 0; }
+	__except (EXCEPTION_EXECUTE_HANDLER) { dwSizeImage = 0; }
 
 	GlobalUnlock(hDib);
 	WebPFree(lpBits);
 
 	return hDib;
 #endif
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// DdsToDib: Decodes a DDS image into a DIB using crunch/crnlib
+
+HANDLE DdsToDib(LPVOID lpDdsData, DWORD dwLenData)
+{
+	if (lpDdsData == NULL || dwLenData == 0)
+		return NULL;
+
+	crn_texture_desc tex_desc;
+	crn_uint32 *pImages[cCRNMaxFaces * cCRNMaxLevels];
+	if (!crn_decompress_dds_to_images(lpDdsData, dwLenData, pImages, tex_desc))
+		return NULL;
+
+	crn_uint32 uWidth = tex_desc.m_width;
+	crn_uint32 uHeight = tex_desc.m_height;
+	crn_uint32 uSizeImage = uWidth * uHeight * 4;
+	if (uSizeImage == 0)
+	{
+		crn_free_all_images(pImages, tex_desc);
+		return NULL;
+	}
+
+	HANDLE hDib = GlobalAlloc(GHND, sizeof(BITMAPINFOHEADER) + uSizeImage);
+	if (hDib == NULL)
+	{
+		crn_free_all_images(pImages, tex_desc);
+		return NULL;
+	}
+
+	LPBITMAPINFOHEADER lpbi = (LPBITMAPINFOHEADER)GlobalLock(hDib);
+	if (lpbi == NULL)
+	{
+		GlobalFree(hDib);
+		crn_free_all_images(pImages, tex_desc);
+		return NULL;
+	}
+
+	lpbi->biSize = sizeof(BITMAPINFOHEADER);
+	lpbi->biWidth = uWidth;
+	lpbi->biHeight = uHeight;
+	lpbi->biPlanes = 1;
+	lpbi->biBitCount = 32;
+	lpbi->biCompression = BI_RGB;
+	lpbi->biSizeImage = uSizeImage;
+	lpbi->biXPelsPerMeter = 0;
+	lpbi->biYPelsPerMeter = 0;
+	lpbi->biClrUsed = 0;
+	lpbi->biClrImportant = 0;
+
+	crn_uint32 uSrcPtr = 0;
+	crn_uint32 uDestPtr = 0;
+	LPBYTE lpSrc = (LPBYTE)pImages[0];
+	LPBYTE lpDest = ((LPBYTE)lpbi) + sizeof(BITMAPINFOHEADER);
+
+	__try
+	{
+		for (crn_uint32 h = 0; h < uHeight; h++)
+		{
+			uSrcPtr = (uHeight - h - 1) * uWidth * 4;	// Flip image
+			for (crn_uint32 w = 0; w < uWidth; w++)
+			{
+				lpDest[uDestPtr + 2] = lpSrc[uSrcPtr++];	// B <-- R
+				lpDest[uDestPtr + 1] = lpSrc[uSrcPtr++];	// G <-- G
+				lpDest[uDestPtr + 0] = lpSrc[uSrcPtr++];	// R <-- B
+				lpDest[uDestPtr + 3] = lpSrc[uSrcPtr++];	// A <-- A
+				uDestPtr += 4;
+			}
+		}
+	}
+	__except (EXCEPTION_EXECUTE_HANDLER) { ; }
+
+	GlobalUnlock(hDib);
+	crn_free_all_images(pImages, tex_desc);
+
+	return hDib;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////

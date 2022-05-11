@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// DumpDds.cpp - Copyright (c) 2010-2019 by Electron.
+// DumpDds.cpp - Copyright (c) 2010-2022 by Electron.
 //
 // Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -17,11 +17,20 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "stdafx.h"
+#include "file.h"
 #include "archive.h"
 #include "dumpdds.h"
 
 #define FLAGS_LEN 32
 
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Forward declarations of functions included in this code module
+//
+BOOL DisplayDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize);
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// String Constants
+//
 const TCHAR chNil = TEXT('\0');
 const TCHAR szCRLF[] = TEXT("\r\n");
 
@@ -263,7 +272,7 @@ static void PrintFourCC(HWND hwndCtl, DWORD dwFourCC)
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // DumpDDS is called by DumpFile from GbxDump.cpp
 
-BOOL DumpDDS(HWND hwndCtl, HANDLE hFile)
+BOOL DumpDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 {
 	DWORD dwFlags;
 	TCHAR szFlags[FLAGS_LEN];
@@ -754,6 +763,76 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile)
 			OutputTextFmt(hwndCtl, szOutput, TEXT("XDK Version:\t%u\r\n"), ddsexth.xdkVer);
 		}
 	}
+
+	// Decode and display the DDS image
+	DisplayDDS(hwndCtl, hFile, dwFileSize);
+
+	return TRUE;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+BOOL DisplayDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
+{
+	if (hwndCtl == NULL || hFile == NULL || dwFileSize == 0)
+		return FALSE;
+
+	// Jump to the beginning of the file
+	if (!FileSeekBegin(hFile, 0))
+		return FALSE;
+
+	// Read the file
+	LPVOID lpData = GlobalAllocPtr(GHND, dwFileSize);
+	if (lpData == NULL)
+		return FALSE;
+
+	if (!ReadData(hFile, lpData, dwFileSize))
+	{
+		GlobalFreePtr(lpData);
+		return FALSE;
+	}
+
+	// Decode the DDS image
+	HANDLE hDib = NULL;
+	HCURSOR hOldCursor = SetCursor(LoadCursor(NULL, IDC_WAIT));
+
+	__try { hDib = DdsToDib(lpData, dwFileSize); }
+	__except (EXCEPTION_EXECUTE_HANDLER) { hDib = NULL; }
+
+	SetCursor(hOldCursor);
+
+	if (hDib != NULL)
+	{
+		if (g_hDibThumb != NULL)
+			FreeDib(g_hDibThumb);
+		g_hDibThumb = hDib;
+
+		// View the thumbnail immediately
+		HWND hwndThumb = GetDlgItem(GetParent(hwndCtl), IDC_THUMB);
+		if (hwndThumb != NULL)
+		{
+			if (InvalidateRect(hwndThumb, NULL, FALSE))
+				UpdateWindow(hwndThumb);
+		}
+	}
+	else
+	{
+		// Draw "UNSUPPORTED FORMAT" lettering over the default thumbnail image
+		HWND hwndThumb = GetDlgItem(GetParent(hwndCtl), IDC_THUMB);
+		if (hwndThumb != NULL)
+		{
+			TCHAR szText[256];
+			if (LoadString(g_hInstance, g_bGerUI ? IDS_GER_UNSUPPORTED : IDS_ENG_UNSUPPORTED,
+				szText, _countof(szText)) > 0)
+			{
+				SetWindowText(hwndThumb, szText);
+				if (InvalidateRect(hwndThumb, NULL, FALSE))
+					UpdateWindow(hwndThumb);
+			}
+		}
+	}
+
+	GlobalFreePtr(lpData);
 
 	return TRUE;
 }
