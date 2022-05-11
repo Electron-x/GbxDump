@@ -2936,7 +2936,7 @@ BOOL ChallengeThumbnailChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckThumbnail)
 					OutputTextFmt(hwndCtl, szOutput, TEXT("Resolution:\t%d x %d pixels\r\n"), lWidth, lHeight);
 				}
 
-				// View/update thumbnail immediately
+				// View the thumbnail immediately
 				HWND hwndThumb = GetDlgItem(GetParent(hwndCtl), IDC_THUMB);
 				if (hwndThumb != NULL)
 				{
@@ -3573,12 +3573,12 @@ BOOL CollectorIconChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckIcon)
 	if (wVersion < 1)
 	{ // Read RGBA image
 		// Determining and checking the amount of image data
-		DWORD dwIconSize = (((((DWORD)wWidth * 32) + 31) >> 5) << 2) * (DWORD)wHeight;
-		if (dwIconSize == 0 || dwIconSize != (pckIcon->dwSize - 4))
+		DWORD dwSizeImage = wWidth * wHeight * 4;
+		if (dwSizeImage == 0 || dwSizeImage != (pckIcon->dwSize - 4))
 			return TRUE;	// no, compressed or corrupted data
 
 		// Allocate memory
-		LPVOID lpData = GlobalAllocPtr(GHND, dwIconSize);
+		LPVOID lpData = GlobalAllocPtr(GHND, dwSizeImage);
 		if (lpData == NULL)
 			return FALSE;
 
@@ -3590,7 +3590,7 @@ BOOL CollectorIconChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckIcon)
 		}
 
 		// Create a 32-bit DIB
-		HANDLE hDib = GlobalAlloc(GHND, sizeof(BITMAPINFOHEADER) + dwIconSize);
+		HANDLE hDib = GlobalAlloc(GHND, sizeof(BITMAPINFOHEADER) + dwSizeImage);
 		if (hDib != NULL)
 		{
 			if (g_hDibThumb != NULL)
@@ -3608,7 +3608,7 @@ BOOL CollectorIconChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckIcon)
 				lpbi->biPlanes = 1;
 				lpbi->biBitCount = 32;
 				lpbi->biCompression = BI_RGB;
-				lpbi->biSizeImage = dwIconSize;
+				lpbi->biSizeImage = dwSizeImage;
 				lpbi->biXPelsPerMeter = 0;
 				lpbi->biYPelsPerMeter = 0;
 				lpbi->biClrUsed = 0;
@@ -3619,16 +3619,16 @@ BOOL CollectorIconChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckIcon)
 
 				__try
 				{
-					while (dwIconSize--)
+					while (dwSizeImage--)
 						*lpDest++ = *lpSrc++;
 				}
-				__except (EXCEPTION_EXECUTE_HANDLER) { dwIconSize = 0; }
+				__except (EXCEPTION_EXECUTE_HANDLER) { dwSizeImage = 0; }
 
 				GlobalUnlock(hDib);
 				g_hDibThumb = hDib;
 			}
 
-			// View/update thumbnail immediately
+			// View the thumbnail immediately
 			HWND hwndThumb = GetDlgItem(GetParent(hwndCtl), IDC_THUMB);
 			if (hwndThumb != NULL)
 			{
@@ -3686,7 +3686,7 @@ BOOL CollectorIconChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckIcon)
 			FreeDib(g_hDibThumb);
 		g_hDibThumb = hDib;
 
-		// View/update thumbnail immediately
+		// View the thumbnail immediately
 		HWND hwndThumb = GetDlgItem(GetParent(hwndCtl), IDC_THUMB);
 		if (hwndThumb != NULL)
 		{
