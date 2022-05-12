@@ -8,7 +8,7 @@
 #define IDR_ENG_POPUP                   104
 #define IDD_GER_GBXDUMP                 400
 #define IDS_GER_FILTER_GBX              401
-#define IDS_GER_FILTER_BMP              402
+#define IDS_GER_FILTER_PNG              402
 #define IDP_GER_ERR_READ                403
 #define IDP_GER_ERR_MAGIC               404
 #define IDP_GER_ERR_VERSION             405
@@ -24,7 +24,7 @@
 #define IDS_GER_UNSUPPORTED             415
 #define IDD_ENG_GBXDUMP                 800
 #define IDS_ENG_FILTER_GBX              801
-#define IDS_ENG_FILTER_BMP              802
+#define IDS_ENG_FILTER_PNG              802
 #define IDP_ENG_ERR_READ                803
 #define IDP_ENG_ERR_MAGIC               804
 #define IDP_ENG_ERR_VERSION             805

@@ -27,6 +27,7 @@
 #include "..\libjpeg\jpeglib.h"
 #include "..\libwebp\src\webp\decode.h"
 #include "..\crunch\inc\crnlib.h"
+#include "..\crunch\crnlib\crn_miniz.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Displays the File Open or Save As dialog box
@@ -37,7 +38,7 @@ BOOL GetFileName(HWND hDlg, LPTSTR lpszFileName, SIZE_T cchStringLen, LPDWORD lp
 	TCHAR szFilter[512];
 	szFilter[0] = TEXT('\0');
 	if (bSave)
-		LoadString(g_hInstance, g_bGerUI ? IDS_GER_FILTER_BMP : IDS_ENG_FILTER_BMP, szFilter, _countof(szFilter));
+		LoadString(g_hInstance, g_bGerUI ? IDS_GER_FILTER_PNG : IDS_ENG_FILTER_PNG, szFilter, _countof(szFilter));
 	else
 		LoadString(g_hInstance, g_bGerUI ? IDS_GER_FILTER_GBX : IDS_ENG_FILTER_GBX, szFilter, _countof(szFilter));
 	TCHAR* psz = szFilter;
@@ -70,7 +71,7 @@ BOOL GetFileName(HWND hDlg, LPTSTR lpszFileName, SIZE_T cchStringLen, LPDWORD lp
 		TCHAR* token = _tcsrchr(szFile, TEXT('.'));
 		if (token != NULL)
 			szFile[token - szFile] = TEXT('\0');
-		_tcsncat(szFile, TEXT(".bmp"), _countof(szFile)-_tcslen(szFile)-1);
+		_tcsncat(szFile, TEXT(".png"), _countof(szFile)-_tcslen(szFile)-1);
 	}
 	else
 		szFile[0] = TEXT('\0');
@@ -83,7 +84,7 @@ BOOL GetFileName(HWND hDlg, LPTSTR lpszFileName, SIZE_T cchStringLen, LPDWORD lp
 	of.nMaxFile        = _countof(szFile);
 	of.lpstrFilter     = szFilter;
 	of.nFilterIndex    = (lpdwFilterIndex != NULL) ? *lpdwFilterIndex : 1;
-	of.lpstrDefExt     = bSave ? TEXT("bmp") : TEXT("gbx");
+	of.lpstrDefExt     = bSave ? TEXT("png") : TEXT("gbx");
 	of.lpstrInitialDir = pszInitialDir;
 
 	BOOL bRet = FALSE;
@@ -167,6 +168,124 @@ BOOL SaveBmpFile(LPCTSTR lpszFileName, HANDLE hDIB)
 		return FALSE;
 	}
 
+	GlobalUnlock(hDIB);
+	CloseHandle(hFile);
+
+	return TRUE;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Saves a DIB as a PNG file using miniz
+
+BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDIB)
+{
+	if (hDIB == NULL || lpszFileName == NULL)
+		return FALSE;
+
+	LPBITMAPINFOHEADER lpbi = (LPBITMAPINFOHEADER)GlobalLock(hDIB);
+	if (lpbi == NULL)
+		return FALSE;
+
+	LONG lWidth = lpbi->biWidth;
+	LONG lHeight = abs(lpbi->biHeight);
+	LONG lSizeImage = (((lWidth * lpbi->biBitCount)+31)/32*4) * lHeight;
+	if (lSizeImage == 0)
+	{
+		GlobalUnlock(hDIB);
+		return FALSE;
+	}
+
+	DWORD dwPaletteSize = 0;
+	if (lpbi->biBitCount <= 8)
+		dwPaletteSize = ((WORD)1 << lpbi->biBitCount) * (DWORD)sizeof(RGBQUAD);
+
+	LPBYTE lpDIB = (LPBYTE)lpbi + lpbi->biSize + dwPaletteSize;
+	LPBYTE lpRGBA = (LPBYTE)GlobalAllocPtr(GHND, lSizeImage);
+	if (lpRGBA == NULL)
+	{
+		GlobalUnlock(hDIB);
+		return FALSE;
+	}
+
+	LONG lSrcPtr = 0;
+	LONG lDestPtr = 0;
+	INT nNumChannels = lpbi->biBitCount >> 3;
+
+	__try
+	{
+		if (nNumChannels == 1)
+		{
+			for (LONG h = 0; h < lHeight; h++)
+			{
+				lSrcPtr = (lHeight-1 - h) * lWidth;	// Flip image
+				for (LONG w = 0; w < lWidth; w++)
+					lpRGBA[lDestPtr++] = lpDIB[lSrcPtr++];
+			}
+		}
+		else if (nNumChannels == 3)
+		{
+			for (LONG h = 0; h < lHeight; h++)
+			{
+				lSrcPtr = (lHeight-1 - h) * lWidth * 3;	// Flip image
+				for (LONG w = 0; w < lWidth; w++)
+				{
+					lpRGBA[lDestPtr + 2] = lpDIB[lSrcPtr++];	// R <-- B
+					lpRGBA[lDestPtr + 1] = lpDIB[lSrcPtr++];	// G <-- G
+					lpRGBA[lDestPtr + 0] = lpDIB[lSrcPtr++];	// B <-- R
+					lDestPtr += 3;
+				}
+			}
+		}
+		else if (nNumChannels == 4)
+		{
+			for (LONG h = 0; h < lHeight; h++)
+			{
+				lSrcPtr = (lHeight-1 - h) * lWidth * 4;	// Flip image
+				for (LONG w = 0; w < lWidth; w++)
+				{
+					lpRGBA[lDestPtr + 2] = lpDIB[lSrcPtr++];	// R <-- B
+					lpRGBA[lDestPtr + 1] = lpDIB[lSrcPtr++];	// G <-- G
+					lpRGBA[lDestPtr + 0] = lpDIB[lSrcPtr++];	// B <-- R
+					lpRGBA[lDestPtr + 3] = lpDIB[lSrcPtr++];	// A <-- A
+					lDestPtr += 4;
+				}
+			}
+		}
+	}
+	__except (EXCEPTION_EXECUTE_HANDLER) { ; }
+
+	size_t cbSize = 0;
+	LPVOID lpPNG = tdefl_write_image_to_png_file_in_memory(lpRGBA, lWidth, lHeight, nNumChannels, &cbSize);
+	if (lpPNG == NULL)
+	{
+		GlobalFreePtr((LPVOID)lpRGBA);
+		GlobalUnlock(hDIB);
+		return FALSE;
+	}
+
+	HANDLE hFile = CreateFile(lpszFileName, GENERIC_READ | GENERIC_WRITE, 0, NULL,
+		CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (hFile == INVALID_HANDLE_VALUE)
+	{
+		mz_free(lpPNG);
+		GlobalFreePtr((LPVOID)lpRGBA);
+		GlobalUnlock(hDIB);
+		return FALSE;
+	}
+
+	DWORD dwWrite;
+	if (!WriteFile(hFile, lpPNG, (DWORD)cbSize, &dwWrite, NULL) || dwWrite != cbSize)
+	{
+		mz_free(lpPNG);
+		GlobalFreePtr((LPVOID)lpRGBA);
+		GlobalUnlock(hDIB);
+		CloseHandle(hFile);
+		DeleteFile(lpszFileName);
+		return FALSE;
+	}
+
+	mz_free(lpPNG);
+	GlobalFreePtr((LPVOID)lpRGBA);
 	GlobalUnlock(hDIB);
 	CloseHandle(hFile);
 
@@ -670,7 +789,7 @@ HANDLE DdsToDib(LPVOID lpDdsData, DWORD dwLenData)
 	{
 		for (crn_uint32 h = 0; h < uHeight; h++)
 		{
-			uSrcPtr = (uHeight - h - 1) * uWidth * 4;	// Flip image
+			uSrcPtr = (uHeight-1 - h) * uWidth * 4;	// Flip image
 			for (crn_uint32 w = 0; w < uWidth; w++)
 			{
 				lpDest[uDestPtr + 2] = lpSrc[uSrcPtr++];	// B <-- R

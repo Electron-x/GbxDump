@@ -19,6 +19,7 @@
 BOOL GetFileName(HWND hDlg, LPTSTR lpszFileName, SIZE_T cchStringLen, LPDWORD lpdwFilterIndex, BOOL bSave = FALSE);
 
 BOOL SaveBmpFile(LPCTSTR lpszFileName, HANDLE hDIB);
+BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDIB);
 
 HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData);
 HANDLE DdsToDib(LPVOID lpDdsData, DWORD dwLenData);

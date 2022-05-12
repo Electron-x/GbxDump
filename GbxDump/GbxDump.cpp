@@ -661,7 +661,7 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 					return FALSE;
 
 				case IDC_THUMB_SAVE:
-					{ // Save the current thumbnail as a Windows Bitmap file
+					{ // Save the current thumbnail as a PNG file
 						DWORD dwFilterIndex = 1;
 						TCHAR szFileName[MAX_PATH];
 						lstrcpyn(szFileName, s_szFileName, _countof(szFileName));
@@ -669,7 +669,7 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 						if (GetFileName(hDlg, szFileName, _countof(szFileName), &dwFilterIndex, TRUE))
 						{
 							HCURSOR hOldCursor = SetCursor(LoadCursor(NULL, IDC_WAIT));
-							SaveBmpFile(szFileName, g_hDibThumb ? g_hDibThumb : g_hDibDefault);
+							SavePngFile(szFileName, g_hDibThumb ? g_hDibThumb : g_hDibDefault);
 							SetCursor(hOldCursor);
 						}
 					}
