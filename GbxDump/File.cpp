@@ -30,6 +30,11 @@
 #include "..\crunch\crnlib\crn_miniz.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
+// Forward declarations of functions included in this code module
+
+BYTE GetColorValue(DWORD dwPixel, DWORD dwMask);
+
+////////////////////////////////////////////////////////////////////////////////////////////////
 // Displays the File Open or Save As dialog box
 
 BOOL GetFileName(HWND hDlg, LPTSTR lpszFileName, SIZE_T cchStringLen, LPDWORD lpdwFilterIndex, BOOL bSave)
@@ -127,10 +132,12 @@ BOOL SaveBmpFile(LPCTSTR lpszFileName, HANDLE hDIB)
 	if (lpbi == NULL)
 		return FALSE;
 
-	DWORD dwPaletteSize = 0;
-	if (lpbi->biBitCount <= 8)
+	DWORD dwPaletteSize = lpbi->biClrUsed * (DWORD)sizeof(RGBQUAD);
+	if (dwPaletteSize == 0 && lpbi->biBitCount <= 8)
 		dwPaletteSize = ((WORD)1 << lpbi->biBitCount) * (DWORD)sizeof(RGBQUAD);
 	DWORD dwDIBSize = *(LPDWORD)lpbi + dwPaletteSize;
+	if (lpbi->biSize == sizeof(BITMAPINFOHEADER) && lpbi->biCompression == BI_BITFIELDS)
+		dwDIBSize += 3 * sizeof(DWORD);
 	DWORD dwBmBitsSize = (((lpbi->biWidth * (DWORD)lpbi->biBitCount)+31)/32*4) * abs(lpbi->biHeight);
 	dwDIBSize += dwBmBitsSize;
 	lpbi->biSizeImage = dwBmBitsSize;
@@ -141,6 +148,8 @@ BOOL SaveBmpFile(LPCTSTR lpszFileName, HANDLE hDIB)
 	bmfHdr.bfReserved1 = 0;
 	bmfHdr.bfReserved2 = 0;
 	bmfHdr.bfOffBits = (DWORD)sizeof(BITMAPFILEHEADER) + *(LPDWORD)lpbi + dwPaletteSize;
+	if (lpbi->biSize == sizeof(BITMAPINFOHEADER) && lpbi->biCompression == BI_BITFIELDS)
+		bmfHdr.bfOffBits += 3 * sizeof(DWORD);
 
 	HANDLE hFile = CreateFile(lpszFileName, GENERIC_READ | GENERIC_WRITE, 0, NULL,
 		CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
@@ -183,23 +192,35 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDIB)
 		return FALSE;
 
 	LPBITMAPINFOHEADER lpbi = (LPBITMAPINFOHEADER)GlobalLock(hDIB);
-	if (lpbi == NULL)
+	if (lpbi == NULL || lpbi->biSize < sizeof(BITMAPINFOHEADER) || lpbi->biBitCount < 8 ||
+		(lpbi->biCompression != BI_RGB && lpbi->biCompression != BI_BITFIELDS))
 		return FALSE;
 
+	DWORD dwPaletteSize = lpbi->biClrUsed * (DWORD)sizeof(RGBQUAD);
+	if (dwPaletteSize == 0 && lpbi->biBitCount <= 8)
+		dwPaletteSize = ((WORD)1 << lpbi->biBitCount) * (DWORD)sizeof(RGBQUAD);
+
+	LPBYTE lpDIB = (LPBYTE)lpbi + lpbi->biSize + dwPaletteSize;
+	if (lpbi->biSize == sizeof(BITMAPINFOHEADER) && lpbi->biCompression == BI_BITFIELDS)
+		lpDIB += 3 * sizeof(DWORD);
+
+	BOOL bFlipImage = TRUE;
 	LONG lWidth = lpbi->biWidth;
-	LONG lHeight = abs(lpbi->biHeight);
-	LONG lSizeImage = (((lWidth * lpbi->biBitCount)+31)/32*4) * lHeight;
+	LONG lHeight = lpbi->biHeight;
+	if (lHeight < 0)
+	{
+		lHeight = -lHeight;
+		bFlipImage = FALSE;
+	}
+
+	INT nNumChannels = lpbi->biBitCount >> 3;
+	LONG lSizeImage = lHeight * lWidth * (lpbi->biBitCount == 16 ? 4 : nNumChannels);
 	if (lSizeImage == 0)
 	{
 		GlobalUnlock(hDIB);
 		return FALSE;
 	}
 
-	DWORD dwPaletteSize = 0;
-	if (lpbi->biBitCount <= 8)
-		dwPaletteSize = ((WORD)1 << lpbi->biBitCount) * (DWORD)sizeof(RGBQUAD);
-
-	LPBYTE lpDIB = (LPBYTE)lpbi + lpbi->biSize + dwPaletteSize;
 	LPBYTE lpRGBA = (LPBYTE)GlobalAllocPtr(GHND, lSizeImage);
 	if (lpRGBA == NULL)
 	{
@@ -207,49 +228,111 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDIB)
 		return FALSE;
 	}
 
-	LONG lSrcPtr = 0;
-	LONG lDestPtr = 0;
-	INT nNumChannels = lpbi->biBitCount >> 3;
+	LONG h, w;
+	LPBYTE lpSrc, lpDest;
+	LPDWORD lpdwColorMasks;
+	DWORD dwColor, dwRedMask, dwGreenMask, dwBlueMask, dwAlphaMask;
+	DWORD dwIncrement = ((lWidth * lpbi->biBitCount) + 31) / 32 * 4;
 
 	__try
 	{
-		if (nNumChannels == 1)
+		switch (nNumChannels)
 		{
-			for (LONG h = 0; h < lHeight; h++)
-			{
-				lSrcPtr = (lHeight-1 - h) * lWidth;	// Flip image
-				for (LONG w = 0; w < lWidth; w++)
-					lpRGBA[lDestPtr++] = lpDIB[lSrcPtr++];
-			}
-		}
-		else if (nNumChannels == 3)
-		{
-			for (LONG h = 0; h < lHeight; h++)
-			{
-				lSrcPtr = (lHeight-1 - h) * lWidth * 3;	// Flip image
-				for (LONG w = 0; w < lWidth; w++)
+			case 1:
+				for (h = 0; h < lHeight; h++)
 				{
-					lpRGBA[lDestPtr + 2] = lpDIB[lSrcPtr++];	// R <-- B
-					lpRGBA[lDestPtr + 1] = lpDIB[lSrcPtr++];	// G <-- G
-					lpRGBA[lDestPtr + 0] = lpDIB[lSrcPtr++];	// B <-- R
-					lDestPtr += 3;
+					lpSrc = lpDIB + (bFlipImage ? lHeight-1 - h : h) * dwIncrement;
+					lpDest = lpRGBA + h * lWidth * nNumChannels;
+					for (w = 0; w < lWidth; w++)
+						*lpDest++ = *lpSrc++;
 				}
-			}
-		}
-		else if (nNumChannels == 4)
-		{
-			for (LONG h = 0; h < lHeight; h++)
-			{
-				lSrcPtr = (lHeight-1 - h) * lWidth * 4;	// Flip image
-				for (LONG w = 0; w < lWidth; w++)
+				break;
+
+			case 2:
+				if (lpbi->biCompression == BI_BITFIELDS)
 				{
-					lpRGBA[lDestPtr + 2] = lpDIB[lSrcPtr++];	// R <-- B
-					lpRGBA[lDestPtr + 1] = lpDIB[lSrcPtr++];	// G <-- G
-					lpRGBA[lDestPtr + 0] = lpDIB[lSrcPtr++];	// B <-- R
-					lpRGBA[lDestPtr + 3] = lpDIB[lSrcPtr++];	// A <-- A
-					lDestPtr += 4;
+					lpdwColorMasks = (LPDWORD)&(((LPBITMAPINFO)lpbi)->bmiColors[0]);
+					dwRedMask      = lpdwColorMasks[0];
+					dwGreenMask    = lpdwColorMasks[1];
+					dwBlueMask     = lpdwColorMasks[2];
+					dwAlphaMask    = lpbi->biSize >= 56 ? lpdwColorMasks[3] : 0;
 				}
-			}
+				else
+				{
+					dwRedMask   = 0x00007C00;
+					dwGreenMask = 0x000003E0;
+					dwBlueMask  = 0x0000001F;
+					dwAlphaMask = 0x00000000;
+				}
+
+				nNumChannels = dwAlphaMask ? 4 : 3;
+
+				for (h = 0; h < lHeight; h++)
+				{
+					lpSrc = lpDIB + (bFlipImage ? lHeight-1 - h : h) * dwIncrement;
+					lpDest = lpRGBA + h * lWidth * nNumChannels;
+					for (w = 0; w < lWidth; w++)
+					{
+						dwColor = MAKELONG(MAKEWORD(lpSrc[0], lpSrc[1]), 0);
+						*lpDest++ = GetColorValue(dwColor, dwRedMask);
+						*lpDest++ = GetColorValue(dwColor, dwGreenMask);
+						*lpDest++ = GetColorValue(dwColor, dwBlueMask);
+						if (nNumChannels == 4)
+							*lpDest++ = GetColorValue(dwColor, dwAlphaMask);
+						lpSrc += 2;
+					}
+				}
+
+				break;
+
+			case 3:
+				for (h = 0; h < lHeight; h++)
+				{
+					lpSrc = lpDIB + (bFlipImage ? lHeight-1 - h : h) * dwIncrement;
+					lpDest = lpRGBA + h * lWidth * nNumChannels;
+					for (w = 0; w < lWidth; w++)
+					{
+						lpDest[2] = *lpSrc++;
+						lpDest[1] = *lpSrc++;
+						lpDest[0] = *lpSrc++;
+						lpDest += 3;
+					}
+				}
+				break;
+
+			case 4:
+				if (lpbi->biCompression == BI_BITFIELDS)
+				{
+					lpdwColorMasks = (LPDWORD)&(((LPBITMAPINFO)lpbi)->bmiColors[0]);
+					dwRedMask      = lpdwColorMasks[0];
+					dwGreenMask    = lpdwColorMasks[1];
+					dwBlueMask     = lpdwColorMasks[2];
+					dwAlphaMask    = lpbi->biSize >= 56 ? lpdwColorMasks[3] : 0;
+				}
+				else
+				{
+					dwRedMask   = 0x00FF0000;
+					dwGreenMask = 0x0000FF00;
+					dwBlueMask  = 0x000000FF;
+					dwAlphaMask = 0xFF000000;
+				}
+
+				for (h = 0; h < lHeight; h++)
+				{
+					lpSrc = lpDIB + (bFlipImage ? lHeight-1 - h : h) * dwIncrement;
+					lpDest = lpRGBA + h * lWidth * nNumChannels;
+					for (w = 0; w < lWidth; w++)
+					{
+						dwColor = MAKELONG(MAKEWORD(lpSrc[0], lpSrc[1]), MAKEWORD(lpSrc[2], lpSrc[3]));
+						*lpDest++ = GetColorValue(dwColor, dwRedMask);
+						*lpDest++ = GetColorValue(dwColor, dwGreenMask);
+						*lpDest++ = GetColorValue(dwColor, dwBlueMask);
+						*lpDest++ = dwAlphaMask ? GetColorValue(dwColor, dwAlphaMask) : 0xFF;
+						lpSrc += 4;
+					}
+				}
+
+				break;
 		}
 	}
 	__except (EXCEPTION_EXECUTE_HANDLER) { ; }
@@ -680,7 +763,7 @@ HANDLE WebpToDib(LPVOID lpWebpData, DWORD dwLenData)
 	if (lpBits == NULL)
 		return NULL;
 	
-	DWORD dwSizeImage = nWidth * nHeight * 4;
+	DWORD dwSizeImage = nHeight * nWidth * 4;
 	if (dwSizeImage == 0)
 	{
 		WebPFree(lpBits);
@@ -746,7 +829,7 @@ HANDLE DdsToDib(LPVOID lpDdsData, DWORD dwLenData)
 
 	crn_uint32 uWidth = tex_desc.m_width;
 	crn_uint32 uHeight = tex_desc.m_height;
-	crn_uint32 uSizeImage = uWidth * uHeight * 4;
+	crn_uint32 uSizeImage = uHeight * uWidth * 4;
 	if (uSizeImage == 0)
 	{
 		crn_free_all_images(pImages, tex_desc);
@@ -809,8 +892,8 @@ HANDLE DdsToDib(LPVOID lpDdsData, DWORD dwLenData)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-
 // FreeDib: Frees the memory allocated for the DIB
+
 BOOL FreeDib(HANDLE hDib)
 {
 	if (hDib == NULL)
@@ -825,3 +908,20 @@ BOOL FreeDib(HANDLE hDib)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
+// GetColorValue: Calculates the value of a color component
+
+static BYTE GetColorValue(DWORD dwPixel, DWORD dwMask)
+{
+	if (dwMask == 0)
+		return 0;
+
+	DWORD dwColor = dwPixel & dwMask;
+
+	while ((dwMask & 0x80000000) == 0)
+	{
+		dwColor = dwColor << 1;
+		dwMask  = dwMask  << 1;
+	}
+
+	return HIBYTE(HIWORD(dwColor));
+}
