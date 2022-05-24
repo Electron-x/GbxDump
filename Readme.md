@@ -99,11 +99,11 @@ This software is based in part on the work of the Independent JPEG Group.
 ## Links
 - [Gbx File Dumper web page](http://www.wolfgang-rolke.de/gbxdump/)
 - [Gbx file format specification](https://wiki.xaseco.org/wiki/GBX)
-- [Microsoft Windows SDK for Windows 7 (VS2005/VS2008/VS2010)](https://www.microsoft.com/en-us/download/details.aspx?id=8279)
-- [Microsoft Visual Studio 2013 Installer Projects](https://marketplace.visualstudio.com/items?itemName=UnniRavindranathan-MSFT.MicrosoftVisualStudio2013InstallerProjects)
-- [Microsoft Visual Studio 2015 Installer Projects](https://marketplace.visualstudio.com/items?itemName=VisualStudioProductTeam.MicrosoftVisualStudio2015InstallerProjects)
-- [Microsoft Visual Studio 2017/2019 Installer Projects](https://marketplace.visualstudio.com/items?itemName=VisualStudioProductTeam.MicrosoftVisualStudio2017InstallerProjects)
-- [Microsoft Visual Studio Installer Projects 2022](https://marketplace.visualstudio.com/items?itemName=VisualStudioClient.MicrosoftVisualStudio2022InstallerProjects)
+- [Microsoft Windows SDK for Windows 7](https://www.microsoft.com/en-us/download/details.aspx?id=8279) (VS2005/VS2008/VS2010)
+- Installer Projects for Microsoft Visual Studio [2013](https://marketplace.visualstudio.com/items?itemName=UnniRavindranathan-MSFT.MicrosoftVisualStudio2013InstallerProjects), 
+[2015](https://marketplace.visualstudio.com/items?itemName=VisualStudioProductTeam.MicrosoftVisualStudio2015InstallerProjects), 
+[2017/2019](https://marketplace.visualstudio.com/items?itemName=VisualStudioProductTeam.MicrosoftVisualStudio2017InstallerProjects), 
+[2022](https://marketplace.visualstudio.com/items?itemName=VisualStudioClient.MicrosoftVisualStudio2022InstallerProjects)
 - [WebP API Documentation](https://developers.google.com/speed/webp/docs/api)
 - [Advanced DXTn texture compression library](https://github.com/BinomialLLC/crunch)
 - [Independent JPEG Group's JPEG software](http://www.ijg.org/)
