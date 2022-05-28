@@ -908,6 +908,75 @@ BOOL FreeDib(HANDLE hDib)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
+// CreatePremultipliedBitmap: Creates a copy of a 32-bit DIB with premultiplied alpha
+
+HBITMAP CreatePremultipliedBitmap(HANDLE hDib)
+{
+	if (hDib == NULL)
+		return NULL;
+
+	LPBITMAPINFOHEADER lpbi = (LPBITMAPINFOHEADER)GlobalLock(hDib);
+	if (lpbi == NULL || lpbi->biSize != sizeof(BITMAPINFOHEADER) ||
+		lpbi->biBitCount != 32 || lpbi->biCompression != BI_RGB)
+		return NULL;
+
+	BITMAPINFO bmi = { 0 };
+	bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+	bmi.bmiHeader.biWidth = lpbi->biWidth;
+	bmi.bmiHeader.biHeight = lpbi->biHeight;
+	bmi.bmiHeader.biPlanes = 1;
+	bmi.bmiHeader.biBitCount = 32;
+	bmi.bmiHeader.biCompression = BI_RGB;
+	bmi.bmiHeader.biSizeImage = lpbi->biSizeImage;
+
+	LPVOID lpBMP = NULL;
+	HBITMAP hbmpDib = CreateDIBSection(NULL, &bmi, DIB_RGB_COLORS, &lpBMP, NULL, NULL);
+	if (hbmpDib == NULL)
+	{
+		GlobalUnlock(hDib);
+		return NULL;
+	}
+
+	BYTE cAlpha;
+	LONG lWidth = lpbi->biWidth;
+	LONG lHeight = abs(lpbi->biHeight);
+	LPBYTE lpSrc = ((LPBYTE)lpbi) + sizeof(BITMAPINFOHEADER);
+	LPBYTE lpDest = (LPBYTE)lpBMP;
+
+	__try
+	{
+		for (LONG h = 0; h < lHeight; h++)
+		{
+			for (LONG w = 0; w < lWidth; w++)
+			{
+				cAlpha = lpSrc[3];
+				*lpDest++ = lpSrc[0] * cAlpha / 0xFF;
+				*lpDest++ = lpSrc[1] * cAlpha / 0xFF;
+				*lpDest++ = lpSrc[2] * cAlpha / 0xFF;
+				*lpDest++ = cAlpha;
+				lpSrc += 4;
+			}
+		}
+	}
+	__except (EXCEPTION_EXECUTE_HANDLER) { ; }
+
+	GlobalUnlock(hDib);
+
+	return hbmpDib;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// FreeBitmap: Frees the memory allocated for the DIB section
+
+BOOL FreeBitmap(HBITMAP hbmpDib)
+{
+	if (hbmpDib == NULL)
+		return FALSE;
+
+	return DeleteObject(hbmpDib);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
 // GetColorValue: Calculates the value of a color component
 
 static BYTE GetColorValue(DWORD dwPixel, DWORD dwMask)
@@ -925,3 +994,5 @@ static BYTE GetColorValue(DWORD dwPixel, DWORD dwMask)
 
 	return HIBYTE(HIWORD(dwColor));
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////

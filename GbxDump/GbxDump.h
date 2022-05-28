@@ -46,6 +46,7 @@ const TCHAR g_szSep3[] = TEXT("\r\n-[%08X]--------------------------------------
 
 extern const TCHAR g_szTitle[];
 extern HINSTANCE g_hInstance;
+extern HBITMAP g_hBitmapThumb;
 extern HANDLE g_hDibThumb;
 extern BOOL g_bGerUI;
 

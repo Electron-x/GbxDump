@@ -27,4 +27,7 @@ HANDLE WebpToDib(LPVOID lpWebpData, DWORD dwLenData);
 
 BOOL FreeDib(HANDLE hDib);
 
+HBITMAP CreatePremultipliedBitmap(HANDLE hDib);
+BOOL FreeBitmap(HBITMAP hbmpDib);
+
 ////////////////////////////////////////////////////////////////////////////////////////////////

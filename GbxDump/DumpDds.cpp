@@ -803,9 +803,13 @@ BOOL DisplayDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 
 	if (hDib != NULL)
 	{
+		if (g_hBitmapThumb != NULL)
+			FreeBitmap(g_hBitmapThumb);
 		if (g_hDibThumb != NULL)
 			FreeDib(g_hDibThumb);
+
 		g_hDibThumb = hDib;
+		g_hBitmapThumb = CreatePremultipliedBitmap(hDib);
 
 		// View the thumbnail immediately
 		HWND hwndThumb = GetDlgItem(GetParent(hwndCtl), IDC_THUMB);

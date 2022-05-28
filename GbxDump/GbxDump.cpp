@@ -76,6 +76,7 @@ BOOL g_bGerUI = FALSE;
 
 HANDLE g_hDibDefault = NULL;
 HANDLE g_hDibThumb = NULL;
+HBITMAP g_hBitmapThumb = NULL;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Entry-point function of the application
@@ -165,6 +166,7 @@ int APIENTRY _tWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstanc
 	INT_PTR nResult = DialogBoxParam(g_hInstance, MAKEINTRESOURCE(g_bGerUI ? IDD_GER_GBXDUMP : IDD_ENG_GBXDUMP),
 		NULL, (DLGPROC)GbxDumpDlgProc, (LPARAM)pszFilename);
 
+	FreeBitmap(g_hBitmapThumb);
 	FreeDib(g_hDibThumb);
 	FreeDib(g_hDibDefault);
 
@@ -240,11 +242,60 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 							nSrcHeight -= 2 * nSrcY;
 						}
 
-						LPCSTR pBuf = (LPSTR)lpbi + *(LPDWORD)lpbi + DIBPaletteSize((LPSTR)lpbi);
+						if (g_hBitmapThumb != NULL)
+						{ // Output a 32-bit DIB with transparency
+							HDC hMemDC = CreateCompatibleDC(hdc);
+							if (hMemDC != NULL)
+							{
+								static WORD wCheckPat[8] =
+								{
+									0x0F0F, 0x0F0F, 0x0F0F, 0x0F0F,
+									0xF0F0, 0xF0F0, 0xF0F0, 0xF0F0
+								};
 
-						SetStretchBltMode(hdc, HALFTONE);
-						StretchDIBits(hdc, rc.left, rc.top, cx, cy, nSrcX, nSrcY, nSrcWidth, nSrcHeight,
-							pBuf, (LPBITMAPINFO)lpbi, DIB_RGB_COLORS, SRCCOPY);
+								// Draw a checkerboard pattern as background
+								HBITMAP hbmp = CreateBitmap(8, 8, 1, 1, wCheckPat);
+								if (hbmp != NULL)
+								{
+									HBRUSH hbr = CreatePatternBrush(hbmp);
+									if (hbr != NULL)
+									{
+										HBRUSH hbrOld = (HBRUSH)SelectObject(hdc, hbr);
+										COLORREF rgbTextOld = SetTextColor(hdc, RGB(204, 204, 204));
+										COLORREF rgbBkOld = SetBkColor(hdc, RGB(255, 255, 255));
+
+										PatBlt(hdc, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, PATCOPY);
+
+										if (rgbBkOld != CLR_INVALID)
+											SetBkColor(hdc, rgbBkOld);
+										if (rgbTextOld != CLR_INVALID)
+											SetTextColor(hdc, rgbTextOld);
+										if (hbrOld != NULL)
+											SelectObject(hdc, hbrOld);
+										DeleteObject(hbr);
+									}
+									DeleteObject(hbmp);
+								}
+
+								HGDIOBJ hOldBitmap = SelectObject(hMemDC, g_hBitmapThumb);
+
+								BLENDFUNCTION pixelblend = { AC_SRC_OVER, 0, 0xFF, AC_SRC_ALPHA };
+								AlphaBlend(hdc, rc.left, rc.top, cx, cy, hMemDC,
+									nSrcX, nSrcY, nSrcWidth, nSrcHeight, pixelblend);
+
+								if (hOldBitmap != NULL)
+									SelectObject(hMemDC, hOldBitmap);
+								DeleteDC(hMemDC);
+							}
+						}
+						else
+						{
+							LPCSTR pBuf = (LPSTR)lpbi + *(LPDWORD)lpbi + DIBPaletteSize((LPSTR)lpbi);
+
+							SetStretchBltMode(hdc, HALFTONE);
+							StretchDIBits(hdc, rc.left, rc.top, cx, cy, nSrcX, nSrcY, nSrcWidth, nSrcHeight,
+								pBuf, (LPBITMAPINFO)lpbi, DIB_RGB_COLORS, SRCCOPY);
+						}
 
 						GlobalUnlock(hDIB);
 					}
@@ -1002,6 +1053,11 @@ BOOL DumpFile(HWND hwndCtl, LPCTSTR lpszFileName, LPSTR lpszUid, LPSTR lpszEnvi)
 		Button_Enable(hwndButton, FALSE);
 
 	// Release old thumbnail
+	if (g_hBitmapThumb != NULL)
+	{
+		FreeBitmap(g_hBitmapThumb);
+		g_hBitmapThumb = NULL;
+	}
 	if (g_hDibThumb != NULL)
 	{
 		FreeDib(g_hDibThumb);

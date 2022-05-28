@@ -2921,6 +2921,10 @@ BOOL ChallengeThumbnailChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckThumbnail)
 			__except (EXCEPTION_EXECUTE_HANDLER) { hDib = NULL; }
 			if (hDib != NULL)
 			{
+				if (g_hBitmapThumb != NULL)
+					FreeBitmap(g_hBitmapThumb);
+				g_hBitmapThumb = NULL;
+
 				if (g_hDibThumb != NULL)
 					FreeDib(g_hDibThumb);
 				g_hDibThumb = hDib;
@@ -3593,6 +3597,11 @@ BOOL CollectorIconChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckIcon)
 		HANDLE hDib = GlobalAlloc(GHND, sizeof(BITMAPINFOHEADER) + dwSizeImage);
 		if (hDib != NULL)
 		{
+			if (g_hBitmapThumb != NULL)
+			{
+				FreeBitmap(g_hBitmapThumb);
+				g_hBitmapThumb = NULL;
+			}
 			if (g_hDibThumb != NULL)
 			{
 				FreeDib(g_hDibThumb);
@@ -3625,7 +3634,9 @@ BOOL CollectorIconChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckIcon)
 				__except (EXCEPTION_EXECUTE_HANDLER) { dwSizeImage = 0; }
 
 				GlobalUnlock(hDib);
+
 				g_hDibThumb = hDib;
+				g_hBitmapThumb = CreatePremultipliedBitmap(hDib);
 			}
 
 			// View the thumbnail immediately
@@ -3682,9 +3693,13 @@ BOOL CollectorIconChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckIcon)
 	__except (EXCEPTION_EXECUTE_HANDLER) { hDib = NULL; }
 	if (hDib != NULL)
 	{
+		if (g_hBitmapThumb != NULL)
+			FreeBitmap(g_hBitmapThumb);
 		if (g_hDibThumb != NULL)
 			FreeDib(g_hDibThumb);
+
 		g_hDibThumb = hDib;
+		g_hBitmapThumb = CreatePremultipliedBitmap(hDib);
 
 		// View the thumbnail immediately
 		HWND hwndThumb = GetDlgItem(GetParent(hwndCtl), IDC_THUMB);
