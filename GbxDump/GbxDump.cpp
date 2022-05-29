@@ -57,7 +57,7 @@ void DeleteWindowRect(HWND hwnd);
 #endif
 
 const TCHAR g_szTitle[]   = TEXT("GbxDump");
-const TCHAR g_szAbout[]   = TEXT("Gbx File Dumper 1.67 (") PLATFORM TEXT(")\r\n")
+const TCHAR g_szAbout[]   = TEXT("Gbx File Dumper 1.68 (") PLATFORM TEXT(")\r\n")
                             TEXT("Copyright © 2010-2022 by Electron\r\n");
 const TCHAR g_szDlgCls[]  = TEXT("GbxDumpDlgClass");
 const TCHAR g_szTop[]     = TEXT("GbxDumpWndTop");
@@ -253,6 +253,8 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 									0xF0F0, 0xF0F0, 0xF0F0, 0xF0F0
 								};
 
+								HGDIOBJ hOldBitmap = SelectObject(hMemDC, g_hBitmapThumb);
+
 								// Draw a checkerboard pattern as background
 								HBITMAP hbmp = CreateBitmap(8, 8, 1, 1, wCheckPat);
 								if (hbmp != NULL)
@@ -264,7 +266,7 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 										COLORREF rgbTextOld = SetTextColor(hdc, RGB(204, 204, 204));
 										COLORREF rgbBkOld = SetBkColor(hdc, RGB(255, 255, 255));
 
-										PatBlt(hdc, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, PATCOPY);
+										PatBlt(hdc, rc.left, rc.top, rc.right-rc.left, rc.bottom-rc.top, PATCOPY);
 
 										if (rgbBkOld != CLR_INVALID)
 											SetBkColor(hdc, rgbBkOld);
@@ -277,8 +279,7 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 									DeleteObject(hbmp);
 								}
 
-								HGDIOBJ hOldBitmap = SelectObject(hMemDC, g_hBitmapThumb);
-
+								// Blend the thumbnail with the checkerboard pattern
 								BLENDFUNCTION pixelblend = { AC_SRC_OVER, 0, 0xFF, AC_SRC_ALPHA };
 								AlphaBlend(hdc, rc.left, rc.top, cx, cy, hMemDC,
 									nSrcX, nSrcY, nSrcWidth, nSrcHeight, pixelblend);

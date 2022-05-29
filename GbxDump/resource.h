@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
-// Von Microsoft Visual C++ generierte Includedatei.
-// Verwendet durch GbxDump.rc
+// Microsoft Visual C++ generated include file.
+// Used by GbxDump.rc
 //
 #define IDI_GBXDUMP                     101
 #define IDR_THUMB                       102
