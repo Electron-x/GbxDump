@@ -249,8 +249,8 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 							{
 								static WORD wCheckPat[8] =
 								{
-									0x0F0F, 0x0F0F, 0x0F0F, 0x0F0F,
-									0xF0F0, 0xF0F0, 0xF0F0, 0xF0F0
+									0x000F, 0x000F, 0x000F, 0x000F,
+									0x00F0, 0x00F0, 0x00F0, 0x00F0
 								};
 
 								HGDIOBJ hOldBitmap = SelectObject(hMemDC, g_hBitmapThumb);
@@ -266,7 +266,7 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 										COLORREF rgbTextOld = SetTextColor(hdc, RGB(204, 204, 204));
 										COLORREF rgbBkOld = SetBkColor(hdc, RGB(255, 255, 255));
 
-										PatBlt(hdc, rc.left, rc.top, rc.right-rc.left, rc.bottom-rc.top, PATCOPY);
+										PatBlt(hdc, rc.left, rc.top, cx, cy, PATCOPY);
 
 										if (rgbBkOld != CLR_INVALID)
 											SetBkColor(hdc, rgbBkOld);
