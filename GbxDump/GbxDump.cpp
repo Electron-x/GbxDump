@@ -244,49 +244,72 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 
 						if (g_hBitmapThumb != NULL)
 						{ // Output a 32-bit DIB with transparency
-							HDC hMemDC = CreateCompatibleDC(hdc);
-							if (hMemDC != NULL)
+							HDC hdcMem = CreateCompatibleDC(hdc);
+							if (hdcMem != NULL)
 							{
-								static WORD wCheckPat[8] =
+								HBITMAP hbmpSurface = CreateCompatibleBitmap(hdc, cx, cy);
+								if (hbmpSurface != NULL)
 								{
-									0x000F, 0x000F, 0x000F, 0x000F,
-									0x00F0, 0x00F0, 0x00F0, 0x00F0
-								};
+									HBITMAP hbmpSurfaceOld = (HBITMAP)SelectObject(hdcMem, hbmpSurface);
 
-								HGDIOBJ hOldBitmap = SelectObject(hMemDC, g_hBitmapThumb);
-
-								// Draw a checkerboard pattern as background
-								HBITMAP hbmp = CreateBitmap(8, 8, 1, 1, wCheckPat);
-								if (hbmp != NULL)
-								{
-									HBRUSH hbr = CreatePatternBrush(hbmp);
-									if (hbr != NULL)
+									static WORD wCheckPat[8] =
 									{
-										HBRUSH hbrOld = (HBRUSH)SelectObject(hdc, hbr);
-										COLORREF rgbTextOld = SetTextColor(hdc, RGB(204, 204, 204));
-										COLORREF rgbBkOld = SetBkColor(hdc, RGB(255, 255, 255));
+										0x000F, 0x000F, 0x000F, 0x000F,
+										0x00F0, 0x00F0, 0x00F0, 0x00F0
+									};
 
-										PatBlt(hdc, rc.left, rc.top, cx, cy, PATCOPY);
+									// Draw a checkerboard pattern as background
+									HBITMAP hbmpBrush = CreateBitmap(8, 8, 1, 1, wCheckPat);
+									if (hbmpBrush != NULL)
+									{
+										HBRUSH hbr = CreatePatternBrush(hbmpBrush);
+										if (hbr != NULL)
+										{
+											HBRUSH hbrOld = (HBRUSH)SelectObject(hdcMem, hbr);
+											COLORREF rgbTextOld = SetTextColor(hdcMem, RGB(204, 204, 204));
+											COLORREF rgbBkOld = SetBkColor(hdcMem, RGB(255, 255, 255));
 
-										if (rgbBkOld != CLR_INVALID)
-											SetBkColor(hdc, rgbBkOld);
-										if (rgbTextOld != CLR_INVALID)
-											SetTextColor(hdc, rgbTextOld);
-										if (hbrOld != NULL)
-											SelectObject(hdc, hbrOld);
-										DeleteObject(hbr);
+											PatBlt(hdcMem, rc.left, rc.top, cx, cy, PATCOPY);
+
+											if (rgbBkOld != CLR_INVALID)
+												SetBkColor(hdcMem, rgbBkOld);
+											if (rgbTextOld != CLR_INVALID)
+												SetTextColor(hdcMem, rgbTextOld);
+											if (hbrOld != NULL)
+												SelectObject(hdcMem, hbrOld);
+											
+											DeleteObject(hbr);
+										}
+
+										DeleteObject(hbmpBrush);
 									}
-									DeleteObject(hbmp);
+
+									HDC hdcAlpha = CreateCompatibleDC(hdc);
+									if (hdcAlpha != NULL)
+									{
+										HGDIOBJ hbmpThumbOld = SelectObject(hdcAlpha, g_hBitmapThumb);
+
+										// Blend the thumbnail with the checkerboard pattern
+										BLENDFUNCTION pixelblend = { AC_SRC_OVER, 0, 0xFF, AC_SRC_ALPHA };
+										AlphaBlend(hdcMem, rc.left, rc.top, cx, cy, hdcAlpha,
+											nSrcX, nSrcY, nSrcWidth, nSrcHeight, pixelblend);
+
+										if (hbmpThumbOld != NULL)
+											SelectObject(hdcAlpha, hbmpThumbOld);
+										
+										DeleteDC(hdcAlpha);
+									}
+
+									// Transfer the offscreen surface to the screen
+									BitBlt(hdc, rc.left, rc.top, cx, cy, hdcMem, rc.left, rc.top, SRCCOPY);
+
+									if (hbmpSurfaceOld != NULL)
+										SelectObject(hdcMem, hbmpSurfaceOld);
+									
+									DeleteObject(hbmpSurface);
 								}
 
-								// Blend the thumbnail with the checkerboard pattern
-								BLENDFUNCTION pixelblend = { AC_SRC_OVER, 0, 0xFF, AC_SRC_ALPHA };
-								AlphaBlend(hdc, rc.left, rc.top, cx, cy, hMemDC,
-									nSrcX, nSrcY, nSrcWidth, nSrcHeight, pixelblend);
-
-								if (hOldBitmap != NULL)
-									SelectObject(hMemDC, hOldBitmap);
-								DeleteDC(hMemDC);
+								DeleteDC(hdcMem);
 							}
 						}
 						else
