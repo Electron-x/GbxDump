@@ -3058,18 +3058,18 @@ BOOL ReplayVersionChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVersion, LPSTR lps
 	if (!ReadNat32(hFile, &dwVersion))
 		return FALSE;
 
-	// VSK requires special treatment
+	// Virtual Skipper requires special handling
 	OutputTextFmt(hwndCtl, szOutput, TEXT("Header Version:\t%d\r\n"),
 		(dwVersion < 10000 || IS_UNASSIGNED(dwVersion)) ? dwVersion : dwVersion - 9999);
 
 	BOOL bIsVSK = dwVersion >= 9999 ? TRUE : FALSE;
 
-	// Check whether further data exists. Is needed for VSK
-	// because all Replays have the version number 10000.
+	// Check whether further data is available. This is necessary
+	// for VSK, because all replays have the version number 10000.
 	if (pckVersion->dwSize <= 4)
 		return TRUE;
 
-	if ((!bIsVSK && dwVersion >= 2) || (bIsVSK && dwVersion >= 10000))
+	if ((!bIsVSK && dwVersion >= 3) || (bIsVSK && dwVersion >= 10000))
 	{
 		// Map UID
 		if ((nRet = ReadIdentifier(hFile, &id, szRead, _countof(szRead))) < 0)
