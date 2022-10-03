@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Archive.cpp - Copyright (c) 2010-2020 by Electron.
+// Archive.cpp - Copyright (c) 2010-2022 by Electron.
 //
 // Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -492,6 +492,9 @@ SIZE_T GetCollectionString(DWORD dwId, LPSTR lpszCollection, SIZE_T cchStringLen
 			break;
 		case 26: // Stadium
 			lstrcpynA(lpszCollection, "Stadium", (int)cchStringLen);
+			break;
+		case 27: // Voxel
+			lstrcpynA(lpszCollection, "Voxel", (int)cchStringLen);
 			break;
 		case 100: // History
 			lstrcpynA(lpszCollection, "History", (int)cchStringLen);
