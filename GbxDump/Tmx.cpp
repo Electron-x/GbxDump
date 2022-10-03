@@ -30,17 +30,16 @@
 #define GAME_QM   8
 #define GAME_TM   9
 
-#define TMX_MAX_DATASIZE 32768
-#define MX_MAX_DATASIZE 131072
+#define TMX_MAX_DATASIZE 16384
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Forward declarations of functions included in this code module
 //
 BOOL PrintTmxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound);
 BOOL PrintMxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound);
-BOOL GetNextXmlElement(UINT uCodePage, LPSTR* lpszData, LPCSTR lpszMarker,
+BOOL GetReplayData(UINT uCodePage, LPSTR* lpszData, LPCSTR lpszMarker,
 	LPTSTR lpszOutput, SIZE_T cchLenOutput);
-BOOL OutputXmlElement(HWND hwndCtl, UINT uCodePage, LPCSTR lpszData, LPCSTR lpszMarker,
+BOOL OutputXmlData(HWND hwndCtl, UINT uCodePage, LPCSTR lpszData, LPCSTR lpszMarker,
 	LPCTSTR lpszText, LPTSTR lpszValue = NULL, SIZE_T cchValueLen = 0);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -61,11 +60,9 @@ const TCHAR g_szParamSearch[] = TEXT("apisearch&trackid");
 const TCHAR g_szParamRecord[] = TEXT("apitrackrecords&id");
 const TCHAR g_szUrlTmx[]      = TEXT("http://%s.tm-exchange.com/apiget.aspx?action=%s=%hs");
 const TCHAR g_szUrlMpMaps[]   = TEXT("https://%s.mania.exchange/api/maps/get_map_info/multi/%hs?format=xml");
-const TCHAR g_szUrlMpItems[]  = TEXT("https://%s.mania.exchange/api/maps/embeddedobjects/%s?format=xml");
-const TCHAR g_szUrlMpRepl[]   = TEXT("https://%s.mania.exchange/api/replays/get_replays/%s?format=xml");
+const TCHAR g_szUrlMpRepl[]   = TEXT("https://%s.mania.exchange/api/replays/get_replays/%s?amount=10&format=xml");
 const TCHAR g_szUrlTmMaps[]   = TEXT("https://%s.exchange/api/maps/get_map_info/multi/%hs?format=xml");
-const TCHAR g_szUrlTmItems[]  = TEXT("https://%s.exchange/api/maps/embeddedobjects/%s?format=xml");
-const TCHAR g_szUrlTmRepl[]   = TEXT("https://%s.exchange/api/replays/get_replays/%s?format=xml");
+const TCHAR g_szUrlTmRepl[]   = TEXT("https://%s.exchange/api/replays/get_replays/%s?amount=10&format=xml");
 const TCHAR g_szErrOom[]      = TEXT("Out of memory.\r\n");
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -357,11 +354,11 @@ BOOL PrintTmxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 	{
 		uRecords++;
 
-		LPSTR lpszNewLine = strstr(lpsz, "\r\n");
+		LPSTR lpszNewLine = strstr(lpsz, "<BR>\r\n");
 		if (lpszNewLine != NULL)
 		{
 			*lpszNewLine = '\0';
-			lpszNewLine += 2;
+			lpszNewLine += 6;
 		}
 		else
 			break;
@@ -459,7 +456,7 @@ BOOL PrintMxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 	}
 
 	// Allocate memory for the MX data
-	DWORD dwSize = MX_MAX_DATASIZE;
+	DWORD dwSize = TMX_MAX_DATASIZE;
 	LPSTR lpszData = (LPSTR)GlobalAllocPtr(GHND, dwSize);
 	if (lpszData == NULL)
 	{
@@ -490,7 +487,6 @@ BOOL PrintMxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 
 	// Initialize MX Track ID for string comparison
 	TCHAR szTrackId[32];
-	TCHAR szTrackUid[128];
 	TCHAR szTrackType[64];
 	szTrackType[0] = TEXT('\0');
 	_tcscpy(szTrackId, TEXT("0"));
@@ -500,109 +496,58 @@ BOOL PrintMxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 	Edit_SetSel(hwndCtl, (WPARAM)nLen, (LPARAM)nLen);
 
 	// Parse and output the MX data
-	LPSTR lpsz = (LPSTR)lpszData;
-	if (GetNextXmlElement(uCodePage, &lpsz, "TrackID", szTrackId, _countof(szTrackId)))
+	if (nGame == GAME_TM || nGame == GAME_TM2)
 	{
-		OutputText(hwndCtl, TEXT("Track ID:\t"));
-		OutputText(hwndCtl, szTrackId);
-		OutputText(hwndCtl, TEXT("\r\n"));
+		OutputXmlData(hwndCtl, uCodePage, lpszData, "TrackID", TEXT("Track ID:\t"), szTrackId, _countof(szTrackId));
+		OutputXmlData(hwndCtl, uCodePage, lpszData, "TrackUID", TEXT("Track UID:\t"));
+		OutputXmlData(hwndCtl, uCodePage, lpszData, "Name", TEXT("Track Name:\t"));
 	}
-	else if (GetNextXmlElement(uCodePage, &lpsz, "MapID", szTrackId, _countof(szTrackId)))
+	else
 	{
-		OutputText(hwndCtl, TEXT("Map ID:\t\t"));
-		OutputText(hwndCtl, szTrackId);
-		OutputText(hwndCtl, TEXT("\r\n"));
+		OutputXmlData(hwndCtl, uCodePage, lpszData, "MapID", TEXT("Map ID:\t\t"), szTrackId, _countof(szTrackId));
+		OutputXmlData(hwndCtl, uCodePage, lpszData, "MapUID", TEXT("Map UID:\t"));
+		OutputXmlData(hwndCtl, uCodePage, lpszData, "Name", TEXT("Map Name:\t"));
 	}
-
-	lpsz = (LPSTR)lpszData;
-	if (GetNextXmlElement(uCodePage, &lpsz, "TrackUID", szTrackUid, _countof(szTrackUid)))
-	{
-		OutputText(hwndCtl, TEXT("Track UID:\t"));
-		OutputText(hwndCtl, szTrackUid);
-		OutputText(hwndCtl, TEXT("\r\n"));
-	}
-	else if (GetNextXmlElement(uCodePage, &lpsz, "MapUID", szTrackUid, _countof(szTrackUid)))
-	{
-		OutputText(hwndCtl, TEXT("Map UID:\t"));
-		OutputText(hwndCtl, szTrackUid);
-		OutputText(hwndCtl, TEXT("\r\n"));
-	}
-
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "Name", TEXT("Map Name:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "UserID", TEXT("User ID:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "Username", TEXT("User Name:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "UpdatedAt", TEXT("Version:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "UploadedAt", TEXT("Uploaded:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "Unreleased", TEXT("Unreleased:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "Unlisted", TEXT("Unlisted:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "Downloadable", TEXT("Downloadable:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "UnlimiterRequired", TEXT("Unlimiter:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "HasGhostBlocks", TEXT("Ghost Blocks:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "EmbeddedObjectsCount", TEXT("Embedded Items:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "EmbeddedItemsSize", TEXT("Items Size:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "SizeWarning", TEXT("Size Warning:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "HasScreenshot", TEXT("Has Screenshot:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "HasThumbnail", TEXT("Has Thumbnail:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "ExeVersion", TEXT("Exe Version:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "ExeBuild", TEXT("Exe Build:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "EnvironmentName", TEXT("Environment:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "VehicleName", TEXT("Vehicle Name:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "TitlePack", TEXT("Title Pack:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "ModName", TEXT("Mod Name:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "Mood", TEXT("Mood:\t\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "DisplayCost", TEXT("Display Cost:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "Lightmap", TEXT("Lightmap:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "TypeName", TEXT("Type Name:\t"), szTrackType, _countof(szTrackType));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "MapType", TEXT("Map Type:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "StyleName", TEXT("Style:\t\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "LengthName", TEXT("Length:\t\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "RouteName", TEXT("Routes:\t\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "DifficultyName", TEXT("Difficulty:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "Laps", TEXT("Laps:\t\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "TrackValue", TEXT("Track Value:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "AwardCount", TEXT("Award Count:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "ReplayCount", TEXT("Replay Count:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "CommentCount", TEXT("Comment Count:\t"));
+	OutputXmlData(hwndCtl, uCodePage, lpszData, "UserID", TEXT("User ID:\t"));
+	OutputXmlData(hwndCtl, uCodePage, lpszData, "Username", TEXT("User Name:\t"));
+	OutputXmlData(hwndCtl, uCodePage, lpszData, "UpdatedAt", TEXT("Version:\t"));
+	OutputXmlData(hwndCtl, uCodePage, lpszData, "UploadedAt", TEXT("Uploaded:\t"));
+	OutputXmlData(hwndCtl, uCodePage, lpszData, "Unreleased", TEXT("Unreleased:\t"));
+	OutputXmlData(hwndCtl, uCodePage, lpszData, "Unlisted", TEXT("Unlisted:\t"));
+	OutputXmlData(hwndCtl, uCodePage, lpszData, "Downloadable", TEXT("Downloadable:\t"));
+	OutputXmlData(hwndCtl, uCodePage, lpszData, "UnlimiterRequired", TEXT("Unlimiter:\t"));
+	OutputXmlData(hwndCtl, uCodePage, lpszData, "HasGhostBlocks", TEXT("Ghost Blocks:\t"));
+	OutputXmlData(hwndCtl, uCodePage, lpszData, "EmbeddedObjectsCount", TEXT("Embedded Items:\t"));
+	OutputXmlData(hwndCtl, uCodePage, lpszData, "EmbeddedItemsSize", TEXT("Items Size:\t"));
+	OutputXmlData(hwndCtl, uCodePage, lpszData, "SizeWarning", TEXT("Size Warning:\t"));
+	OutputXmlData(hwndCtl, uCodePage, lpszData, "HasScreenshot", TEXT("Has Screenshot:\t"));
+	OutputXmlData(hwndCtl, uCodePage, lpszData, "HasThumbnail", TEXT("Has Thumbnail:\t"));
+	OutputXmlData(hwndCtl, uCodePage, lpszData, "ExeVersion", TEXT("Exe Version:\t"));
+	OutputXmlData(hwndCtl, uCodePage, lpszData, "ExeBuild", TEXT("Exe Build:\t"));
+	OutputXmlData(hwndCtl, uCodePage, lpszData, "EnvironmentName", TEXT("Environment:\t"));
+	OutputXmlData(hwndCtl, uCodePage, lpszData, "VehicleName", TEXT("Vehicle Name:\t"));
+	OutputXmlData(hwndCtl, uCodePage, lpszData, "TitlePack", TEXT("Title Pack:\t"));
+	OutputXmlData(hwndCtl, uCodePage, lpszData, "ModName", TEXT("Mod Name:\t"));
+	OutputXmlData(hwndCtl, uCodePage, lpszData, "Mood", TEXT("Mood:\t\t"));
+	OutputXmlData(hwndCtl, uCodePage, lpszData, "DisplayCost", TEXT("Display Cost:\t"));
+	OutputXmlData(hwndCtl, uCodePage, lpszData, "Lightmap", TEXT("Lightmap:\t"));
+	OutputXmlData(hwndCtl, uCodePage, lpszData, "TypeName", TEXT("Type Name:\t"), szTrackType, _countof(szTrackType));
+	OutputXmlData(hwndCtl, uCodePage, lpszData, "MapType", TEXT("Map Type:\t"));
+	OutputXmlData(hwndCtl, uCodePage, lpszData, "StyleName", TEXT("Style:\t\t"));
+	OutputXmlData(hwndCtl, uCodePage, lpszData, "LengthName", TEXT("Length:\t\t"));
+	OutputXmlData(hwndCtl, uCodePage, lpszData, "RouteName", TEXT("Routes:\t\t"));
+	OutputXmlData(hwndCtl, uCodePage, lpszData, "DifficultyName", TEXT("Difficulty:\t"));
+	OutputXmlData(hwndCtl, uCodePage, lpszData, "Laps", TEXT("Laps:\t\t"));
+	OutputXmlData(hwndCtl, uCodePage, lpszData, "TrackValue", TEXT("Track Value:\t"));
+	OutputXmlData(hwndCtl, uCodePage, lpszData, "AwardCount", TEXT("Award Count:\t"));
+	OutputXmlData(hwndCtl, uCodePage, lpszData, "ReplayCount", TEXT("Replay Count:\t"));
+	OutputXmlData(hwndCtl, uCodePage, lpszData, "CommentCount", TEXT("Comment Count:\t"));
 
 	// Do we have a valid MX Track ID?
 	if (_tcscmp(szTrackId, TEXT("0")) == 0)
 	{
 		GlobalFreePtr((LPVOID)lpszData);
 		return TRUE;
-	}
-
-	// Request additional MX data (Items) via MX Track ID
-	_sntprintf(szMxUrl, _countof(szMxUrl),
-		nGame == GAME_TM ? g_szUrlTmItems : g_szUrlMpItems, szSubDomain, szTrackId);
-	if (ReadInternetFile(hwndCtl, szMxUrl, lpszData, dwSize))
-	{
-		lpsz = (LPSTR)lpszData;
-		if (lpsz[0] != '\0' && strstr(lpsz, "<TrackObject>") != NULL)
-		{
-			// Place the cursor at the end of the edit control
-			nLen = Edit_GetTextLength(hwndCtl);
-			Edit_SetSel(hwndCtl, (WPARAM)nLen, (LPARAM)nLen);
-			OutputText(hwndCtl, g_szSep1);
-
-			// Parse and output the Item data
-			TCHAR szPosition[32];
-			TCHAR szItemPath[260];
-			TCHAR szItemAuthor[256];
-
-			for (int i = 1; i <= 250; i++)
-			{
-				if (!GetNextXmlElement(uCodePage, &lpsz, "ObjectPath", szItemPath, _countof(szItemPath)))
-					break;
-				if (!GetNextXmlElement(uCodePage, &lpsz, "ObjectAuthor", szItemAuthor, _countof(szItemAuthor)))
-					break;
-
-				OutputTextFmt(hwndCtl, szPosition, TEXT("%02u. "), i);
-				OutputText(hwndCtl, szItemPath);
-				OutputText(hwndCtl, TEXT(" ("));
-				OutputText(hwndCtl, szItemAuthor);
-				OutputText(hwndCtl, TEXT(")\r\n"));
-			}
-		}
 	}
 
 	// Replay data is only available for TrackMania² and Trackmania 2020
@@ -621,7 +566,7 @@ BOOL PrintMxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 		return FALSE;
 	}
 
-	lpsz = (LPSTR)lpszData;
+	LPSTR lpsz = (LPSTR)lpszData;
 	if (lpsz[0] == '\0' || strstr(lpsz, "<Replay>") == NULL)
 	{ // No valid track data available
 		GlobalFreePtr((LPVOID)lpszData);
@@ -639,15 +584,15 @@ BOOL PrintMxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 	TCHAR szStuntScore[32];
 	TCHAR szPosition[32];
 
-	for (int i = 1; i <= 25; i++)
+	for (int i = 1; i <= 10; i++)
 	{
-		if (!GetNextXmlElement(uCodePage, &lpsz, "Username", szUsername, _countof(szUsername)))
+		if (!GetReplayData(uCodePage, &lpsz, "Username", szUsername, _countof(szUsername)))
 			break;
-		if (!GetNextXmlElement(uCodePage, &lpsz, "ReplayTime", szReplayTime, _countof(szReplayTime)))
+		if (!GetReplayData(uCodePage, &lpsz, "ReplayTime", szReplayTime, _countof(szReplayTime)))
 			break;
-		if (!GetNextXmlElement(uCodePage, &lpsz, "StuntScore", szStuntScore, _countof(szStuntScore)))
+		if (!GetReplayData(uCodePage, &lpsz, "StuntScore", szStuntScore, _countof(szStuntScore)))
 			break;
-		if (!GetNextXmlElement(uCodePage, &lpsz, "Position", szPosition, _countof(szPosition)))
+		if (!GetReplayData(uCodePage, &lpsz, "Position", szPosition, _countof(szPosition)))
 			break;
 
 		int nPos = _ttoi(szPosition);
@@ -688,9 +633,9 @@ BOOL PrintMxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// XML parser for Item and Replay data
+// XML parser for Replay data
 
-BOOL GetNextXmlElement(UINT uCodePage, LPSTR* lpszData, LPCSTR lpszMarker, LPTSTR szOutput, SIZE_T cchLenOutput)
+BOOL GetReplayData(UINT uCodePage, LPSTR* lpszData, LPCSTR lpszMarker, LPTSTR szOutput, SIZE_T cchLenOutput)
 {
 	char szElement[64];
 	char szValue[896];
@@ -704,7 +649,6 @@ BOOL GetNextXmlElement(UINT uCodePage, LPSTR* lpszData, LPCSTR lpszMarker, LPTST
 		return FALSE;
 
 	lpszBegin += strlen(szElement);
-
 	strcpy(szElement, "</");
 	strncat(szElement, lpszMarker, _countof(szElement) - strlen(szElement) - 1);
 	strncat(szElement, ">", _countof(szElement) - strlen(szElement) - 1);
@@ -730,7 +674,7 @@ BOOL GetNextXmlElement(UINT uCodePage, LPSTR* lpszData, LPCSTR lpszMarker, LPTST
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Parse XML data and output it instantly
 
-BOOL OutputXmlElement(HWND hwndCtl, UINT uCodePage, LPCSTR lpszData, LPCSTR lpszMarker, LPCTSTR lpszText,
+BOOL OutputXmlData(HWND hwndCtl, UINT uCodePage, LPCSTR lpszData, LPCSTR lpszMarker, LPCTSTR lpszText,
 	LPTSTR lpszValue, SIZE_T cchValueLen)
 {
 	char szElement[64];
@@ -746,7 +690,6 @@ BOOL OutputXmlElement(HWND hwndCtl, UINT uCodePage, LPCSTR lpszData, LPCSTR lpsz
 		return FALSE;
 
 	lpszBegin += strlen(szElement);
-
 	strcpy(szElement, "</");
 	strncat(szElement, lpszMarker, _countof(szElement) - strlen(szElement) - 1);
 	strncat(szElement, ">", _countof(szElement) - strlen(szElement) - 1);
