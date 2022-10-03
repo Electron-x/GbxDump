@@ -147,7 +147,7 @@ BOOL DumpGbx(HWND hwndCtl, HANDLE hFile, LPSTR lpszUid, LPSTR lpszEnvi)
 	if (hwndCtl == NULL || hFile == NULL)
 		return FALSE;
 
-	// Jump to file version (skip signature)
+	// Skip the file signature (already checked in DumpFile())
 	if (!FileSeekBegin(hFile, 3))
 		return FALSE;
 
@@ -1509,6 +1509,8 @@ BOOL DumpOther(HWND hwndCtl, HANDLE hFile)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
+#define EFid_Resource 4
+
 DWORD ReadRefTable(HWND hwndCtl, HANDLE hFile, WORD wVersion, PBYTE achStorageSettings)
 {
 	TCHAR szOutput[OUTPUT_LEN];
@@ -1561,7 +1563,7 @@ DWORD ReadRefTable(HWND hwndCtl, HANDLE hFile, WORD wVersion, PBYTE achStorageSe
 		OutputTextFmt(hwndCtl, szOutput, TEXT("Flags:\t\t%08X\r\n"), dwFlags);
 
 		// Read file name or resource index
-		if ((dwFlags & 4) == 0)
+		if ((dwFlags & EFid_Resource) == 0)
 		{
 			// File name
 			SSIZE_T nRet = 0;
@@ -1605,13 +1607,20 @@ DWORD ReadRefTable(HWND hwndCtl, HANDLE hFile, WORD wVersion, PBYTE achStorageSe
 		}
 
 		// Folder index
-		if ((dwFlags & 4) == 0)
+		if ((dwFlags & EFid_Resource) == 0)
 		{
 			DWORD dwFolderIndex = 0;
 			if (!ReadNat32(hFile, &dwFolderIndex, bIsText))
 				return (DWORD)-1;
 
 			OutputTextFmt(hwndCtl, szOutput, TEXT("Folder Index:\t%d\r\n"), dwFolderIndex);
+
+			if (dwFolderIndex == (DWORD)-1)
+			{
+				ULARGE_INTEGER ull;
+				if (!ReadNat64(hFile, &ull))
+					return (DWORD)-1;
+			}
 		}
 	}
 
