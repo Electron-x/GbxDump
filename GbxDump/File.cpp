@@ -214,6 +214,7 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDIB)
 	}
 
 	INT nNumChannels = lpbi->biBitCount >> 3;
+	// 16-bit bitmaps are saved with 3 channels (or 4 incl. alpha channel)
 	LONG lSizeImage = lHeight * lWidth * (lpbi->biBitCount == 16 ? 4 : nNumChannels);
 	if (lSizeImage == 0)
 	{
