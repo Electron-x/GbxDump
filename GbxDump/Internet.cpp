@@ -20,7 +20,7 @@
 #include "internet.h"
 
 #define TITLE_LEN 256
-#define TIMEOUT 10000 // 10 Seconds
+#define TIMEOUT 10000 // 10 seconds
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Forward declarations of functions included in this code module
@@ -31,7 +31,7 @@ void LastInternetError(HWND hwndCtl, DWORD dwError);
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // String Constants
 //
-const TCHAR g_szUserAgent[]  = TEXT("GbxDump/1.68");
+const TCHAR g_szUserAgent[]  = TEXT("GbxDump/1.69");
 const TCHAR g_szWininetDll[] = TEXT("wininet.dll");
 const TCHAR g_szConnecting[] = TEXT("%s - Connecting...");
 const TCHAR g_szDownload[]   = TEXT("%s - Downloading...");
