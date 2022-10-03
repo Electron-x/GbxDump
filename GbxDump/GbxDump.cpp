@@ -57,7 +57,7 @@ void DeleteWindowRect(HWND hwnd);
 #endif
 
 const TCHAR g_szTitle[]   = TEXT("GbxDump");
-const TCHAR g_szAbout[]   = TEXT("Gbx File Dumper 1.69 (") PLATFORM TEXT(")\r\n")
+const TCHAR g_szAbout[]   = TEXT("Gbx File Dumper 1.68 (") PLATFORM TEXT(")\r\n")
                             TEXT("Copyright © 2010-2022 by Electron\r\n");
 const TCHAR g_szDlgCls[]  = TEXT("GbxDumpDlgClass");
 const TCHAR g_szTop[]     = TEXT("GbxDumpWndTop");
@@ -1193,7 +1193,7 @@ BOOL DumpMux(HWND hwndCtl, HANDLE hFile)
 	if (hwndCtl == NULL || hFile == NULL)
 		return FALSE;
 
-	// Skip the file signature (already checked in DumpFile())
+	// Jump to file version (skip signature)
 	if (!FileSeekBegin(hFile, 9))
 		return FALSE;
 

@@ -281,7 +281,7 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 	if (hwndCtl == NULL || hFile == NULL)
 		return FALSE;
 
-	// Skip the file signature (already checked in DumpFile())
+	// Jump to header (skip file signature)
 	if (!FileSeekBegin(hFile, 4))
 		return FALSE;
 
