@@ -83,7 +83,7 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 	if (hwndCtl == NULL || hFile == NULL)
 		return FALSE;
 
-	// Jump to version (skip file signature)
+	// Skip the file signature (already checked in DumpFile())
 	if (!FileSeekBegin(hFile, 8))
 		return FALSE;
 
@@ -859,13 +859,13 @@ BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderM
 		}
 
 		// SFileDescFlags
-		ULARGE_INTEGER ulFlags = {0};
-		if (!ReadNat64(hFile, &ulFlags))
+		ULARGE_INTEGER ullFlags = {0};
+		if (!ReadNat64(hFile, &ullFlags))
 			return FALSE;
 
-		OutputTextFmt(hwndCtl, szOutput, TEXT("Flags:\t\t%08X%08X"), ulFlags.HighPart, ulFlags.LowPart);
+		OutputTextFmt(hwndCtl, szOutput, TEXT("Flags:\t\t%08X%08X"), ullFlags.HighPart, ullFlags.LowPart);
 
-		PFILEDESCFLAGS pFileFlags = (PFILEDESCFLAGS)&ulFlags;
+		PFILEDESCFLAGS pFileFlags = (PFILEDESCFLAGS)&ullFlags;
 
 		szOutput[0] = g_chNil;
 
