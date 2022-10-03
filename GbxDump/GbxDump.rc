@@ -18,10 +18,8 @@
 // Deutsch (Deutschland) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_DEU)
-#ifdef _WIN32
 LANGUAGE LANG_GERMAN, SUBLANG_GERMAN
 #pragma code_page(1252)
-#endif //_WIN32
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -60,13 +58,14 @@ END
 // remains consistent on all systems.
 IDI_GBXDUMP             ICON                    "GbxDump.ico"
 
+
 /////////////////////////////////////////////////////////////////////////////
 //
 // Version
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,68,0,108
+ FILEVERSION 1,69,0,109
  PRODUCTVERSION 1,0,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
@@ -85,7 +84,7 @@ BEGIN
             VALUE "Comments", "GBX file header viewer application"
             VALUE "CompanyName", "Electron"
             VALUE "FileDescription", "Gbx File Dumper"
-            VALUE "FileVersion", "1.68.0.108"
+            VALUE "FileVersion", "1.69.0.109"
             VALUE "InternalName", "GbxDump"
             VALUE "LegalCopyright", "Copyright © 2010-2022 by Electron"
             VALUE "OriginalFilename", "GbxDump.exe"
@@ -129,12 +128,13 @@ END
 
 IDR_THUMB               RCDATA                  "Thumb.jpg"
 
+
 /////////////////////////////////////////////////////////////////////////////
 //
 // Menu
 //
 
-IDR_GER_POPUP MENU 
+IDR_GER_POPUP MENU
 BEGIN
     POPUP "&Miniaturbild"
     BEGIN
@@ -150,7 +150,7 @@ END
 //
 
 #ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO 
+GUIDELINES DESIGNINFO
 BEGIN
     IDD_GER_GBXDUMP, DIALOG
     BEGIN
@@ -168,7 +168,7 @@ END
 // String Table
 //
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     IDS_GER_FILTER_GBX      "GameBox, NadeoPak (*.Gbx;*.pak)|*.gbx;*.pak|Maps (*.Map.Gbx;*.Challenge.Gbx)|*.map.gbx;*.challenge.gbx|Replays (*.Replay.Gbx)|*.replay.gbx|Pakete (*.Pack.Gbx;*.pak)|*.pack.gbx;*.pak|Items (*.Item.gbx)|*.item.gbx|Objekte (*.ObjectInfo.gbx)|*.objectinfo.gbx|Blöcke (*.Block.Gbx;*.Macroblock.Gbx)|*.block.gbx;*.macroblock.gbx|DirectDraw Surface (*.dds)|*.dds|Alle Dateien (*.*)|*.*||"
     IDS_GER_FILTER_PNG      "Portable Network Graphics (*.png)|*.png||"
@@ -195,10 +195,8 @@ END
 // Englisch (USA) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
-#ifdef _WIN32
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
-#endif //_WIN32
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -227,7 +225,7 @@ END
 // Menu
 //
 
-IDR_ENG_POPUP MENU 
+IDR_ENG_POPUP MENU
 BEGIN
     POPUP "&Thumbnail"
     BEGIN
@@ -243,7 +241,7 @@ END
 //
 
 #ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO 
+GUIDELINES DESIGNINFO
 BEGIN
     IDD_ENG_GBXDUMP, DIALOG
     BEGIN
@@ -261,7 +259,7 @@ END
 // String Table
 //
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     IDS_ENG_FILTER_GBX      "GameBox, NadeoPak (*.Gbx;*.pak)|*.gbx;*.pak|Maps (*.Map.Gbx;*.Challenge.Gbx)|*.map.gbx;*.challenge.gbx|Replays (*.Replay.Gbx)|*.replay.gbx|Packs (*.Pack.Gbx;*.pak)|*.pack.gbx;*.pak|Items (*.Item.gbx)|*.item.gbx|Objects (*.ObjectInfo.gbx)|*.objectinfo.gbx|Blocks (*.Block.Gbx;*.Macroblock.Gbx)|*.block.gbx;*.macroblock.gbx|DirectDraw Surface (*.dds)|*.dds|All Files (*.*)|*.*||"
     IDS_ENG_FILTER_PNG      "Portable Network Graphics (*.png)|*.png||"
