@@ -29,7 +29,7 @@ But the provided information can still be very useful for map builders, title pr
 - The lightmap cache hash is useful to discover the lightmap file in the cache folder.
 - The T/MX map ID, the numbers of awards and records could be retrieved from T/MX or Dedimania.
 - The thumbnail of (macro-) blocks, objects and items supplies a good indication of the file content.
-- The used texture compression of a .dds file could discover an incompatibility with DirectX9.
+- The used texture compression of a .dds file could discover an incompatibility with DirectX 9.
 
 The tool was originally used to examine the [.gbx](https://wiki.xaseco.org/wiki/GBX) and [.pak](https://wiki.xaseco.org/wiki/PAK) file formats.
 Both formats have been well documented by several members of the Trackmania community in the [Mania Tech Wiki](https://wiki.xaseco.org/).
@@ -47,18 +47,18 @@ But this limitation is not a problem for processing the data in the file header.
 The application displays [all known information](https://wiki.xaseco.org/wiki/GBX) from the file header and the contents of the reference table.
 It was never planned to display content from the body of gbx files.  
 The main reason for this was the formerly proprietary license of GbxDump. It was not compatible with the LZO library, which is necessary to decompress the file body.
-In addition, complete information about the structure of the complex MediaTracker block, which is required for proper data parsing, is still missing.
+In addition, complete information about the structure of the complex MediaTracker block, which is required for proper data parsing, was missing.
 Furthermore, the file body may contain information that is not intended for the public.
 
 ## Building the project
 
 This is a generic C/C++ Win32 desktop project created with Microsoft Visual Studio. The workspace consists of the main project `GbxDump`,
-the subprojects `libjpeg` with the [Independent JPEG Group's JPEG software](http://www.ijg.org/) and `crnlib` with the
-[Advanced DXTn texture compression library](https://github.com/BinomialLLC/crunch) as well as two setup projects for 32 and 64 bit.  
+the subprojects `libjpeg` with the [Independent JPEG Group's JPEG software](http://www.ijg.org/),
+`libwebpdecoder` with a decode-only library of the [WebP Codec](https://github.com/webmproject/libwebp)
+and `crnlib` with the [Advanced DXTn texture compression library](https://github.com/BinomialLLC/crunch)
+as well as two setup projects for 32 and 64 bit.  
 This repository contains two VC++ project files for Visual Studio 2005 and Visual Studio 2017.
-VS2005 requires the [Microsoft Windows SDK 7.1](https://www.microsoft.com/en-us/download/details.aspx?id=8279) and VS2017 requires the Windows XP platform toolset.  
-The project file for Visual Studio 2017 includes the decoder libraries `libwebpdecoder.lib` and `libwebpdecoder_debug.lib` from the [WebP Codec](https://github.com/webmproject/libwebp).
-These must be created separately. For details, see the libwebp/doc folder.
+VS2005 requires the [Microsoft Windows SDK 7.1](https://www.microsoft.com/en-us/download/details.aspx?id=8279) and VS2017 requires Visual C++ ATL for x86 and x64 and the Windows XP platform toolset.
 
 To create the project with versions between VS2005 and VS2017, please note the following points:
 -   For all configurations, the Windows XP platform toolset `Visual Studio 20xx - Windows XP (v1xx_xp)` should be selected.
@@ -86,7 +86,7 @@ More extensive changes require a new branch. See also the section [Status of the
 
 ## Licenses
 
-Copyright © 2010 - 2022 by Electron
+Copyright © 2010 - 2023 by Electron
 
 Licensed under the [European Union Public Licence (EUPL)](https://joinup.ec.europa.eu/software/page/eupl), Version 1.2 - see the [Licence.txt](Licence.txt) file for details.
 
