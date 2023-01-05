@@ -5,6 +5,7 @@ VisualStudioVersion = 15.0.28307.572
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GbxDump", "GbxDump\GbxDump.vcxproj", "{82C3901E-B3C0-414A-850C-A7460A86A759}"
 	ProjectSection(ProjectDependencies) = postProject
+		{7512C46F-88A6-40C0-8EA4-DD523BA0F21F} = {7512C46F-88A6-40C0-8EA4-DD523BA0F21F}
 		{CF2E70E8-7133-4D96-92C7-68BB406C0664} = {CF2E70E8-7133-4D96-92C7-68BB406C0664}
 	EndProjectSection
 EndProject
@@ -20,6 +21,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "crnlib", "crunch\crnlib\crnlib.vcxproj", "{CF2E70E8-7133-4D96-92C7-68BB406C0664}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libwebpdecoder", "libwebp\libwebpdecoder.vcxproj", "{7512C46F-88A6-40C0-8EA4-DD523BA0F21F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -63,6 +66,14 @@ Global
 		{CF2E70E8-7133-4D96-92C7-68BB406C0664}.Release|Win32.Build.0 = Release|Win32
 		{CF2E70E8-7133-4D96-92C7-68BB406C0664}.Release|x64.ActiveCfg = Release|x64
 		{CF2E70E8-7133-4D96-92C7-68BB406C0664}.Release|x64.Build.0 = Release|x64
+		{7512C46F-88A6-40C0-8EA4-DD523BA0F21F}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7512C46F-88A6-40C0-8EA4-DD523BA0F21F}.Debug|Win32.Build.0 = Debug|Win32
+		{7512C46F-88A6-40C0-8EA4-DD523BA0F21F}.Debug|x64.ActiveCfg = Debug|x64
+		{7512C46F-88A6-40C0-8EA4-DD523BA0F21F}.Debug|x64.Build.0 = Debug|x64
+		{7512C46F-88A6-40C0-8EA4-DD523BA0F21F}.Release|Win32.ActiveCfg = Release|Win32
+		{7512C46F-88A6-40C0-8EA4-DD523BA0F21F}.Release|Win32.Build.0 = Release|Win32
+		{7512C46F-88A6-40C0-8EA4-DD523BA0F21F}.Release|x64.ActiveCfg = Release|x64
+		{7512C46F-88A6-40C0-8EA4-DD523BA0F21F}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

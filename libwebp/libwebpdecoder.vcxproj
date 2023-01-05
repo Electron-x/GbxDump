@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{7512C46F-88A6-40C0-8EA4-DD523BA0F21F}</ProjectGuid>
+    <RootNamespace>libwebpdecoder</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v141_xp</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v141_xp</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v141_xp</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v141_xp</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\GbxDump\UserMacros.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\GbxDump\UserMacros.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\GbxDump\UserMacros.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\GbxDump\UserMacros.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>15.0.28307.799</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir>obj\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>obj\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir>obj\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>obj\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>.;src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;WIN32_LEAN_AND_MEAN;HAVE_WINCODEC_H;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>false</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>.;src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;WIN32_LEAN_AND_MEAN;HAVE_WINCODEC_H;WEBP_USE_THREAD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>false</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>true</OmitFramePointers>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <AdditionalIncludeDirectories>.;src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;WIN32_LEAN_AND_MEAN;HAVE_WINCODEC_H;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>true</OmitFramePointers>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <AdditionalIncludeDirectories>.;src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;WIN32_LEAN_AND_MEAN;HAVE_WINCODEC_H;WEBP_USE_THREAD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="src\dec\alpha_dec.c" />
+    <ClCompile Include="src\dec\buffer_dec.c" />
+    <ClCompile Include="src\dec\frame_dec.c" />
+    <ClCompile Include="src\dec\idec_dec.c" />
+    <ClCompile Include="src\dec\io_dec.c" />
+    <ClCompile Include="src\dec\quant_dec.c" />
+    <ClCompile Include="src\dec\tree_dec.c" />
+    <ClCompile Include="src\dec\vp8l_dec.c" />
+    <ClCompile Include="src\dec\vp8_dec.c" />
+    <ClCompile Include="src\dec\webp_dec.c" />
+    <ClCompile Include="src\dsp\alpha_processing.c" />
+    <ClCompile Include="src\dsp\alpha_processing_mips_dsp_r2.c" />
+    <ClCompile Include="src\dsp\alpha_processing_neon.c" />
+    <ClCompile Include="src\dsp\alpha_processing_sse2.c" />
+    <ClCompile Include="src\dsp\alpha_processing_sse41.c" />
+    <ClCompile Include="src\dsp\cost.c" />
+    <ClCompile Include="src\dsp\cost_mips32.c" />
+    <ClCompile Include="src\dsp\cost_mips_dsp_r2.c" />
+    <ClCompile Include="src\dsp\cost_neon.c" />
+    <ClCompile Include="src\dsp\cost_sse2.c" />
+    <ClCompile Include="src\dsp\cpu.c" />
+    <ClCompile Include="src\dsp\dec.c" />
+    <ClCompile Include="src\dsp\dec_clip_tables.c" />
+    <ClCompile Include="src\dsp\dec_mips32.c" />
+    <ClCompile Include="src\dsp\dec_mips_dsp_r2.c" />
+    <ClCompile Include="src\dsp\dec_msa.c" />
+    <ClCompile Include="src\dsp\dec_neon.c" />
+    <ClCompile Include="src\dsp\dec_sse2.c" />
+    <ClCompile Include="src\dsp\dec_sse41.c" />
+    <ClCompile Include="src\dsp\enc.c" />
+    <ClCompile Include="src\dsp\enc_mips32.c" />
+    <ClCompile Include="src\dsp\enc_mips_dsp_r2.c" />
+    <ClCompile Include="src\dsp\enc_msa.c" />
+    <ClCompile Include="src\dsp\enc_neon.c" />
+    <ClCompile Include="src\dsp\enc_sse2.c" />
+    <ClCompile Include="src\dsp\enc_sse41.c" />
+    <ClCompile Include="src\dsp\filters.c" />
+    <ClCompile Include="src\dsp\filters_mips_dsp_r2.c" />
+    <ClCompile Include="src\dsp\filters_msa.c" />
+    <ClCompile Include="src\dsp\filters_neon.c" />
+    <ClCompile Include="src\dsp\filters_sse2.c" />
+    <ClCompile Include="src\dsp\lossless.c" />
+    <ClCompile Include="src\dsp\lossless_enc.c" />
+    <ClCompile Include="src\dsp\lossless_enc_mips32.c" />
+    <ClCompile Include="src\dsp\lossless_enc_mips_dsp_r2.c" />
+    <ClCompile Include="src\dsp\lossless_enc_msa.c" />
+    <ClCompile Include="src\dsp\lossless_enc_neon.c" />
+    <ClCompile Include="src\dsp\lossless_enc_sse2.c" />
+    <ClCompile Include="src\dsp\lossless_enc_sse41.c" />
+    <ClCompile Include="src\dsp\lossless_mips_dsp_r2.c" />
+    <ClCompile Include="src\dsp\lossless_msa.c" />
+    <ClCompile Include="src\dsp\lossless_neon.c" />
+    <ClCompile Include="src\dsp\lossless_sse2.c" />
+    <ClCompile Include="src\dsp\lossless_sse41.c" />
+    <ClCompile Include="src\dsp\rescaler.c" />
+    <ClCompile Include="src\dsp\rescaler_mips32.c" />
+    <ClCompile Include="src\dsp\rescaler_mips_dsp_r2.c" />
+    <ClCompile Include="src\dsp\rescaler_msa.c" />
+    <ClCompile Include="src\dsp\rescaler_neon.c" />
+    <ClCompile Include="src\dsp\rescaler_sse2.c" />
+    <ClCompile Include="src\dsp\ssim.c" />
+    <ClCompile Include="src\dsp\ssim_sse2.c" />
+    <ClCompile Include="src\dsp\upsampling.c" />
+    <ClCompile Include="src\dsp\upsampling_mips_dsp_r2.c" />
+    <ClCompile Include="src\dsp\upsampling_msa.c" />
+    <ClCompile Include="src\dsp\upsampling_neon.c" />
+    <ClCompile Include="src\dsp\upsampling_sse2.c" />
+    <ClCompile Include="src\dsp\upsampling_sse41.c" />
+    <ClCompile Include="src\dsp\yuv.c" />
+    <ClCompile Include="src\dsp\yuv_mips32.c" />
+    <ClCompile Include="src\dsp\yuv_mips_dsp_r2.c" />
+    <ClCompile Include="src\dsp\yuv_neon.c" />
+    <ClCompile Include="src\dsp\yuv_sse2.c" />
+    <ClCompile Include="src\dsp\yuv_sse41.c" />
+    <ClCompile Include="src\utils\bit_reader_utils.c" />
+    <ClCompile Include="src\utils\bit_writer_utils.c" />
+    <ClCompile Include="src\utils\color_cache_utils.c" />
+    <ClCompile Include="src\utils\filters_utils.c" />
+    <ClCompile Include="src\utils\huffman_encode_utils.c" />
+    <ClCompile Include="src\utils\huffman_utils.c" />
+    <ClCompile Include="src\utils\quant_levels_dec_utils.c" />
+    <ClCompile Include="src\utils\quant_levels_utils.c" />
+    <ClCompile Include="src\utils\random_utils.c" />
+    <ClCompile Include="src\utils\rescaler_utils.c" />
+    <ClCompile Include="src\utils\thread_utils.c" />
+    <ClCompile Include="src\utils\utils.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\dec\alphai_dec.h" />
+    <ClInclude Include="src\dec\common_dec.h" />
+    <ClInclude Include="src\dec\vp8i_dec.h" />
+    <ClInclude Include="src\dec\vp8li_dec.h" />
+    <ClInclude Include="src\dec\vp8_dec.h" />
+    <ClInclude Include="src\dec\webpi_dec.h" />
+    <ClInclude Include="src\dsp\common_sse2.h" />
+    <ClInclude Include="src\dsp\common_sse41.h" />
+    <ClInclude Include="src\dsp\cpu.h" />
+    <ClInclude Include="src\dsp\dsp.h" />
+    <ClInclude Include="src\dsp\lossless.h" />
+    <ClInclude Include="src\dsp\lossless_common.h" />
+    <ClInclude Include="src\dsp\mips_macro.h" />
+    <ClInclude Include="src\dsp\msa_macro.h" />
+    <ClInclude Include="src\dsp\neon.h" />
+    <ClInclude Include="src\dsp\quant.h" />
+    <ClInclude Include="src\dsp\yuv.h" />
+    <ClInclude Include="src\utils\bit_reader_inl_utils.h" />
+    <ClInclude Include="src\utils\bit_reader_utils.h" />
+    <ClInclude Include="src\utils\bit_writer_utils.h" />
+    <ClInclude Include="src\utils\color_cache_utils.h" />
+    <ClInclude Include="src\utils\endian_inl_utils.h" />
+    <ClInclude Include="src\utils\filters_utils.h" />
+    <ClInclude Include="src\utils\huffman_encode_utils.h" />
+    <ClInclude Include="src\utils\huffman_utils.h" />
+    <ClInclude Include="src\utils\quant_levels_dec_utils.h" />
+    <ClInclude Include="src\utils\quant_levels_utils.h" />
+    <ClInclude Include="src\utils\random_utils.h" />
+    <ClInclude Include="src\utils\rescaler_utils.h" />
+    <ClInclude Include="src\utils\thread_utils.h" />
+    <ClInclude Include="src\utils\utils.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

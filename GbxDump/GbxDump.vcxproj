@@ -52,15 +52,19 @@
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="UserMacros.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="UserMacros.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="UserMacros.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="UserMacros.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
@@ -103,7 +107,7 @@
       <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>ComCtl32.Lib;WinInet.Lib;WinMM.Lib;MSImg32.Lib;$(OutDir)libjpeg.lib;$(OutDir)crnlib.lib;$(SolutionDir)libwebp\output\debug-static\x86\lib\libwebpdecoder_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ComCtl32.Lib;WinInet.Lib;WinMM.Lib;MSImg32.Lib;xmllite.lib;$(OutDir)libjpeg.lib;$(OutDir)crnlib.lib;$(OutDir)libwebpdecoder.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(ProjectName).exe</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
@@ -133,7 +137,7 @@
       <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>ComCtl32.Lib;WinInet.Lib;WinMM.Lib;MSImg32.Lib;$(OutDir)libjpeg.lib;$(OutDir)crnlib.lib;$(SolutionDir)libwebp\output\debug-static\x64\lib\libwebpdecoder_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ComCtl32.Lib;WinInet.Lib;WinMM.Lib;MSImg32.Lib;xmllite.lib;$(OutDir)libjpeg.lib;$(OutDir)crnlib.lib;$(OutDir)libwebpdecoder.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(ProjectName)64.exe</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
@@ -161,7 +165,7 @@
     </ClCompile>
     <Link>
       <AdditionalOptions>/PDBALTPATH:%_PDB% %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>ComCtl32.Lib;WinInet.Lib;WinMM.Lib;MSImg32.Lib;$(OutDir)libjpeg.lib;$(OutDir)crnlib.lib;$(SolutionDir)libwebp\output\release-static\x86\lib\libwebpdecoder.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ComCtl32.Lib;WinInet.Lib;WinMM.Lib;MSImg32.Lib;xmllite.lib;$(OutDir)libjpeg.lib;$(OutDir)crnlib.lib;$(OutDir)libwebpdecoder.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(ProjectName).exe</OutputFile>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateDebugInformation>false</GenerateDebugInformation>
@@ -195,7 +199,7 @@
       <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>ComCtl32.Lib;WinInet.Lib;WinMM.Lib;MSImg32.Lib;$(OutDir)libjpeg.lib;$(OutDir)crnlib.lib;$(SolutionDir)libwebp\output\release-static\x64\lib\libwebpdecoder.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ComCtl32.Lib;WinInet.Lib;WinMM.Lib;MSImg32.Lib;xmllite.lib;$(OutDir)libjpeg.lib;$(OutDir)crnlib.lib;$(OutDir)libwebpdecoder.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(ProjectName)64.exe</OutputFile>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>

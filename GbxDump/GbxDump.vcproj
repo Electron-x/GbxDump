@@ -66,7 +66,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/OSVERSION:5.01 /SUBSYSTEM:WINDOWS,5.01"
-				AdditionalDependencies="ComCtl32.Lib WinInet.Lib WinMM.Lib MSImg32.Lib &quot;$(OutDir)\libjpeg.lib&quot; &quot;$(OutDir)\crnlib.lib&quot;"
+				AdditionalDependencies="ComCtl32.Lib WinInet.Lib WinMM.Lib MSImg32.Lib xmllite.lib &quot;$(OutDir)\libjpeg.lib&quot; &quot;$(OutDir)\crnlib.lib&quot; &quot;$(OutDir)\libwebpdecoder.lib&quot;"
 				OutputFile="$(OutDir)\$(ProjectName).exe"
 				Version=""
 				LinkIncremental="2"
@@ -152,7 +152,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/OSVERSION:5.02 /SUBSYSTEM:WINDOWS,5.02"
-				AdditionalDependencies="ComCtl32.Lib WinInet.Lib WinMM.Lib MSImg32.Lib &quot;$(OutDir)\libjpeg.lib&quot; &quot;$(OutDir)\crnlib.lib&quot;"
+				AdditionalDependencies="ComCtl32.Lib WinInet.Lib WinMM.Lib MSImg32.Lib xmllite.lib &quot;$(OutDir)\libjpeg.lib&quot; &quot;$(OutDir)\crnlib.lib&quot; &quot;$(OutDir)\libwebpdecoder.lib&quot;"
 				OutputFile="$(OutDir)\$(ProjectName)64.exe"
 				Version=""
 				LinkIncremental="2"
@@ -238,7 +238,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/OSVERSION:5.01 /SUBSYSTEM:WINDOWS,5.01"
-				AdditionalDependencies="ComCtl32.Lib WinInet.Lib WinMM.Lib MSImg32.Lib &quot;$(OutDir)\libjpeg.lib&quot; &quot;$(OutDir)\crnlib.lib&quot;"
+				AdditionalDependencies="ComCtl32.Lib WinInet.Lib WinMM.Lib MSImg32.Lib xmllite.lib &quot;$(OutDir)\libjpeg.lib&quot; &quot;$(OutDir)\crnlib.lib&quot; &quot;$(OutDir)\libwebpdecoder.lib&quot;"
 				OutputFile="$(OutDir)\$(ProjectName).exe"
 				Version=""
 				LinkIncremental="1"
@@ -328,7 +328,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/OSVERSION:5.02 /SUBSYSTEM:WINDOWS,5.02"
-				AdditionalDependencies="ComCtl32.Lib WinInet.Lib WinMM.Lib MSImg32.Lib &quot;$(OutDir)\libjpeg.lib&quot; &quot;$(OutDir)\crnlib.lib&quot;"
+				AdditionalDependencies="ComCtl32.Lib WinInet.Lib WinMM.Lib MSImg32.Lib xmllite.lib &quot;$(OutDir)\libjpeg.lib&quot; &quot;$(OutDir)\crnlib.lib&quot; &quot;$(OutDir)\libwebpdecoder.lib&quot;"
 				OutputFile="$(OutDir)\$(ProjectName)64.exe"
 				Version=""
 				LinkIncremental="1"
