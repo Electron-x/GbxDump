@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// File.cpp - Copyright (c) 2010-2022 by Electron.
+// File.cpp - Copyright (c) 2010-2023 by Electron.
 //
 // Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -750,9 +750,6 @@ void my_emit_message(j_common_ptr pjInfo, int nMessageLevel)
 
 HANDLE WebpToDib(LPVOID lpWebpData, DWORD dwLenData)
 {
-#if defined (_MSC_VER) && (_MSC_VER <= 1500)
-	return NULL;
-#else
 	int nWidth = 0;
 	int nHeight = 0;
 
@@ -812,7 +809,6 @@ HANDLE WebpToDib(LPVOID lpWebpData, DWORD dwLenData)
 	WebPFree(lpBits);
 
 	return hDib;
-#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
