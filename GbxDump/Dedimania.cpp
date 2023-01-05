@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Dedimania.cpp - Copyright (c) 2010-2019 by Electron.
+// Dedimania.cpp - Copyright (c) 2010-2023 by Electron.
 //
 // Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -84,7 +84,6 @@ BOOL GetDedimaniaData(HWND hwndCtl, LPCSTR lpszUid, LPCSTR lpszEnvi)
 	HCURSOR hOldCursor = SetCursor(LoadCursor(NULL, IDC_WAIT));
 
 	OutputText(hwndCtl, g_szDedimania);
-	OutputText(hwndCtl, g_szSep1);
 
 	BOOL bTrackFound = FALSE;
 
@@ -105,7 +104,10 @@ BOOL GetDedimaniaData(HWND hwndCtl, LPCSTR lpszUid, LPCSTR lpszEnvi)
 	{ // Track not found
 		TCHAR szText[MAX_PATH];
 		if (LoadString(g_hInstance, g_bGerUI ? IDP_GER_ERR_TRACK : IDP_ENG_ERR_TRACK, szText, _countof(szText)) > 0)
+		{
+			OutputText(hwndCtl, g_szSep1);
 			OutputText(hwndCtl, szText);
+		}
 	}
 
 	OutputText(hwndCtl, g_szSep2);
@@ -128,6 +130,7 @@ BOOL PrintDedimaniaData(HWND hwndCtl, LPCSTR lpszUid, BOOL bIsManiaPlanet, LPBOO
 	LPSTR lpszData = (LPSTR)GlobalAllocPtr(GHND, DEDI_MAX_DATASIZE);
 	if (lpszData == NULL)
 	{
+		OutputText(hwndCtl, g_szSep1);
 		OutputText(hwndCtl, g_szErrOom);
 		return FALSE;
 	}
@@ -154,6 +157,7 @@ BOOL PrintDedimaniaData(HWND hwndCtl, LPCSTR lpszUid, BOOL bIsManiaPlanet, LPBOO
 	// Place the cursor at the end of the line
 	int nLen = Edit_GetTextLength(hwndCtl);
 	Edit_SetSel(hwndCtl, (WPARAM)nLen, (LPARAM)nLen);
+	OutputText(hwndCtl, g_szSep1);
 
 	// Skip first line (track info)
 	LPSTR lpsz = lpszData;

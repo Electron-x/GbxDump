@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Internet.cpp - Copyright (c) 2010-2022 by Electron.
+// Internet.cpp - Copyright (c) 2010-2023 by Electron.
 //
 // Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -147,24 +147,30 @@ BOOL IsGlobalOffline(HINTERNET hInternet)
 
 void LastInternetError(HWND hwndCtl, DWORD dwError)
 {
+	if (hwndCtl == NULL)
+		return;
+
 	LPVOID lpMsgBuf = NULL;
-	TCHAR szOutput[OUTPUT_LEN];
 
 	DWORD dwLen = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_HMODULE |
 		FORMAT_MESSAGE_IGNORE_INSERTS, GetModuleHandle(g_szWininetDll), dwError,
 		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf, 0, NULL);
 
-	if (dwLen > 0 && lpMsgBuf != NULL)
+	if (lpMsgBuf == NULL)
+		return;
+
+	if (dwLen == 0)
 	{
-		lstrcpyn(szOutput, (LPTSTR)lpMsgBuf, _countof(szOutput));
-		if (hwndCtl != NULL)
-		{
-			int nLen = Edit_GetTextLength(hwndCtl);
-			Edit_SetSel(hwndCtl, (WPARAM)nLen, (LPARAM)nLen);
-			Edit_ReplaceSel(hwndCtl, szOutput);
-		}
 		LocalFree(lpMsgBuf);
+		return;
 	}
+
+	int nLen = Edit_GetTextLength(hwndCtl);
+	Edit_SetSel(hwndCtl, (WPARAM)nLen, (LPARAM)nLen);
+	OutputText(hwndCtl, g_szSep1);
+	Edit_ReplaceSel(hwndCtl, lpMsgBuf);
+
+	LocalFree(lpMsgBuf);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
