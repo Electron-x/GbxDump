@@ -337,26 +337,29 @@ SSIZE_T ReadString(HANDLE hFile, PSTR pszString, SIZE_T cchStringLen, BOOL bIsTe
 // Returns the number of characters read or -1 in case of a read error.
 // Supports version 2 and 3 identifiers.
 
-SSIZE_T ReadIdentifier(HANDLE hFile, PIDENTIFIER pId, PSTR pszString, SIZE_T cchStringLen)
+SSIZE_T ReadIdentifier(HANDLE hFile, PIDENTIFIER pIdList, PSTR pszString, SIZE_T cchStringLen, PDWORD pdwId)
 {
-	if (hFile == NULL || pId == NULL || pszString == NULL || cchStringLen == 0)
+	if (hFile == NULL || pIdList == NULL || pszString == NULL || cchStringLen == 0)
 		return -1;
 
-	if (pId->dwVersion < 3)
+	if (pIdList->dwVersion < 3)
 	{
 		// Identifier version
-		if (!ReadNat32(hFile, &pId->dwVersion))
+		if (!ReadNat32(hFile, &pIdList->dwVersion))
 			return -1;
 
 		// Check identifier version
-		if (pId->dwVersion < 2)
+		if (pIdList->dwVersion < 2)
 			return -1;
 	}
 
-	// Read index
+	// Read identifier
 	DWORD dwId = 0;
 	if (!ReadData(hFile, (LPVOID)&dwId, 4))
 		return -1;
+
+	if (pdwId != NULL)
+		*pdwId = dwId;
 
 	if (IS_UNASSIGNED(dwId))
 	{ // Unassigned
@@ -365,11 +368,11 @@ SSIZE_T ReadIdentifier(HANDLE hFile, PIDENTIFIER pId, PSTR pszString, SIZE_T cch
 	}
 
 	// Is the identifier a collection ID?
-	if (!IS_STRING(dwId) && IS_NUMBER(dwId))
+	if (IS_NUMBER(dwId))
 		return GetCollectionString(dwId, pszString, cchStringLen);
 
 	// In version 2, the identifier is always available as a string
-	if (pId->dwVersion == 2)
+	if (pIdList->dwVersion == 2)
 		return ReadString(hFile, pszString, cchStringLen);
 
 	// Is the identifier available as a string?
@@ -379,10 +382,10 @@ SSIZE_T ReadIdentifier(HANDLE hFile, PIDENTIFIER pId, PSTR pszString, SIZE_T cch
 		SSIZE_T CONST cchLen = ReadString(hFile, pszString, cchStringLen);
 
 		// Copy the string to the ID list and increment the index
-		if (cchLen > 0 && pId->dwIndex < ID_DIM)
+		if (cchLen > 0 && pIdList->dwIndex < ID_DIM)
 		{
-			lstrcpynA(pId->aszList[pId->dwIndex], pszString, _countof(pId->aszList[pId->dwIndex]));
-			pId->dwIndex++;
+			lstrcpynA(pIdList->aszList[pIdList->dwIndex], pszString, _countof(pIdList->aszList[pIdList->dwIndex]));
+			pIdList->dwIndex++;
 		}
 
 		return cchLen;
@@ -397,7 +400,7 @@ SSIZE_T ReadIdentifier(HANDLE hFile, PIDENTIFIER pId, PSTR pszString, SIZE_T cch
 	}
 
 	// Get the string from the ID list
-	lstrcpynA(pszString, pId->aszList[dwIndex-1], (int)cchStringLen);
+	lstrcpynA(pszString, pIdList->aszList[dwIndex-1], (int)cchStringLen);
 
 	return strlen(pszString);
 }

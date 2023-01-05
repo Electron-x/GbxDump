@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Archive.h - Copyright (c) 2010-2019 by Electron.
+// Archive.h - Copyright (c) 2010-2022 by Electron.
 //
 // Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -41,12 +41,12 @@ typedef struct _IDENTIFIER
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-__inline void ResetIdentifier(PIDENTIFIER pId)
+__inline void ResetIdentifier(PIDENTIFIER pIdList)
 {
-	pId->dwVersion = 0;
-	pId->dwIndex = 0;
+	pIdList->dwVersion = 0;
+	pIdList->dwIndex = 0;
 	for (int i = ID_DIM-1; i >= 0; i--)
-		pId->aszList[i][0] = '\0';
+		pIdList->aszList[i][0] = '\0';
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -66,6 +66,6 @@ BOOL ReadInteger(HANDLE hFile, LPINT lpnInteger, BOOL bIsText = FALSE);
 BOOL ReadReal(HANDLE hFile, PFLOAT pfReal, BOOL bIsText = FALSE);
 
 SSIZE_T ReadString(HANDLE hFile, PSTR pszString, SIZE_T cchStringLen, BOOL bIsText = FALSE);
-SSIZE_T ReadIdentifier(HANDLE hFile, PIDENTIFIER pId, PSTR pszString, SIZE_T cchStringLen);
+SSIZE_T ReadIdentifier(HANDLE hFile, PIDENTIFIER pIdList, PSTR pszString, SIZE_T cchStringLen, PDWORD pdwId = NULL);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
