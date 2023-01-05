@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Tmx.cpp - Copyright (c) 2010-2022 by Electron.
+// Tmx.cpp - Copyright (c) 2010-2023 by Electron.
 //
 // Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -20,28 +20,44 @@
 #include "internet.h"
 #include "tmx.h"
 
-#define GAME_TMNF 1
-#define GAME_TMU  2
-#define GAME_TMN  3
-#define GAME_TMS  4
-#define GAME_TMO  5
-#define GAME_TM2  6
-#define GAME_SM   7
-#define GAME_QM   8
-#define GAME_TM   9
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Constants
+//
+#define GAME_TMNF   1
+#define GAME_TMU    2
+#define GAME_TMN    3
+#define GAME_TMS    4
+#define GAME_TMO    5
+#define GAME_TM2    6
+#define GAME_SM     7
+#define GAME_QM     8
+#define GAME_TM2020 9
 
 #define TMX_MAX_DATASIZE 32768
-#define MX_MAX_DATASIZE 131072
+#define MX_MAX_DATASIZE 524288
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Data Types
+//
+typedef enum XmlArrayType
+{
+	XmlArrayType_None = 0,
+	XmlArrayType_TrackInfo = 1,
+	XmlArrayType_TrackObject = 2,
+	XmlArrayType_Replay = 3,
+	XmlArrayType_Item = 4,
+	_XmlArrayType_Last = 4
+} 	XmlArrayType;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Forward declarations of functions included in this code module
 //
-BOOL PrintTmxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound);
-BOOL PrintMxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound);
-BOOL GetNextXmlElement(UINT uCodePage, LPSTR* lpszData, LPCSTR lpszMarker,
-	LPTSTR lpszOutput, SIZE_T cchLenOutput);
-BOOL OutputXmlElement(HWND hwndCtl, UINT uCodePage, LPCSTR lpszData, LPCSTR lpszMarker,
-	LPCTSTR lpszText, LPTSTR lpszValue = NULL, SIZE_T cchValueLen = 0);
+BOOL ProcessTmx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound);
+BOOL ProcessMx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound);
+BOOL RequestMxData(HWND hwndCtl, LPCTSTR lpszMxUrl, PINT pnTrackId = NULL);
+HRESULT ParseAndPrintXml(HWND hwndCtl, HGLOBAL hXml, PINT pnTrackId = NULL);
+BOOL FormatTimeT(int nTime, TCHAR* pszTime, SIZE_T cchStringLen);
+BOOL FormatTimeW(int nTime, WCHAR* pwszTime, SIZE_T cchStringLen);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // String Constants
@@ -60,12 +76,12 @@ const TCHAR g_szParamInfo[]   = TEXT("apitrackinfo&uid");
 const TCHAR g_szParamSearch[] = TEXT("apisearch&trackid");
 const TCHAR g_szParamRecord[] = TEXT("apitrackrecords&id");
 const TCHAR g_szUrlTmx[]      = TEXT("http://%s.tm-exchange.com/apiget.aspx?action=%s=%hs");
-const TCHAR g_szUrlMpMaps[]   = TEXT("https://%s.mania.exchange/api/maps/get_map_info/multi/%hs?format=xml");
-const TCHAR g_szUrlMpItems[]  = TEXT("https://%s.mania.exchange/api/maps/embeddedobjects/%s?format=xml");
-const TCHAR g_szUrlMpRepl[]   = TEXT("https://%s.mania.exchange/api/replays/get_replays/%s?format=xml");
-const TCHAR g_szUrlTmMaps[]   = TEXT("https://%s.exchange/api/maps/get_map_info/multi/%hs?format=xml");
-const TCHAR g_szUrlTmItems[]  = TEXT("https://%s.exchange/api/maps/embeddedobjects/%s?format=xml");
-const TCHAR g_szUrlTmRepl[]   = TEXT("https://%s.exchange/api/replays/get_replays/%s?format=xml");
+const TCHAR g_szUrlMpMaps[]   = TEXT("https://%s.mania.exchange/api/maps/get_map_info/uid/%hs?format=xml");
+const TCHAR g_szUrlMpItems[]  = TEXT("https://%s.mania.exchange/api/maps/embeddedobjects/%d?format=xml");
+const TCHAR g_szUrlMpRepl[]   = TEXT("https://%s.mania.exchange/api/replays/get_replays/%d?format=xml");
+const TCHAR g_szUrlMxMaps[]   = TEXT("https://%s.exchange/api/maps/get_map_info/uid/%hs?format=xml");
+const TCHAR g_szUrlMxItems[]  = TEXT("https://%s.exchange/api/maps/embeddedobjects/%d?format=xml");
+const TCHAR g_szUrlMxRepl[]   = TEXT("https://%s.exchange/api/replays/get_replays/%d?format=xml");
 const TCHAR g_szErrOom[]      = TEXT("Out of memory.\r\n");
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -78,7 +94,6 @@ BOOL GetTmxData(HWND hwndCtl, LPCSTR lpszUid, LPCSTR lpszEnvi)
 	HCURSOR hOldCursor = SetCursor(LoadCursor(NULL, IDC_WAIT));
 
 	OutputText(hwndCtl, g_szTmx);
-	OutputText(hwndCtl, g_szSep1);
 
 	BOOL bSuccess = TRUE;
 	BOOL bTrackFound = FALSE;
@@ -86,50 +101,53 @@ BOOL GetTmxData(HWND hwndCtl, LPCSTR lpszUid, LPCSTR lpszEnvi)
 	// Specify the T/MX subdomain according to the environment
 	if ((strcmp(lpszEnvi, "Canyon") == 0) || (strcmp(lpszEnvi, "Valley") == 0) ||
 		(strcmp(lpszEnvi, "Lagoon") == 0) || (strcmp(lpszEnvi, "Arena") == 0))
-		bSuccess = PrintMxData(hwndCtl, lpszUid, GAME_TM2, &bTrackFound);
+		bSuccess = ProcessMx(hwndCtl, lpszUid, GAME_TM2, &bTrackFound);
 	else if ((strcmp(lpszEnvi, "Storm") == 0) || (strcmp(lpszEnvi, "Cryo") == 0) || (strcmp(lpszEnvi, "Meteor") == 0) ||
 		(strcmp(lpszEnvi, "Paris") == 0) || (strcmp(lpszEnvi, "Gothic") == 0))
-		bSuccess = PrintMxData(hwndCtl, lpszUid, GAME_SM, &bTrackFound);
+		bSuccess = ProcessMx(hwndCtl, lpszUid, GAME_SM, &bTrackFound);
 	else if ((strcmp(lpszEnvi, "Galaxy") == 0) || (strcmp(lpszEnvi, "History") == 0) ||
 		(strcmp(lpszEnvi, "Society") == 0) || (strcmp(lpszEnvi, "Future") == 0))
-		bSuccess = PrintMxData(hwndCtl, lpszUid, GAME_QM, &bTrackFound);
+		bSuccess = ProcessMx(hwndCtl, lpszUid, GAME_QM, &bTrackFound);
 	else if (strcmp(lpszEnvi, "Stadium") == 0)
 	{
-		bSuccess = PrintMxData(hwndCtl, lpszUid, GAME_TM, &bTrackFound);
+		bSuccess = ProcessMx(hwndCtl, lpszUid, GAME_TM2020, &bTrackFound);
 		if (bSuccess && bTrackFound == FALSE)
 		{
-			bSuccess = PrintMxData(hwndCtl, lpszUid, GAME_TM2, &bTrackFound);
+			bSuccess = ProcessMx(hwndCtl, lpszUid, GAME_TM2, &bTrackFound);
 			if (bSuccess && bTrackFound == FALSE)
 			{
-				bSuccess = PrintTmxData(hwndCtl, lpszUid, GAME_TMNF, &bTrackFound);
+				bSuccess = ProcessTmx(hwndCtl, lpszUid, GAME_TMNF, &bTrackFound);
 				if (bSuccess && bTrackFound == FALSE)
 				{
-					bSuccess = PrintTmxData(hwndCtl, lpszUid, GAME_TMU, &bTrackFound);
+					bSuccess = ProcessTmx(hwndCtl, lpszUid, GAME_TMU, &bTrackFound);
 					if (bSuccess && bTrackFound == FALSE)
-						bSuccess = PrintTmxData(hwndCtl, lpszUid, GAME_TMN, &bTrackFound);
+						bSuccess = ProcessTmx(hwndCtl, lpszUid, GAME_TMN, &bTrackFound);
 				}
 			}
 		}
 	}
 	else if ((strcmp(lpszEnvi, "Coast") == 0) || (strcmp(lpszEnvi, "Bay") == 0) || (strcmp(lpszEnvi, "Island") == 0))
 	{
-		bSuccess = PrintTmxData(hwndCtl, lpszUid, GAME_TMU, &bTrackFound);
+		bSuccess = ProcessTmx(hwndCtl, lpszUid, GAME_TMU, &bTrackFound);
 		if (bSuccess && bTrackFound == FALSE)
-			bSuccess = PrintTmxData(hwndCtl, lpszUid, GAME_TMS, &bTrackFound);
+			bSuccess = ProcessTmx(hwndCtl, lpszUid, GAME_TMS, &bTrackFound);
 	}
 	else if ((strcmp(lpszEnvi, "Desert") == 0) || (strcmp(lpszEnvi, "Snow") == 0) || (strcmp(lpszEnvi, "Rally") == 0) ||
 		(strcmp(lpszEnvi, "Alpine") == 0) || (strcmp(lpszEnvi, "Speed") == 0))
 	{
-		bSuccess = PrintTmxData(hwndCtl, lpszUid, GAME_TMU, &bTrackFound);
+		bSuccess = ProcessTmx(hwndCtl, lpszUid, GAME_TMU, &bTrackFound);
 		if (bSuccess && bTrackFound == FALSE)
-			PrintTmxData(hwndCtl, lpszUid, GAME_TMO, &bTrackFound);
+			ProcessTmx(hwndCtl, lpszUid, GAME_TMO, &bTrackFound);
 	}
 
 	if (bSuccess && !bTrackFound)
 	{ // Map not found
 		TCHAR szText[MAX_PATH];
 		if (LoadString(g_hInstance, g_bGerUI ? IDP_GER_ERR_TRACK : IDP_ENG_ERR_TRACK, szText, _countof(szText)) > 0)
+		{
+			OutputText(hwndCtl, g_szSep1);
 			OutputText(hwndCtl, szText);
+		}
 	}
 
 	OutputText(hwndCtl, g_szSep2);
@@ -140,17 +158,17 @@ BOOL GetTmxData(HWND hwndCtl, LPCSTR lpszUid, LPCSTR lpszEnvi)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL PrintTmxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
+BOOL ProcessTmx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 {
 	if (hwndCtl == NULL || lpszUid == NULL || pbTrackFound == NULL)
 		return FALSE;
 
 	TCHAR szOutput[OUTPUT_LEN];
-	*pbTrackFound = FALSE;
-
 	UINT uCodePage = CP_ACP;
 	if (IsValidCodePage(CP_UTF8))
 		uCodePage = CP_UTF8;
+
+	*pbTrackFound = FALSE;
 
 	// Subdomain
 	TCHAR szSubDomain[16];
@@ -180,13 +198,15 @@ BOOL PrintTmxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 	LPSTR lpszData = (LPSTR)GlobalAllocPtr(GHND, dwSize);
 	if (lpszData == NULL)
 	{
+		OutputText(hwndCtl, g_szSep1);
 		OutputText(hwndCtl, g_szErrOom);
 		return FALSE;
 	}
 
-	// Create query URL and retrieve data via Track UID
+	// Create query URL and retrieve data via track UID
 	TCHAR szTmxUrl[512];
 	_sntprintf(szTmxUrl, _countof(szTmxUrl), g_szUrlTmx, szSubDomain, g_szParamInfo, lpszUid);
+
 	if (!ReadInternetFile(hwndCtl, szTmxUrl, lpszData, dwSize))
 	{
 		GlobalFreePtr((LPVOID)lpszData);
@@ -201,7 +221,7 @@ BOOL PrintTmxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 
 	*pbTrackFound = TRUE;
 
-	BOOL bFormatTime = TRUE;
+	BOOL bIsStunts = FALSE;
 
 	// Initialize TMX ID and track version for string comparison
 	char szVersion[32];
@@ -212,6 +232,7 @@ BOOL PrintTmxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 	// Place the cursor at the end of the edit control
 	int nLen = Edit_GetTextLength(hwndCtl);
 	Edit_SetSel(hwndCtl, (WPARAM)nLen, (LPARAM)nLen);
+	OutputText(hwndCtl, g_szSep1);
 
 	// Parse and output the TMX data
 	int i = 0;
@@ -252,7 +273,7 @@ BOOL PrintTmxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 			case 8:
 				OutputTextFmt(hwndCtl, szOutput, TEXT("Type:\t\t%hs\r\n"), token);
 				if (strcmp(token, "Stunts") == 0)
-					bFormatTime = FALSE;
+					bIsStunts = TRUE;
 				break;
 			case 9:
 				OutputTextFmt(hwndCtl, szOutput, TEXT("Environment:\t%hs\r\n"), token);
@@ -286,15 +307,16 @@ BOOL PrintTmxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 		token = strtok(NULL, "\t");
 	}
 
-	// Do we have a valid TMX Track ID?
+	// Do we have a valid TMX track ID?
 	if (strcmp(szTrackId, "0") == 0)
 	{
 		GlobalFreePtr((LPVOID)lpszData);
 		return TRUE;
 	}
 
-	// Request additional TMX data by TMX Track ID
+	// Request additional TMX data by TMX track ID
 	_sntprintf(szTmxUrl, _countof(szTmxUrl), g_szUrlTmx, szSubDomain, g_szParamSearch, szTrackId);
+
 	if (!ReadInternetFile(hwndCtl, szTmxUrl, lpszData, dwSize))
 	{
 		GlobalFreePtr((LPVOID)lpszData);
@@ -330,8 +352,9 @@ BOOL PrintTmxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 		token = strtok(NULL, "\t");
 	}
 
-	// Request additional TMX data (Replays) via TMX Track ID
+	// Request additional TMX data (Replays) via TMX track ID
 	_sntprintf(szTmxUrl, _countof(szTmxUrl), g_szUrlTmx, szSubDomain, g_szParamRecord, szTrackId);
+
 	if (!ReadInternetFile(hwndCtl, szTmxUrl, lpszData, dwSize))
 	{
 		GlobalFreePtr((LPVOID)lpszData);
@@ -384,30 +407,13 @@ BOOL PrintTmxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 				case 4:
 					{
 						int nTime = atoi(token);
-						if (bFormatTime)
-						{
-							if (nTime < 3600000)
-							{
-								int nMinute   = (nTime / 60000);
-								int nSecond   = (nTime % 60000 / 1000);
-								int nMilliSec = (nTime % 60000 % 1000);
-
-								OutputTextFmt(hwndCtl, szOutput, TEXT("(%d:%02d.%003d)"),
-									nMinute, nSecond, nMilliSec);
-							}
-							else
-							{
-								int nHour     = (nTime / 3600000);
-								int nMinute   = (nTime % 3600000 / 60000);
-								int nSecond   = (nTime % 3600000 % 60000 / 1000);
-								int nMilliSec = (nTime % 3600000 % 60000 % 1000);
-
-								OutputTextFmt(hwndCtl, szOutput, TEXT("(%d:%02d:%02d.%003d)"),
-									nHour, nMinute, nSecond, nMilliSec);
-							}
-						}
-						else
+						if (bIsStunts)
 							OutputTextFmt(hwndCtl, szOutput, TEXT("(%d)"), nTime);
+						else
+						{
+							FormatTimeT(nTime, szOutput, _countof(szOutput));
+							OutputText(hwndCtl, szOutput);
+						}
 					}
 					break;
 				case 6:
@@ -427,22 +433,18 @@ BOOL PrintTmxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL PrintMxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
+BOOL ProcessMx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 {
 	if (hwndCtl == NULL || lpszUid == NULL || pbTrackFound == NULL)
 		return FALSE;
 
 	*pbTrackFound = FALSE;
 
-	UINT uCodePage = CP_ACP;
-	if (IsValidCodePage(CP_UTF8))
-		uCodePage = CP_UTF8;
-
 	// Subdomain
 	TCHAR szSubDomain[16];
 	switch (nGame)
 	{
-		case GAME_TM:
+		case GAME_TM2020:
 			lstrcpyn(szSubDomain, g_szTrackMania, _countof(szSubDomain));
 			break;
 		case GAME_TM2:
@@ -458,317 +460,321 @@ BOOL PrintMxData(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 			return TRUE;
 	}
 
-	// Allocate memory for the MX data
+	int nTrackId = 0;
+
+	// Request, parse and output MX data (TrackInfo) via map UID
+	TCHAR szMxUrl[512];
+	_sntprintf(szMxUrl, _countof(szMxUrl),
+		nGame == GAME_TM2020 ? g_szUrlMxMaps : g_szUrlMpMaps, szSubDomain, lpszUid);
+	
+	if (!RequestMxData(hwndCtl, szMxUrl, &nTrackId))
+		return FALSE;
+
+	// Do we have a valid MX track ID?
+	if (nTrackId == 0)
+		return TRUE;
+
+	*pbTrackFound = TRUE;
+
+	// Request, parse and output additional MX data (TrackObject) via MX track ID
+	_sntprintf(szMxUrl, _countof(szMxUrl),
+		nGame == GAME_TM2020 ? g_szUrlMxItems : g_szUrlMpItems, szSubDomain, nTrackId);
+	
+	if (!RequestMxData(hwndCtl, szMxUrl))
+		return FALSE;
+
+	// Replay data is only available for TrackMania² and Trackmania 2020
+	if (nGame != GAME_TM2020 && nGame != GAME_TM2)
+		return TRUE;
+
+	// Request, parse and output additional MX data (Replay) via MX track ID
+	_sntprintf(szMxUrl, _countof(szMxUrl),
+		nGame == GAME_TM2020 ? g_szUrlMxRepl : g_szUrlMpRepl, szSubDomain, nTrackId);
+	
+	if (!RequestMxData(hwndCtl, szMxUrl, &nTrackId))
+		return FALSE;
+
+	return TRUE;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Request, parse and output data from Mania Exchange
+
+BOOL RequestMxData(HWND hwndCtl, LPCTSTR lpszMxUrl, PINT pnTrackId)
+{
+	if (hwndCtl == NULL || lpszMxUrl == NULL)
+		return FALSE;
+
 	DWORD dwSize = MX_MAX_DATASIZE;
-	LPSTR lpszData = (LPSTR)GlobalAllocPtr(GHND, dwSize);
-	if (lpszData == NULL)
+	HGLOBAL hXml = GlobalAlloc(GHND, dwSize);
+	if (hXml == NULL)
 	{
+		OutputText(hwndCtl, g_szSep1);
 		OutputText(hwndCtl, g_szErrOom);
 		return FALSE;
 	}
 
-	// Create query URL and retrieve data via map UID
-	TCHAR szMxUrl[512];
-	_sntprintf(szMxUrl, _countof(szMxUrl),
-		nGame == GAME_TM ? g_szUrlTmMaps : g_szUrlMpMaps, szSubDomain, lpszUid);
-	if (!ReadInternetFile(hwndCtl, szMxUrl, lpszData, dwSize))
+	LPSTR lpszData = (LPSTR)GlobalLock(hXml);
+
+	if (!ReadInternetFile(hwndCtl, lpszMxUrl, lpszData, dwSize))
 	{
-		GlobalFreePtr((LPVOID)lpszData);
+		GlobalUnlock(hXml);
+		GlobalFree(hXml);
 		return FALSE;
 	}
 
+	GlobalUnlock(hXml);
+
+	// Perform a simple test for valid data before initializing XmlLite
 	if (lpszData[0] == '\0' ||
-		(strstr(lpszData, "<TrackInfo") == NULL &&
-		strstr(lpszData, "<SmMapInfo") == NULL &&
-		strstr(lpszData, "<QmMapInfo") == NULL))
-	{ // No valid map data available
-		GlobalFreePtr((LPVOID)lpszData);
+		(strstr(lpszData, "<TrackInfo") == NULL && strstr(lpszData, "<SmMapInfo") == NULL &&
+		strstr(lpszData, "<QmMapInfo") == NULL && strstr(lpszData, "<TrackObject") == NULL &&
+		strstr(lpszData, "<Replay") == NULL && strstr(lpszData, "<Item") == NULL))
+	{
+		GlobalFree(hXml);
 		return TRUE;
 	}
-
-	*pbTrackFound = TRUE;
-
-	// Initialize MX Track ID for string comparison
-	TCHAR szTrackId[32];
-	TCHAR szTrackUid[128];
-	TCHAR szTrackType[64];
-	szTrackType[0] = TEXT('\0');
-	_tcscpy(szTrackId, TEXT("0"));
 
 	// Place the cursor at the end of the edit control
 	int nLen = Edit_GetTextLength(hwndCtl);
 	Edit_SetSel(hwndCtl, (WPARAM)nLen, (LPARAM)nLen);
-
-	// Parse and output the MX data
-	LPSTR lpsz = (LPSTR)lpszData;
-	if (GetNextXmlElement(uCodePage, &lpsz, "TrackID", szTrackId, _countof(szTrackId)))
-	{
-		OutputText(hwndCtl, TEXT("Track ID:\t"));
-		OutputText(hwndCtl, szTrackId);
-		OutputText(hwndCtl, TEXT("\r\n"));
-	}
-	else if (GetNextXmlElement(uCodePage, &lpsz, "MapID", szTrackId, _countof(szTrackId)))
-	{
-		OutputText(hwndCtl, TEXT("Map ID:\t\t"));
-		OutputText(hwndCtl, szTrackId);
-		OutputText(hwndCtl, TEXT("\r\n"));
-	}
-
-	lpsz = (LPSTR)lpszData;
-	if (GetNextXmlElement(uCodePage, &lpsz, "TrackUID", szTrackUid, _countof(szTrackUid)))
-	{
-		OutputText(hwndCtl, TEXT("Track UID:\t"));
-		OutputText(hwndCtl, szTrackUid);
-		OutputText(hwndCtl, TEXT("\r\n"));
-	}
-	else if (GetNextXmlElement(uCodePage, &lpsz, "MapUID", szTrackUid, _countof(szTrackUid)))
-	{
-		OutputText(hwndCtl, TEXT("Map UID:\t"));
-		OutputText(hwndCtl, szTrackUid);
-		OutputText(hwndCtl, TEXT("\r\n"));
-	}
-
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "Name", TEXT("Map Name:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "UserID", TEXT("User ID:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "Username", TEXT("User Name:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "UpdatedAt", TEXT("Version:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "UploadedAt", TEXT("Uploaded:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "Unreleased", TEXT("Unreleased:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "Unlisted", TEXT("Unlisted:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "Downloadable", TEXT("Downloadable:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "UnlimiterRequired", TEXT("Unlimiter:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "HasGhostBlocks", TEXT("Ghost Blocks:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "EmbeddedObjectsCount", TEXT("Embedded Items:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "EmbeddedItemsSize", TEXT("Items Size:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "SizeWarning", TEXT("Size Warning:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "HasScreenshot", TEXT("Has Screenshot:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "HasThumbnail", TEXT("Has Thumbnail:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "ExeVersion", TEXT("Exe Version:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "ExeBuild", TEXT("Exe Build:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "EnvironmentName", TEXT("Environment:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "VehicleName", TEXT("Vehicle Name:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "TitlePack", TEXT("Title Pack:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "ModName", TEXT("Mod Name:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "Mood", TEXT("Mood:\t\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "DisplayCost", TEXT("Display Cost:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "Lightmap", TEXT("Lightmap:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "TypeName", TEXT("Type Name:\t"), szTrackType, _countof(szTrackType));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "MapType", TEXT("Map Type:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "StyleName", TEXT("Style:\t\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "LengthName", TEXT("Length:\t\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "RouteName", TEXT("Routes:\t\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "DifficultyName", TEXT("Difficulty:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "Laps", TEXT("Laps:\t\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "TrackValue", TEXT("Track Value:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "AwardCount", TEXT("Award Count:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "ReplayCount", TEXT("Replay Count:\t"));
-	OutputXmlElement(hwndCtl, uCodePage, lpszData, "CommentCount", TEXT("Comment Count:\t"));
-
-	// Do we have a valid MX Track ID?
-	if (_tcscmp(szTrackId, TEXT("0")) == 0)
-	{
-		GlobalFreePtr((LPVOID)lpszData);
-		return TRUE;
-	}
-
-	// Request additional MX data (Items) via MX Track ID
-	_sntprintf(szMxUrl, _countof(szMxUrl),
-		nGame == GAME_TM ? g_szUrlTmItems : g_szUrlMpItems, szSubDomain, szTrackId);
-	if (ReadInternetFile(hwndCtl, szMxUrl, lpszData, dwSize))
-	{
-		lpsz = (LPSTR)lpszData;
-		if (lpsz[0] != '\0' && strstr(lpsz, "<TrackObject>") != NULL)
-		{
-			// Place the cursor at the end of the edit control
-			nLen = Edit_GetTextLength(hwndCtl);
-			Edit_SetSel(hwndCtl, (WPARAM)nLen, (LPARAM)nLen);
-			OutputText(hwndCtl, g_szSep1);
-
-			// Parse and output the Item data
-			TCHAR szPosition[32];
-			TCHAR szItemPath[260];
-			TCHAR szItemAuthor[256];
-
-			for (int i = 1; i <= 250; i++)
-			{
-				if (!GetNextXmlElement(uCodePage, &lpsz, "ObjectPath", szItemPath, _countof(szItemPath)))
-					break;
-				if (!GetNextXmlElement(uCodePage, &lpsz, "ObjectAuthor", szItemAuthor, _countof(szItemAuthor)))
-					break;
-
-				OutputTextFmt(hwndCtl, szPosition, TEXT("%02u. "), i);
-				OutputText(hwndCtl, szItemPath);
-				OutputText(hwndCtl, TEXT(" ("));
-				OutputText(hwndCtl, szItemAuthor);
-				OutputText(hwndCtl, TEXT(")\r\n"));
-			}
-		}
-	}
-
-	// Replay data is only available for TrackMania² and Trackmania 2020
-	if (nGame != GAME_TM && nGame != GAME_TM2)
-	{
-		GlobalFreePtr((LPVOID)lpszData);
-		return TRUE;
-	}
-
-	// Request additional MX data (Replays) via MX Track ID
-	_sntprintf(szMxUrl, _countof(szMxUrl),
-		nGame == GAME_TM ? g_szUrlTmRepl : g_szUrlMpRepl, szSubDomain, szTrackId);
-	if (!ReadInternetFile(hwndCtl, szMxUrl, lpszData, dwSize))
-	{
-		GlobalFreePtr((LPVOID)lpszData);
-		return FALSE;
-	}
-
-	lpsz = (LPSTR)lpszData;
-	if (lpsz[0] == '\0' || strstr(lpsz, "<Replay>") == NULL)
-	{ // No valid track data available
-		GlobalFreePtr((LPVOID)lpszData);
-		return TRUE;
-	}
-
-	// Place the cursor at the end of the edit control
-	nLen = Edit_GetTextLength(hwndCtl);
-	Edit_SetSel(hwndCtl, (WPARAM)nLen, (LPARAM)nLen);
 	OutputText(hwndCtl, g_szSep1);
 
-	// Parse and output the Replay data
-	TCHAR szUsername[256];
-	TCHAR szReplayTime[32];
-	TCHAR szStuntScore[32];
-	TCHAR szPosition[32];
-
-	for (int i = 1; i <= 25; i++)
+	HRESULT hr = S_FALSE;
+	if (FAILED(hr = ParseAndPrintXml(hwndCtl, hXml, pnTrackId)))
 	{
-		if (!GetNextXmlElement(uCodePage, &lpsz, "Username", szUsername, _countof(szUsername)))
-			break;
-		if (!GetNextXmlElement(uCodePage, &lpsz, "ReplayTime", szReplayTime, _countof(szReplayTime)))
-			break;
-		if (!GetNextXmlElement(uCodePage, &lpsz, "StuntScore", szStuntScore, _countof(szStuntScore)))
-			break;
-		if (!GetNextXmlElement(uCodePage, &lpsz, "Position", szPosition, _countof(szPosition)))
-			break;
-
-		int nPos = _ttoi(szPosition);
-		OutputTextFmt(hwndCtl, szPosition, TEXT("%02u. "), nPos);
-
-		OutputText(hwndCtl, szUsername);
-		OutputText(hwndCtl, TEXT(" "));
-
-		int nTime = _ttoi(szReplayTime);
-		if (_tcscmp(szTrackType, TEXT("Stunts")) != 0)
-		{
-			if (nTime < 3600000)
-			{
-				int nMinute   = (nTime / 60000);
-				int nSecond   = (nTime % 60000 / 1000);
-				int nMilliSec = (nTime % 60000 % 1000);
-
-				OutputTextFmt(hwndCtl, szReplayTime, TEXT("(%d:%02d.%003d)"), nMinute, nSecond, nMilliSec);
-			}
-			else
-			{
-				int nHour     = (nTime / 3600000);
-				int nMinute   = (nTime % 3600000 / 60000);
-				int nSecond   = (nTime % 3600000 % 60000 / 1000);
-				int nMilliSec = (nTime % 3600000 % 60000 % 1000);
-
-				OutputTextFmt(hwndCtl, szReplayTime, TEXT("(%d:%02d:%02d.%003d)"), nHour, nMinute, nSecond, nMilliSec);
-			}
-		}
-		else
-			OutputTextFmt(hwndCtl, szReplayTime, TEXT("(%s)"), szStuntScore);
-
-		OutputText(hwndCtl, TEXT("\r\n"));
+		GlobalFree(hXml);
+		return FALSE;
 	}
 
-	GlobalFreePtr((LPVOID)lpszData);
+	GlobalFree(hXml);
 	return TRUE;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// XML parser for Item and Replay data
+// Parse XML using Microsoft XmlLite.
+// Supports the array types TrackInfo, TrackObject, Replay and Item.
 
-BOOL GetNextXmlElement(UINT uCodePage, LPSTR* lpszData, LPCSTR lpszMarker, LPTSTR szOutput, SIZE_T cchLenOutput)
+HRESULT ParseAndPrintXml(HWND hwndCtl, HGLOBAL hXml, PINT pnTrackId)
 {
-	char szElement[64];
-	char szValue[896];
+	if (hwndCtl == NULL || hXml == NULL)
+		return E_INVALIDARG;
 
-	strcpy(szElement, "<");
-	strncat(szElement, lpszMarker, _countof(szElement) - strlen(szElement) - 1);
-	strncat(szElement, ">", _countof(szElement) - strlen(szElement) - 1);
+	HRESULT hr = S_FALSE;
 
-	LPSTR lpszBegin = strstr(*lpszData, szElement);
-	if (lpszBegin == NULL)
+	// Use smart pointer class to manage the COM interface pointers.
+	// CComPtr will auto-release the underlying interface pointers as needed.
+	CComPtr<IStream> pStream;
+	CComPtr<IXmlReader> pReader;
+
+	XmlNodeType nodeType = XmlNodeType_None;
+	XmlArrayType arrayType = XmlArrayType_None;
+
+	const WCHAR* pwszElement = NULL;
+	const WCHAR* pwszValue = NULL;
+
+	int nReplayPos = 0;
+	int nReplayTime = 0;
+	int nObjectNumber = 0;
+
+	WCHAR wszOutput[OUTPUT_LEN];
+	WCHAR wszElement[256];
+	WCHAR wszUsername[256];
+	WCHAR wszReplayTime[32];
+	WCHAR wszStuntScore[32];
+	WCHAR wszObjectPath[260];
+	WCHAR wszObjectAuthor[256];
+
+	wszOutput[0] = L'\0';
+	wszElement[0] = L'\0';
+	wszUsername[0] = L'\0';
+	wszReplayTime[0] = L'\0';
+	wszStuntScore[0] = L'\0';
+	wszObjectPath[0] = L'\0';
+	wszObjectAuthor[0] = L'\0';
+
+	if (FAILED(hr = CreateStreamOnHGlobal(hXml, TRUE, &pStream)))
+		return hr;
+	if (FAILED(hr = CreateXmlReader(IID_IXmlReader, (void**)&pReader, NULL)))
+		return hr;
+	if (FAILED(hr = pReader->SetProperty(XmlReaderProperty_DtdProcessing, DtdProcessing_Prohibit)))
+		return hr;
+	if (FAILED(hr = pReader->SetInput(pStream)))
+		return hr;
+
+	// Read until there are no more nodes
+	while ((hr = pReader->Read(&nodeType)) == S_OK)
+	{
+		switch (nodeType)
+		{
+		case XmlNodeType_Element:
+			if (FAILED(hr = pReader->GetLocalName(&pwszElement, NULL)))
+				return hr;
+
+			if (_wcsicmp(pwszElement, L"TrackInfo") == 0)
+				arrayType = XmlArrayType_TrackInfo;
+			else if (_wcsicmp(pwszElement, L"TrackObject") == 0)
+				arrayType = XmlArrayType_TrackObject;
+			else if (_wcsicmp(pwszElement, L"Replay") == 0)
+				arrayType = XmlArrayType_Replay;
+			else if (_wcsicmp(pwszElement, L"Item") == 0)
+				arrayType = XmlArrayType_Item;
+
+			if (arrayType != XmlArrayType_None)
+				lstrcpynW(wszElement, pwszElement, _countof(wszElement));
+
+			break;
+
+		case XmlNodeType_Text:
+			if (FAILED(hr = pReader->GetValue(&pwszValue, NULL)))
+				return hr;
+
+			if (arrayType == XmlArrayType_TrackInfo)
+			{
+				if (_wcsicmp(wszElement, L"Comments") == 0)
+					break;
+
+				if (pnTrackId != NULL &&
+					(_wcsicmp(wszElement, L"TrackID") == 0 || _wcsicmp(wszElement, L"MapID") == 0))
+					*pnTrackId = _wtoi(pwszValue);
+
+				wcsncat(wszElement, L":", _countof(wszElement) - wcslen(wszElement) - 1);
+				OutputTextFmt(hwndCtl, wszOutput, L"%-23s %s\r\n", wszElement, pwszValue);
+			}
+			else if (arrayType == XmlArrayType_TrackObject)
+			{
+				if (_wcsicmp(wszElement, L"ObjectPath") == 0)
+					lstrcpynW(wszObjectPath, pwszValue, _countof(wszObjectPath));
+				if (_wcsicmp(wszElement, L"ObjectAuthor") == 0)
+				{
+					wszUsername[0] = L'\0';	// Username element can be empty or missing
+					lstrcpynW(wszObjectAuthor, pwszValue, _countof(wszObjectAuthor));
+				}
+				if (_wcsicmp(wszElement, L"Username") == 0)
+					lstrcpynW(wszUsername, pwszValue, _countof(wszUsername));
+			}
+			else if (arrayType == XmlArrayType_Replay)
+			{
+				if (_wcsicmp(wszElement, L"Username") == 0)
+					lstrcpynW(wszUsername, pwszValue, _countof(wszUsername));
+				if (_wcsicmp(wszElement, L"ReplayTime") == 0)
+					nReplayTime = _wtoi(pwszValue);
+				if (_wcsicmp(wszElement, L"StuntScore") == 0)
+					lstrcpynW(wszStuntScore, pwszValue, _countof(wszStuntScore));
+				if (_wcsicmp(wszElement, L"Position") == 0)
+					nReplayPos = _wtoi(pwszValue);
+			}
+			else if (arrayType == XmlArrayType_Item)
+			{
+				wcsncat(wszElement, L":", _countof(wszElement) - wcslen(wszElement) - 1);
+				OutputTextFmt(hwndCtl, wszOutput, L"%-15s %s\r\n", wszElement, pwszValue);
+			}
+
+			break;
+
+		case XmlNodeType_EndElement:
+			if (FAILED(hr = pReader->GetLocalName(&pwszElement, NULL)))
+				return hr;
+
+			if (_wcsicmp(pwszElement, L"TrackInfo") == 0)
+				arrayType = XmlArrayType_None;
+			else if (_wcsicmp(pwszElement, L"TrackObject") == 0)
+			{
+				OutputTextFmt(hwndCtl, wszOutput, L"%02d. %s (%s",
+					++nObjectNumber, wszObjectPath, wszObjectAuthor);
+				if (wcsncmp(wszUsername, wszObjectAuthor, wcslen(wszUsername)) != 0)
+					OutputTextFmt(hwndCtl, wszOutput, L"/%s", wszUsername);
+				OutputText(hwndCtl, L")\r\n");
+				arrayType = XmlArrayType_None;
+			}
+			else if (_wcsicmp(pwszElement, L"Replay") == 0)
+			{
+				FormatTimeW(nReplayTime, wszReplayTime, _countof(wszReplayTime));
+				OutputTextFmt(hwndCtl, wszOutput, L"%02d. %s (%s)",
+					nReplayPos, wszUsername, wszReplayTime);
+				if (wcsncmp(wszStuntScore, L"0", wcslen(wszStuntScore)) != 0)
+					OutputTextFmt(hwndCtl, wszOutput, L" %s pt.", wszStuntScore);
+				OutputText(hwndCtl, L"\r\n");
+				arrayType = XmlArrayType_None;
+			}
+			else if (_wcsicmp(pwszElement, L"Item") == 0)
+				arrayType = XmlArrayType_None;
+
+			break;
+		}
+	}
+
+	return S_OK;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Converts a time value into a formatted string (tchar.h version)
+
+static BOOL FormatTimeT(int nTime, TCHAR* pszTime, SIZE_T cchStringLen)
+{
+	if (pszTime == NULL)
 		return FALSE;
 
-	lpszBegin += strlen(szElement);
+	if (nTime < 0)
+		_sntprintf(pszTime, cchStringLen, TEXT("%d"), nTime);
+	else
+	{
+		if (nTime < 3600000)
+		{
+			DWORD dwMinute = (nTime / 60000);
+			DWORD dwSecond = (nTime % 60000 / 1000);
+			DWORD dwMilliSec = (nTime % 60000 % 1000);
 
-	strcpy(szElement, "</");
-	strncat(szElement, lpszMarker, _countof(szElement) - strlen(szElement) - 1);
-	strncat(szElement, ">", _countof(szElement) - strlen(szElement) - 1);
+			_sntprintf(pszTime, cchStringLen, TEXT("%u:%02u.%003u"),
+				dwMinute, dwSecond, dwMilliSec);
+		}
+		else
+		{
+			DWORD dwHour = (nTime / 3600000);
+			DWORD dwMinute = (nTime % 3600000 / 60000);
+			DWORD dwSecond = (nTime % 3600000 % 60000 / 1000);
+			DWORD dwMilliSec = (nTime % 3600000 % 60000 % 1000);
 
-	LPSTR lpszEnd = strstr(lpszBegin, szElement);
-	if (lpszEnd == NULL)
-		return FALSE;
-
-	SIZE_T cchLen = lpszEnd - lpszBegin;
-	if (cchLen >= _countof(szValue))
-		return FALSE;
-
-	strncpy(szValue, lpszBegin, cchLen);
-	szValue[cchLen] = '\0';
-
-	*lpszData = lpszEnd + strlen(szElement);
-
-	MultiByteToWideChar(uCodePage, 0, szValue, -1, szOutput, (int)(cchLenOutput-1));
+			_sntprintf(pszTime, cchStringLen, TEXT("%u:%02u:%02u.%003u"),
+				dwHour, dwMinute, dwSecond, dwMilliSec);
+		}
+	}
 
 	return TRUE;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Parse XML data and output it instantly
+// Converts a time value into a formatted string (wide-character version for XmlLite)
 
-BOOL OutputXmlElement(HWND hwndCtl, UINT uCodePage, LPCSTR lpszData, LPCSTR lpszMarker, LPCTSTR lpszText,
-	LPTSTR lpszValue, SIZE_T cchValueLen)
+static BOOL FormatTimeW(int nTime, WCHAR* pwszTime, SIZE_T cchStringLen)
 {
-	char szElement[64];
-	char szValue[896];
-	TCHAR szOutput[OUTPUT_LEN];
-
-	strcpy(szElement, "<");
-	strncat(szElement, lpszMarker, _countof(szElement) - strlen(szElement) - 1);
-	strncat(szElement, ">", _countof(szElement) - strlen(szElement) - 1);
-
-	LPCSTR lpszBegin = strstr(lpszData, szElement);
-	if (lpszBegin == NULL)
+	if (pwszTime == NULL)
 		return FALSE;
 
-	lpszBegin += strlen(szElement);
+	if (nTime < 0)
+		_snwprintf(pwszTime, cchStringLen, L"%d", nTime);
+	else
+	{
+		if (nTime < 3600000)
+		{
+			DWORD dwMinute = (nTime / 60000);
+			DWORD dwSecond = (nTime % 60000 / 1000);
+			DWORD dwMilliSec = (nTime % 60000 % 1000);
 
-	strcpy(szElement, "</");
-	strncat(szElement, lpszMarker, _countof(szElement) - strlen(szElement) - 1);
-	strncat(szElement, ">", _countof(szElement) - strlen(szElement) - 1);
+			_sntprintf(pwszTime, cchStringLen, L"%u:%02u.%003u",
+				dwMinute, dwSecond, dwMilliSec);
+		}
+		else
+		{
+			DWORD dwHour = (nTime / 3600000);
+			DWORD dwMinute = (nTime % 3600000 / 60000);
+			DWORD dwSecond = (nTime % 3600000 % 60000 / 1000);
+			DWORD dwMilliSec = (nTime % 3600000 % 60000 % 1000);
 
-	LPCSTR lpszEnd = strstr(lpszBegin, szElement);
-	if (lpszEnd == NULL)
-		return FALSE;
-
-	SIZE_T cchLen = lpszEnd - lpszBegin;
-	if (cchLen >= _countof(szValue))
-		return FALSE;
-
-	strncpy(szValue, lpszBegin, cchLen);
-	szValue[cchLen] = '\0';
-
-	MultiByteToWideChar(uCodePage, 0, szValue, -1, szOutput, _countof(szOutput)-1);
-	OutputText(hwndCtl, lpszText);
-	OutputText(hwndCtl, szOutput);
-	OutputText(hwndCtl, TEXT("\r\n"));
-
-	if (lpszValue != NULL)
-		lstrcpyn(lpszValue, szOutput, (int)cchValueLen);
+			_snwprintf(pwszTime, cchStringLen, L"%u:%02u:%02u.%003u",
+				dwHour, dwMinute, dwSecond, dwMilliSec);
+		}
+	}
 
 	return TRUE;
 }

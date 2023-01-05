@@ -45,6 +45,8 @@
 #include <commctrl.h>
 #include <shellapi.h>
 #include <mmsystem.h>
+#include <atlbase.h>
+#include <xmllite.h>
 
 // C RunTime Header Files
 #include <stdlib.h>
