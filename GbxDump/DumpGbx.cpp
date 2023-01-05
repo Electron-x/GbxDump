@@ -2105,7 +2105,8 @@ BOOL ChallengeCommonChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckCommon, LPSTR lp
 	}
 
 	// Environment
-	if ((nRet = ReadIdentifier(hFile, &id, szRead, _countof(szRead))) < 0)
+	DWORD dwId = 0;
+	if ((nRet = ReadIdentifier(hFile, &id, szRead, _countof(szRead), &dwId)) < 0)
 		return FALSE;
 
 	if (nRet > 0)
@@ -2120,8 +2121,9 @@ BOOL ChallengeCommonChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckCommon, LPSTR lp
 	{
 		if (strstr(g_szMpEnvis, lpszEnvi) != NULL)
 		{
+			BOOL bIsTM2020 = (dwId == 26);
 			Button_Enable(GetDlgItem(GetParent(hwndCtl), IDC_TMX), TRUE);
-			if (strstr(g_szTm2Envis, lpszEnvi) != NULL)
+			if (strstr(g_szTm2Envis, lpszEnvi) != NULL && !bIsTM2020)
 				Button_Enable(GetDlgItem(GetParent(hwndCtl), IDC_DEDIMANIA), TRUE);
 		}
 		else if (strstr(g_szTm1Envis, lpszEnvi) != NULL)
@@ -3093,7 +3095,8 @@ BOOL ReplayVersionChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVersion, LPSTR lps
 		}
 
 		// Environment
-		if ((nRet = ReadIdentifier(hFile, &id, szRead, _countof(szRead))) < 0)
+		DWORD dwId = 0;
+		if ((nRet = ReadIdentifier(hFile, &id, szRead, _countof(szRead), &dwId)) < 0)
 			return FALSE;
 
 		if (nRet > 0)
@@ -3108,8 +3111,9 @@ BOOL ReplayVersionChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVersion, LPSTR lps
 		{
 			if (strstr(g_szMpEnvis, lpszEnvi) != NULL)
 			{
+				BOOL bIsTM2020 = (dwId == 26);
 				Button_Enable(GetDlgItem(GetParent(hwndCtl), IDC_TMX), TRUE);
-				if (strstr(g_szTm2Envis, lpszEnvi) != NULL)
+				if (strstr(g_szTm2Envis, lpszEnvi) != NULL && !bIsTM2020)
 					Button_Enable(GetDlgItem(GetParent(hwndCtl), IDC_DEDIMANIA), TRUE);
 			}
 			else if (strstr(g_szTm1Envis, lpszEnvi) != NULL)
@@ -3387,19 +3391,15 @@ BOOL CollectorDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckDesc)
 
 	// The following identifier is used as version number
 	DWORD dwVersion = 0;
-	// Read index of identifier (version)
-	if (!ReadNat32(hFile, &dwVersion))
+	if ((nRet = ReadIdentifier(hFile, &id, szRead, _countof(szRead), &dwVersion)) < 0)
 		return FALSE;
+
 	if (!IS_NUMBER(dwVersion))
 		dwVersion = 0;
 
 	OutputTextFmt(hwndCtl, szOutput, TEXT("Version:\t%d"), dwVersion);
 	if (dwVersion > 8) OutputText(hwndCtl, g_szAsterisk);
 	OutputText(hwndCtl, g_szCRLF);
-
-	// Reset file position and re-read as identifier
-	if (!FileSeekCurrent(hFile, -4) || ReadIdentifier(hFile, &id, szRead, _countof(szRead)) < 0)
-		return FALSE;
 
 	// Page Name
 	if ((nRet = ReadString(hFile, szRead, _countof(szRead))) < 0)
