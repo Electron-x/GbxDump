@@ -26,6 +26,11 @@
 #include "dumpgbx.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
+// Data Types
+//
+typedef HRESULT (STDAPICALLTYPE *LPFNDWMSETWINDOWATTRIBUTE)(HWND, DWORD, LPCVOID, DWORD);
+
+////////////////////////////////////////////////////////////////////////////////////////////////
 // Forward declarations of functions included in this code module
 //
 INT_PTR CALLBACK GbxDumpDlgProc(HWND, UINT, WPARAM, LPARAM);
@@ -46,6 +51,11 @@ UINT DIBNumColors(LPCSTR lpbi);
 void StoreWindowRect(HWND hwnd, LPRECT lprc);
 void RetrieveWindowRect(HWND hwnd, LPRECT lprc);
 void DeleteWindowRect(HWND hwnd);
+
+BOOL IsHighContrast();
+BOOL ShouldAppsUseDarkMode();
+HRESULT UseImmersiveDarkMode(HWND hwndMain, BOOL bUse);
+BOOL AllowDarkModeForWindow(HWND hwndParent, BOOL bAllow);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Global Variables
@@ -72,11 +82,15 @@ const TCHAR g_szEdit[]    = TEXT("Edit");
 WNDPROC g_lpPrevOutputWndProc = NULL;
 
 HINSTANCE g_hInstance = NULL;
+BOOL g_bUseDarkMode = FALSE;
 BOOL g_bGerUI = FALSE;
 
 HANDLE g_hDibDefault = NULL;
 HANDLE g_hDibThumb = NULL;
 HBITMAP g_hBitmapThumb = NULL;
+
+HINSTANCE g_hLibDwmapi = NULL;
+LPFNDWMSETWINDOWATTRIBUTE g_pfnDwmSetWindowAttribute = NULL;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Entry-point function of the application
@@ -114,6 +128,8 @@ int APIENTRY _tWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstanc
 	g_hInstance = hInstance;
 	// Set the language of the user interface and error messages
 	g_bGerUI = (PRIMARYLANGID(GetUserDefaultLangID()) == LANG_GERMAN);
+	// Use light or dark mode
+	g_bUseDarkMode = ShouldAppsUseDarkMode() && !IsHighContrast();
 
 	// Load version 6 common controls and register scroll bar size box
 	INITCOMMONCONTROLSEX iccex = {0};
@@ -162,9 +178,17 @@ int APIENTRY _tWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstanc
 		}
 	}
 
+	// Explicit link to the Desktop Window Manager API (not supported by Windows XP)
+	g_hLibDwmapi = LoadLibrary(TEXT("dwmapi.dll"));
+	if (g_hLibDwmapi != NULL)
+		g_pfnDwmSetWindowAttribute = (LPFNDWMSETWINDOWATTRIBUTE)GetProcAddress(g_hLibDwmapi, "DwmSetWindowAttribute");
+	
 	// Create and display the main window
 	INT_PTR nResult = DialogBoxParam(g_hInstance, MAKEINTRESOURCE(g_bGerUI ? IDD_GER_GBXDUMP : IDD_ENG_GBXDUMP),
 		NULL, (DLGPROC)GbxDumpDlgProc, (LPARAM)pszFilename);
+
+	if (g_hLibDwmapi != NULL)
+		FreeLibrary(g_hLibDwmapi);
 
 	FreeBitmap(g_hBitmapThumb);
 	FreeDib(g_hDibThumb);
@@ -181,17 +205,18 @@ int APIENTRY _tWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstanc
 //
 INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	static POINT s_ptMinTrackSize = {0};
-	static BOOL  s_bAboutBox = FALSE;
-	static BOOL  s_bWordWrap = FALSE;
-	static HFONT s_hfontDlgOrig = NULL;
-	static HFONT s_hfontDlgCurr = NULL;
-	static HFONT s_hfontEditBox = NULL;
-	static HWND  s_hwndSizeBox = NULL;
-	static DWORD s_dwFilterIndex = 1;
-	static char  s_szUid[UID_LENGTH];
-	static char  s_szEnvi[ENVI_LENGTH];
-	static TCHAR s_szFileName[MAX_PATH];
+	static POINT  s_ptMinTrackSize = {0};
+	static BOOL   s_bAboutBox = FALSE;
+	static BOOL   s_bWordWrap = FALSE;
+	static HBRUSH s_hbrBkgnd = NULL;
+	static HFONT  s_hfontDlgOrig = NULL;
+	static HFONT  s_hfontDlgCurr = NULL;
+	static HFONT  s_hfontEditBox = NULL;
+	static HWND   s_hwndSizeBox = NULL;
+	static DWORD  s_dwFilterIndex = 1;
+	static char   s_szUid[UID_LENGTH];
+	static char   s_szEnvi[ENVI_LENGTH];
+	static TCHAR  s_szFileName[MAX_PATH];
 
 	switch (message)
 	{
@@ -362,26 +387,30 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 				return TRUE;
 			}
 
+		case WM_CTLCOLORDLG:
 		case WM_CTLCOLORSTATIC:
-			if (GetDlgItem(hDlg, IDC_OUTPUT) == (HWND)lParam)
+			if (g_bUseDarkMode)
+			{
+				SetTextColor((HDC)wParam, RGB_DARKMODE_TEXTCOLOR);
+				SetBkColor((HDC)wParam, RGB_DARKMODE_BKCOLOR);
+				if (s_hbrBkgnd == NULL)
+					s_hbrBkgnd = CreateSolidBrush(RGB_DARKMODE_BKCOLOR);
+				return (INT_PTR)s_hbrBkgnd;
+			}
+			else if (GetDlgItem(hDlg, IDC_OUTPUT) == (HWND)lParam)
 			{
 				SetTextColor((HDC)wParam, GetSysColor(COLOR_WINDOWTEXT));
 				SetBkColor((HDC)wParam, GetSysColor(COLOR_WINDOW));
-				SetWindowLongPtr(hDlg, DWLP_MSGRESULT, (LONG_PTR)GetSysColorBrush(COLOR_WINDOW));
 				return (INT_PTR)GetSysColorBrush(COLOR_WINDOW);
 			}
 
 		case WM_CTLCOLORBTN:
 			if (GetDlgItem(hDlg, IDC_THUMB) == (HWND)lParam)
-			{
-				SetWindowLongPtr(hDlg, DWLP_MSGRESULT, (LONG_PTR)GetStockBrush(NULL_BRUSH));
 				return (INT_PTR)GetStockBrush(NULL_BRUSH);
-			}
 
 		case WM_QUERYNEWPALETTE:
 			{
 				UINT colChanged = 0;
-
 				if (g_hDibDefault != NULL || g_hDibThumb != NULL)
 				{
 					HPALETTE hPal = DIBCreatePalette(g_hDibThumb != NULL ? g_hDibThumb : g_hDibDefault);
@@ -534,9 +563,10 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 						{
 							int cx = GetSystemMetrics(SM_CXVSCROLL);
 							int cy = GetSystemMetrics(SM_CYHSCROLL);
-							if (wParam == SIZE_MAXIMIZED)
+							BOOL bIsVisible = IsWindowVisible(hCtl);
+							if (wParam == SIZE_MAXIMIZED && bIsVisible)
 								ShowWindow(hCtl, SW_HIDE);
-							else if (!IsWindowVisible(hCtl))
+							else if (!g_bUseDarkMode && !bIsVisible)
 								ShowWindow(hCtl, SW_SHOW);
 							hWinPosInfo = DeferWindowPos(hWinPosInfo, hCtl, NULL,
 								rc.right-cx, rc.bottom-cy, cx, cy, SWP_NOZORDER | SWP_NOACTIVATE);
@@ -590,6 +620,12 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 						{
 							DeleteFont(s_hfontDlgCurr);
 							s_hfontDlgCurr = NULL;
+						}
+
+						if (s_hbrBkgnd != NULL)
+						{
+							DeleteObject(s_hbrBkgnd);
+							s_hbrBkgnd = NULL;
 						}
 
 						EndDialog(hDlg, LOWORD(wParam));
@@ -889,10 +925,41 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 			}
 			return TRUE;
 
+		case WM_SETTINGCHANGE:
+		case WM_THEMECHANGED:
+			if (message == WM_SETTINGCHANGE &&
+				lParam != NULL && _tcscmp((LPCTSTR)lParam, TEXT("ImmersiveColorSet")) != 0)
+				return FALSE;
+
+			if (!g_bUseDarkMode != !(ShouldAppsUseDarkMode() && !IsHighContrast()))
+			{
+				g_bUseDarkMode = !g_bUseDarkMode;
+					
+				UseImmersiveDarkMode(hDlg, g_bUseDarkMode);
+				AllowDarkModeForWindow(hDlg, g_bUseDarkMode);
+					
+				if (s_hwndSizeBox != NULL)
+				{	// For safety's sake, hide the size box in undocumented dark mode
+					BOOL bIsVisible = IsWindowVisible(s_hwndSizeBox);
+					if (g_bUseDarkMode && bIsVisible)
+						ShowWindow(s_hwndSizeBox, SW_HIDE);
+					else if (!IsMaximized(hDlg) && !bIsVisible)
+						ShowWindow(s_hwndSizeBox, SW_SHOW);
+				}
+			}
+			return FALSE;
+
 		case WM_INITDIALOG:
 			{
 				s_bWordWrap = FALSE;
 				SetWindowText(hDlg, g_szTitle);
+
+				// Windows 10 1809+ dark mode
+				if (g_bUseDarkMode)
+				{
+					UseImmersiveDarkMode(hDlg, g_bUseDarkMode);
+					AllowDarkModeForWindow(hDlg, g_bUseDarkMode);
+				}
 
 				// Determine dialog box font (see WM_SIZE)
 				s_hfontDlgOrig = GetWindowFont(hDlg);
@@ -926,9 +993,12 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 				// Create size box bottom right
 				int cx = GetSystemMetrics(SM_CXVSCROLL);
 				int cy = GetSystemMetrics(SM_CYHSCROLL);
-				s_hwndSizeBox = CreateWindow(g_szScrlBar, NULL,
-					WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_GROUP |
-					SBS_SIZEBOX | SBS_SIZEBOXBOTTOMRIGHTALIGN | SBS_SIZEGRIP,
+				DWORD dwStyle = WS_CHILD | WS_CLIPSIBLINGS | WS_GROUP |
+					SBS_SIZEBOX | SBS_SIZEBOXBOTTOMRIGHTALIGN | SBS_SIZEGRIP;
+				// For safety's sake, hide the size box in undocumented dark mode
+				if (!g_bUseDarkMode)
+					dwStyle |= WS_VISIBLE;
+				s_hwndSizeBox = CreateWindow(g_szScrlBar, NULL, dwStyle,
 					rc.right-cx, rc.bottom-cy, cx, cy, hDlg, (HMENU)-1, g_hInstance, NULL);
 
 				// Save size of all child windows as property
@@ -1024,6 +1094,12 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 				{
 					DeleteFont(s_hfontDlgCurr);
 					s_hfontDlgCurr = NULL;
+				}
+
+				if (s_hbrBkgnd != NULL)
+				{
+					DeleteObject(s_hbrBkgnd);
+					s_hbrBkgnd = NULL;
 				}
 
 				EndDialog(hDlg, 0);
@@ -1432,6 +1508,9 @@ BOOL SetWordWrap(HWND hDlg, BOOL bWordWrap)
 	if (hFont != NULL)
 		SetWindowFont(hwndEditNew, hFont, FALSE);
 
+	if (g_bUseDarkMode)
+		SetWindowTheme(hwndEditNew, L"DarkMode_Explorer", NULL);
+
 	SetWindowLong(hwndEditOld, GWL_ID, nID+2000);
 	SetWindowPos(hwndEditNew, NULL, 0, 0, 0, 0,
 		SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOZORDER | SWP_SHOWWINDOW);
@@ -1646,6 +1725,89 @@ void DeleteWindowRect(HWND hwnd)
 		RemoveProp(hwnd, g_szLeft);
 		RemoveProp(hwnd, g_szRight);
 	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Determines whether a high contrast theme is enabled
+
+BOOL IsHighContrast()
+{
+	HIGHCONTRAST hc = { sizeof(hc) };
+	if (!SystemParametersInfo(SPI_GETHIGHCONTRAST, sizeof(hc), &hc, 0))
+		return FALSE;
+
+	return (hc.dwFlags & HCF_HIGHCONTRASTON);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Determines if Windows 10 1809+ dark mode is enabled
+
+BOOL ShouldAppsUseDarkMode()
+{
+	HKEY hKey = NULL;
+	LONG lStatus = RegOpenKeyEx(HKEY_CURRENT_USER,
+		TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize"), 0, KEY_READ, &hKey);
+	if (lStatus != ERROR_SUCCESS || hKey == NULL)
+		return FALSE;
+
+	DWORD dwValue = 0;
+	DWORD dwSize = sizeof(dwValue);
+	DWORD dwType = REG_DWORD;
+	lStatus = RegQueryValueEx(hKey, TEXT("AppsUseLightTheme"), NULL, &dwType, (LPBYTE)&dwValue, &dwSize);
+	if (lStatus != ERROR_SUCCESS)
+	{
+		RegCloseKey(hKey);
+		return FALSE;
+	}
+
+	RegCloseKey(hKey);
+	return (dwValue == 0);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Draws a dark mode title bar
+
+HRESULT UseImmersiveDarkMode(HWND hwndMain, BOOL bUse)
+{
+	HRESULT hr = S_FALSE;
+
+	if (hwndMain == NULL)
+		return E_INVALIDARG;
+	if (g_pfnDwmSetWindowAttribute == NULL)
+		return E_NOTIMPL;
+
+	BOOL bUseDarkMode = !!bUse;
+	if (FAILED(hr = g_pfnDwmSetWindowAttribute(hwndMain,
+		DWMWA_USE_IMMERSIVE_DARK_MODE, &bUseDarkMode, sizeof(bUseDarkMode))))
+		hr = g_pfnDwmSetWindowAttribute(hwndMain, 19, &bUseDarkMode, sizeof(bUseDarkMode));
+
+	return hr;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Use a dark mode theme for controls that support it
+//
+// "DarkMode_CFD": Edit, ComboBox
+// "DarkMode_Explorer": Button, Edit (multiline), ScrollBar, TreeView
+// "DarkMode_ItemsView": ListView, Header
+//
+BOOL AllowDarkModeForWindow(HWND hwndParent, BOOL bAllow)
+{
+	if (hwndParent == NULL)
+		return FALSE;
+
+	HWND hwndCtl = GetWindow(hwndParent, GW_CHILD);
+	while (hwndCtl)
+	{
+		// We use only buttons, a multiline edit control and the size box (scroll bar)
+		SetWindowTheme(hwndCtl, bAllow ? L"DarkMode_Explorer" : NULL, NULL);
+		hwndCtl = GetNextSibling(hwndCtl);
+	}
+
+	RedrawWindow(hwndParent, NULL, NULL,
+		RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_UPDATENOW | RDW_FRAME);
+
+	return TRUE;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////

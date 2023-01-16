@@ -47,6 +47,7 @@
 #include <mmsystem.h>
 #include <atlbase.h>	// Make sure you have installed "C++ ATL for x86 and x64" with VS Installer
 #include <xmllite.h>
+#include <Uxtheme.h>
 
 // C RunTime Header Files
 #include <stdlib.h>

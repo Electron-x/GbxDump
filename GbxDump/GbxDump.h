@@ -27,12 +27,19 @@
 #define UID_LENGTH  64
 #define ENVI_LENGTH 64
 
+#define RGB_DARKMODE_TEXTCOLOR (RGB(255, 255, 255))
+#define RGB_DARKMODE_BKCOLOR   (RGB(56, 56, 56))
+
 #ifndef USER_DEFAULT_SCREEN_DPI
 #define USER_DEFAULT_SCREEN_DPI 96
 #endif
 
 #ifndef WM_DPICHANGED
 #define WM_DPICHANGED 0x02E0
+#endif
+
+#ifndef DWMWA_USE_IMMERSIVE_DARK_MODE
+#define DWMWA_USE_IMMERSIVE_DARK_MODE 20
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -48,6 +55,7 @@ extern const TCHAR g_szTitle[];
 extern HINSTANCE g_hInstance;
 extern HBITMAP g_hBitmapThumb;
 extern HANDLE g_hDibThumb;
+extern BOOL g_bUseDarkMode;
 extern BOOL g_bGerUI;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
