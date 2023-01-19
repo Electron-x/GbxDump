@@ -31,7 +31,7 @@ void LastInternetError(HWND hwndCtl, DWORD dwError);
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // String Constants
 //
-const TCHAR g_szUserAgent[]  = TEXT("GbxDump/1.69");
+const TCHAR g_szUserAgent[]  = TEXT("GbxDump/1.70");
 const TCHAR g_szWininetDll[] = TEXT("wininet.dll");
 const TCHAR g_szConnecting[] = TEXT("%s - Connecting...");
 const TCHAR g_szDownload[]   = TEXT("%s - Downloading...");

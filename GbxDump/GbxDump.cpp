@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// GbxDump.cpp - Copyright (c) 2010-2022 by Electron.
+// GbxDump.cpp - Copyright (c) 2010-2023 by Electron.
 //
 // Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -67,8 +67,8 @@ BOOL AllowDarkModeForWindow(HWND hwndParent, BOOL bAllow);
 #endif
 
 const TCHAR g_szTitle[]   = TEXT("GbxDump");
-const TCHAR g_szAbout[]   = TEXT("Gbx File Dumper 1.69 (") PLATFORM TEXT(")\r\n")
-                            TEXT("Copyright © 2010-2022 by Electron\r\n");
+const TCHAR g_szAbout[]   = TEXT("Gbx File Dumper 1.70 (") PLATFORM TEXT(")\r\n")
+                            TEXT("Copyright © 2010-2023 by Electron\r\n");
 const TCHAR g_szDlgCls[]  = TEXT("GbxDumpDlgClass");
 const TCHAR g_szTop[]     = TEXT("GbxDumpWndTop");
 const TCHAR g_szBottom[]  = TEXT("GbxDumpWndBottom");
@@ -89,7 +89,6 @@ HANDLE g_hDibDefault = NULL;
 HANDLE g_hDibThumb = NULL;
 HBITMAP g_hBitmapThumb = NULL;
 
-HINSTANCE g_hLibDwmapi = NULL;
 LPFNDWMSETWINDOWATTRIBUTE g_pfnDwmSetWindowAttribute = NULL;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -179,16 +178,16 @@ int APIENTRY _tWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstanc
 	}
 
 	// Explicit link to the Desktop Window Manager API (not supported by Windows XP)
-	g_hLibDwmapi = LoadLibrary(TEXT("dwmapi.dll"));
-	if (g_hLibDwmapi != NULL)
-		g_pfnDwmSetWindowAttribute = (LPFNDWMSETWINDOWATTRIBUTE)GetProcAddress(g_hLibDwmapi, "DwmSetWindowAttribute");
+	HINSTANCE hLibDwmapi = LoadLibrary(TEXT("dwmapi.dll"));
+	if (hLibDwmapi != NULL)
+		g_pfnDwmSetWindowAttribute = (LPFNDWMSETWINDOWATTRIBUTE)GetProcAddress(hLibDwmapi, "DwmSetWindowAttribute");
 	
 	// Create and display the main window
 	INT_PTR nResult = DialogBoxParam(g_hInstance, MAKEINTRESOURCE(g_bGerUI ? IDD_GER_GBXDUMP : IDD_ENG_GBXDUMP),
 		NULL, (DLGPROC)GbxDumpDlgProc, (LPARAM)pszFilename);
 
-	if (g_hLibDwmapi != NULL)
-		FreeLibrary(g_hLibDwmapi);
+	if (hLibDwmapi != NULL)
+		FreeLibrary(hLibDwmapi);
 
 	FreeBitmap(g_hBitmapThumb);
 	FreeDib(g_hDibThumb);
@@ -1164,7 +1163,7 @@ BOOL DumpFile(HWND hwndCtl, LPCTSTR lpszFileName, LPSTR lpszUid, LPSTR lpszEnvi)
 		g_hDibThumb = NULL;
 	}
 
-	// Reset the title for the default thumbnail
+	// Restore the title of the default thumbnail
 	HWND hwndThumb = GetDlgItem(GetParent(hwndCtl), IDC_THUMB);
 	if (hwndThumb != NULL)
 	{

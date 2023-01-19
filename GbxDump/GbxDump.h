@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// GbxDump.h - Copyright (c) 2010-2019 by Electron.
+// GbxDump.h - Copyright (c) 2010-2023 by Electron.
 //
 // Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -27,8 +27,8 @@
 #define UID_LENGTH  64
 #define ENVI_LENGTH 64
 
-#define RGB_DARKMODE_TEXTCOLOR (RGB(255, 255, 255))
-#define RGB_DARKMODE_BKCOLOR   (RGB(56, 56, 56))
+#define RGB_DARKMODE_TEXTCOLOR RGB(255, 255, 255)
+#define RGB_DARKMODE_BKCOLOR   RGB(56, 56, 56)
 
 #ifndef USER_DEFAULT_SCREEN_DPI
 #define USER_DEFAULT_SCREEN_DPI 96
