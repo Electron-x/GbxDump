@@ -66,18 +66,19 @@ BOOL AllowDarkModeForWindow(HWND hwndParent, BOOL bAllow);
 #define PLATFORM TEXT("32-bit")
 #endif
 
-const TCHAR g_szTitle[]   = TEXT("GbxDump");
-const TCHAR g_szAbout[]   = TEXT("Gbx File Dumper 1.70 (") PLATFORM TEXT(")\r\n")
-                            TEXT("Copyright © 2010-2023 by Electron\r\n");
-const TCHAR g_szDlgCls[]  = TEXT("GbxDumpDlgClass");
-const TCHAR g_szTop[]     = TEXT("GbxDumpWndTop");
-const TCHAR g_szBottom[]  = TEXT("GbxDumpWndBottom");
-const TCHAR g_szLeft[]    = TEXT("GbxDumpWndLeft");
-const TCHAR g_szRight[]   = TEXT("GbxDumpWndRight");
-const TCHAR g_szArial[]   = TEXT("Arial");
-const TCHAR g_szCourier[] = TEXT("Courier New");
-const TCHAR g_szScrlBar[] = TEXT("Scrollbar");
-const TCHAR g_szEdit[]    = TEXT("Edit");
+const TCHAR g_szTitle[]    = TEXT("GbxDump");
+const TCHAR g_szAbout[]    = TEXT("Gbx File Dumper 1.70 (") PLATFORM TEXT(")\r\n")
+                             TEXT("Copyright © 2010-2023 by Electron\r\n");
+const TCHAR g_szDlgCls[]   = TEXT("GbxDumpDlgClass");
+const TCHAR g_szTop[]      = TEXT("GbxDumpWndTop");
+const TCHAR g_szBottom[]   = TEXT("GbxDumpWndBottom");
+const TCHAR g_szLeft[]     = TEXT("GbxDumpWndLeft");
+const TCHAR g_szRight[]    = TEXT("GbxDumpWndRight");
+const TCHAR g_szArial[]    = TEXT("Arial");
+const TCHAR g_szConsolas[] = TEXT("Consolas");
+const TCHAR g_szCourier[]  = TEXT("Courier New");
+const TCHAR g_szScrlBar[]  = TEXT("Scrollbar");
+const TCHAR g_szEdit[]     = TEXT("Edit");
 
 WNDPROC g_lpPrevOutputWndProc = NULL;
 
@@ -204,6 +205,7 @@ int APIENTRY _tWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstanc
 //
 INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
+	static int    s_nDpi = USER_DEFAULT_SCREEN_DPI;
 	static POINT  s_ptMinTrackSize = {0};
 	static BOOL   s_bAboutBox = FALSE;
 	static BOOL   s_bWordWrap = FALSE;
@@ -452,22 +454,61 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 
 		case WM_DPICHANGED:
 			{
+				HWND hwndCtl = GetDlgItem(hDlg, IDC_OUTPUT);
+				if (hwndCtl == NULL || s_hfontEditBox == NULL)
+					return FALSE;
+
 				LOGFONT lf;
 				ZeroMemory(&lf, sizeof(lf));
-				lf.lfHeight = -MulDiv(10, HIWORD(wParam), 72);
-				lf.lfWeight = FW_NORMAL;
-				lf.lfPitchAndFamily = FIXED_PITCH | FF_MODERN;
-				lstrcpyn(lf.lfFaceName, g_szCourier, _countof(lf.lfFaceName));
+				GetObject(s_hfontEditBox, sizeof(LOGFONT), (LPVOID)&lf);
+
+				int nDpiNew = HIWORD(wParam);
+				lf.lfHeight = MulDiv(lf.lfHeight, nDpiNew, s_nDpi);
+				s_nDpi = nDpiNew;
+
+				HFONT hfontScaled = CreateFontIndirect(&lf);
+				if (hfontScaled == NULL)
+					return FALSE;
+
+				DeleteFont(s_hfontEditBox);
+				SetWindowFont(hwndCtl, hfontScaled, TRUE);
+				s_hfontEditBox = hfontScaled;
+
+				return FALSE;
+			}
+
+		case WM_MOUSEWHEEL:
+			{
+				if ((GET_KEYSTATE_WPARAM(wParam) & MK_CONTROL) == 0)
+					return FALSE;
 
 				HWND hwndCtl = GetDlgItem(hDlg, IDC_OUTPUT);
-				if (hwndCtl != NULL)
-				{
-					if (s_hfontEditBox != NULL)
-						DeleteFont(s_hfontEditBox);
-					s_hfontEditBox = CreateFontIndirect(&lf);
-					if (s_hfontEditBox != NULL)
-						SetWindowFont(hwndCtl, s_hfontEditBox, TRUE);
-				}
+				if (hwndCtl == NULL || s_hfontEditBox == NULL)
+					return FALSE;
+
+				static int nDelta = 0;
+				nDelta += GET_WHEEL_DELTA_WPARAM(wParam);
+				if (abs(nDelta) < WHEEL_DELTA)
+					return FALSE;
+
+				int nHeightUnits = nDelta / WHEEL_DELTA;
+				nDelta = 0;
+
+				LOGFONT lf;
+				ZeroMemory(&lf, sizeof(lf));
+				GetObject(s_hfontEditBox, sizeof(LOGFONT), (LPVOID)&lf);
+
+				LONG lfHeight = abs(lf.lfHeight) + nHeightUnits;
+				lfHeight = min(max(6, lfHeight), 72);
+				lf.lfHeight = lf.lfHeight < 0 ? -lfHeight : lfHeight;
+
+				HFONT hfontScaled = CreateFontIndirect(&lf);
+				if (hfontScaled == NULL)
+					return FALSE;
+
+				DeleteFont(s_hfontEditBox);
+				SetWindowFont(hwndCtl, hfontScaled, TRUE);
+				s_hfontEditBox = hfontScaled;
 
 				return FALSE;
 			}
@@ -960,6 +1001,14 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 					AllowDarkModeForWindow(hDlg, g_bUseDarkMode);
 				}
 
+				// Determine logical DPI
+				HDC hdc = GetDC(hDlg);
+				if (hdc != NULL)
+				{
+					s_nDpi = GetDeviceCaps(hdc, LOGPIXELSY);
+					ReleaseDC(hDlg, hdc);
+				}
+
 				// Determine dialog box font (see WM_SIZE)
 				s_hfontDlgOrig = GetWindowFont(hDlg);
 				if (s_hfontDlgOrig == NULL)
@@ -971,8 +1020,8 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 				GetWindowRect(hwndCtl, &rc);
 				ScreenToClient(hDlg, (LPPOINT)&rc.left);
 				ScreenToClient(hDlg, (LPPOINT)&rc.right);
-				MoveWindow(hwndCtl, rc.left, rc.bottom-(rc.right-rc.left),
-					rc.right-rc.left, rc.right-rc.left, FALSE);
+				MoveWindow(hwndCtl, rc.left, rc.bottom - (rc.right - rc.left),
+					rc.right - rc.left, rc.right - rc.left, FALSE);
 
 				TCHAR szText[256];
 				// Set the title for the default thumbnail
@@ -998,7 +1047,7 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 				if (!g_bUseDarkMode)
 					dwStyle |= WS_VISIBLE;
 				s_hwndSizeBox = CreateWindow(g_szScrlBar, NULL, dwStyle,
-					rc.right-cx, rc.bottom-cy, cx, cy, hDlg, (HMENU)-1, g_hInstance, NULL);
+					rc.right - cx, rc.bottom - cy, cx, cy, hDlg, (HMENU)-1, g_hInstance, NULL);
 
 				// Save size of all child windows as property
 				hwndCtl = GetWindow(hDlg, GW_CHILD);
@@ -1018,22 +1067,14 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 				// Set the memory limit of the text output window
 				Edit_LimitText(hwndCtl, 0);
 
-				// Determine logical DPI
-				int nDpi = USER_DEFAULT_SCREEN_DPI;
-				HDC hdc = GetDC(hDlg);
-				if (hdc != NULL)
-				{
-					nDpi = GetDeviceCaps(hdc, LOGPIXELSY);
-					ReleaseDC(hDlg, hdc);
-				}
-
 				// Set font of the text output window dpi-aware
 				LOGFONT lf;
 				ZeroMemory(&lf, sizeof(lf));
-				lf.lfHeight = -MulDiv(10, nDpi, 72);
+				lf.lfHeight = -11 * s_nDpi / 72;
 				lf.lfWeight = FW_NORMAL;
 				lf.lfPitchAndFamily = FIXED_PITCH | FF_MODERN;
-				lstrcpyn(lf.lfFaceName, g_szCourier, _countof(lf.lfFaceName));
+				lstrcpyn(lf.lfFaceName, LOBYTE(LOWORD(GetVersion())) >= 6 ? g_szConsolas : g_szCourier,
+					_countof(lf.lfFaceName));
 
 				if (s_hfontEditBox != NULL)
 					DeleteFont(s_hfontEditBox);
