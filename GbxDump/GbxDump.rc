@@ -86,7 +86,7 @@ BEGIN
             VALUE "FileDescription", "Gbx File Dumper"
             VALUE "FileVersion", "1.70.0.110"
             VALUE "InternalName", "GbxDump"
-            VALUE "LegalCopyright", "Copyright © 2010-2022 by Electron"
+            VALUE "LegalCopyright", "Copyright © 2010-2023 by Electron"
             VALUE "OriginalFilename", "GbxDump.exe"
             VALUE "ProductName", "GbxTools"
             VALUE "ProductVersion", "1.0"
