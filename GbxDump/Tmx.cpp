@@ -593,7 +593,7 @@ HRESULT ParseAndPrintXml(HWND hwndCtl, HGLOBAL hXml, PINT pnTrackId)
 	wszObjectPath[0] = L'\0';
 	wszObjectAuthor[0] = L'\0';
 
-	if (FAILED(hr = CreateStreamOnHGlobal(hXml, TRUE, &pStream)))
+	if (FAILED(hr = CreateStreamOnHGlobal(hXml, FALSE, &pStream)))
 		return hr;
 	if (FAILED(hr = CreateXmlReader(IID_IXmlReader, (void**)&pReader, NULL)))
 		return hr;
