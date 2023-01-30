@@ -1184,13 +1184,23 @@ BOOL DumpFile(HWND hwndCtl, LPCTSTR lpszFileName, LPSTR lpszUid, LPSTR lpszEnvi)
 	lpszUid[0] = '\0';
 	lpszEnvi[0] = '\0';
 
+	HWND hDlg = GetParent(hwndCtl);
+
 	// Disable the TMX and Dedimania buttons
-	HWND hwndButton = GetDlgItem(GetParent(hwndCtl), IDC_TMX);
+	HWND hwndButton = GetDlgItem(hDlg, IDC_TMX);
 	if (IsWindowEnabled(hwndButton))
+	{
+		if (GetFocus() == hwndButton)
+			SendMessage(hDlg, WM_NEXTDLGCTL, (WPARAM)GetDlgItem(hDlg, IDC_OPEN), 1);
 		Button_Enable(hwndButton, FALSE);
-	hwndButton = GetDlgItem(GetParent(hwndCtl), IDC_DEDIMANIA);
+	}
+	hwndButton = GetDlgItem(hDlg, IDC_DEDIMANIA);
 	if (IsWindowEnabled(hwndButton))
+	{
+		if (GetFocus() == hwndButton)
+			SendMessage(hDlg, WM_NEXTDLGCTL, (WPARAM)GetDlgItem(hDlg, IDC_OPEN), 1);
 		Button_Enable(hwndButton, FALSE);
+	}
 
 	// Release old thumbnail
 	if (g_hBitmapThumb != NULL)
@@ -1205,7 +1215,7 @@ BOOL DumpFile(HWND hwndCtl, LPCTSTR lpszFileName, LPSTR lpszUid, LPSTR lpszEnvi)
 	}
 
 	// Restore the title of the default thumbnail
-	HWND hwndThumb = GetDlgItem(GetParent(hwndCtl), IDC_THUMB);
+	HWND hwndThumb = GetDlgItem(hDlg, IDC_THUMB);
 	if (hwndThumb != NULL)
 	{
 		if (LoadString(g_hInstance, g_bGerUI ? IDS_GER_THUMBNAIL : IDS_ENG_THUMBNAIL,
@@ -1790,7 +1800,7 @@ BOOL ShouldAppsUseDarkMode()
 	if (lStatus != ERROR_SUCCESS || hKey == NULL)
 		return FALSE;
 
-	DWORD dwValue = 0;
+	DWORD dwValue = 1;
 	DWORD dwSize = sizeof(dwValue);
 	DWORD dwType = REG_DWORD;
 	lStatus = RegQueryValueEx(hKey, TEXT("AppsUseLightTheme"), NULL, &dwType, (LPBYTE)&dwValue, &dwSize);
