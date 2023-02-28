@@ -13,7 +13,13 @@ used by the [Nadeo](https://nadeo.com/) game engine GameBox (.gbx files). The to
 - Online interface to the TMX and MX trackbase
 - Online interface to the Dedimania records database
 
-![Screenshot of GbxDump](http://wolfgang-rolke.de/gbxdump/gbxdump.jpg)
+<p>
+<picture>
+<source media="(prefers-color-scheme: dark)" srcset="http://wolfgang-rolke.de/gbxdump/gbxdump.dark.png">
+<source media="(prefers-color-scheme: light)" srcset="http://wolfgang-rolke.de/gbxdump/gbxdump.light.png">
+<img alt="Screenshot of GbxDump" src="http://wolfgang-rolke.de/gbxdump/gbxdump.light.png">
+</picture>
+</p>
 
 After installation the context menu of .gbx files has an additional entry `GbxDump`. Using this command you can view into this .gbx file.
 You can also run the tool from the Start menu and open any .gbx file within the program (Start » Programs » Gbx File Dumper).
