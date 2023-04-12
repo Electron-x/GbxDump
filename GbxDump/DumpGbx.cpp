@@ -210,7 +210,7 @@ BOOL DumpGbx(HWND hwndCtl, HANDLE hFile, LPSTR lpszUid, LPSTR lpszEnvi)
 	if (wVersion >= 6)
 	{
 		// Read the Header User Data block size
-		if (!ReadNat32(hFile, &dwUserDataSize, IS_GBX_TEXT(achStorageSettings)) || dwUserDataSize > 0x200000)
+		if (!ReadNat32(hFile, &dwUserDataSize, IS_GBX_TEXT(achStorageSettings)) || dwUserDataSize >= 0x400000)
 			return FALSE;
 
 		if (FormatByteSize(dwUserDataSize, szOutput, _countof(szOutput)))
@@ -227,7 +227,7 @@ BOOL DumpGbx(HWND hwndCtl, HANDLE hFile, LPSTR lpszUid, LPSTR lpszEnvi)
 
 	// Read the number of references
 	DWORD dwNumEntries = 0;
-	if (!ReadNat32(hFile, &dwNumEntries, IS_GBX_TEXT(achStorageSettings)) || dwNumEntries > 50000)
+	if (!ReadNat32(hFile, &dwNumEntries, IS_GBX_TEXT(achStorageSettings)) || dwNumEntries >= 50000)
 		return FALSE;
 
 	OutputTextFmt(hwndCtl, szOutput, TEXT("Number Refs:\t%d\r\n"), dwNumEntries);
@@ -2886,7 +2886,7 @@ BOOL ChallengeThumbnailChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckThumbnail)
 	{
 		// Read length of Thumbnail chunk
 		DWORD dwThumbnailSize = 0;
-		if (!ReadNat32(hFile, &dwThumbnailSize) || dwThumbnailSize > 0xA0000)
+		if (!ReadNat32(hFile, &dwThumbnailSize) || dwThumbnailSize >= 0xA00000)
 			return FALSE;
 
 		// <Thumbnail.jpg>
