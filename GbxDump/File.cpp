@@ -664,6 +664,9 @@ void set_error_manager(j_common_ptr pjInfo, j_error_mgr *pjError)
 	pjError->output_message = my_output_message;
 	pjError->emit_message   = my_emit_message;
 
+	// Set trace level
+	pjError->trace_level = 0;
+
 	// Assign the error manager structure to the JPEG object
 	pjInfo->err = pjError;
 }
