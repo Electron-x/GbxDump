@@ -556,7 +556,7 @@ SIZE_T GetCollectionString(DWORD dwId, LPSTR lpszCollection, SIZE_T cchStringLen
 		case 10003: // Common
 			lstrcpynA(lpszCollection, "Common", (int)cchStringLen);
 			break;
-		case 0xFFFFFFFF: // Unassigned
+		case UNASSIGNED:
 			lstrcpynA(lpszCollection, "_Unassigned", (int)cchStringLen);
 			break;
 		default:
