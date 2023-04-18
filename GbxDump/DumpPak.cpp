@@ -777,7 +777,8 @@ BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderM
 		if (!ReadNat32(hFile, &dwUnknown))
 			return FALSE;
 
-		OutputTextFmt(hwndCtl, szOutput, TEXT("Unknown:\t%d\r\n"), dwUnknown);
+		if (dwUnknown != UNASSIGNED) // Show only if set
+			OutputTextFmt(hwndCtl, szOutput, TEXT("Unknown:\t%d\r\n"), dwUnknown);
 
 		// Uncompressed Size
 		DWORD dwUncompressedSize = 0;
