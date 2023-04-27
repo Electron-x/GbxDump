@@ -400,6 +400,7 @@ typedef struct _JPEG_DECOMPRESS
 	DWORD           dwYPelsPerMeter;     // Vertical Resolution
 	DWORD           dwIncrement;         // Size of a picture row
 	DWORD           dwSize;              // Size of the image
+	INT             nTraceLevel;         // Max. message level that will be displayed
 } JPEG_DECOMPRESS, *LPJPEG_DECOMPRESS;
 
 static jmp_buf JmpBuffer;  // Buffer for processor status
@@ -416,13 +417,14 @@ METHODDEF(void my_emit_message(j_common_ptr pjInfo, int nMessageLevel));
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // JpegToDib: Converts a JPEG image to a DIB
 
-HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData)
+HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData, BOOL bFlipImage, INT nTraceLevel)
 {
 	HANDLE hDIB = NULL;  // Handle of the DIB
 
 	// Initialize the JPEG decompression object
 	JPEG_DECOMPRESS JpegDecompress; // JPEG decompression structure
 	j_decompress_ptr pjInfo = &JpegDecompress.jInfo;
+	JpegDecompress.nTraceLevel = nTraceLevel;
 	set_error_manager((j_common_ptr)pjInfo, &JpegDecompress.jError);
 
 	// Save processor status for error handling
@@ -611,11 +613,13 @@ HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData)
 	LPBYTE lpDIB = (LPBYTE)&(lpBMI->bmiColors[lpBI->biClrUsed]);
 	LPBYTE lpBits = NULL;     // Pointer to a DIB image row
 	JSAMPROW lpScanlines[1];  // Pointer to a scanline
+	JDIMENSION uScanline;     // Row index
 
 	// Copy image rows (scanlines)
 	while (pjInfo->output_scanline < pjInfo->output_height)
 	{
-		lpBits = lpDIB + (SIZE_T)pjInfo->output_scanline * JpegDecompress.dwIncrement;
+		uScanline = bFlipImage ? pjInfo->output_scanline : JpegDecompress.uHeight-1 - pjInfo->output_scanline;
+		lpBits = lpDIB + uScanline * JpegDecompress.dwIncrement;
 		lpScanlines[0] = lpBits;
 		jpeg_read_scanlines(pjInfo, lpScanlines, 1);  // Decompress one line
 	}
@@ -665,7 +669,7 @@ void set_error_manager(j_common_ptr pjInfo, j_error_mgr *pjError)
 	pjError->emit_message   = my_emit_message;
 
 	// Set trace level
-	pjError->trace_level = 0;
+	pjError->trace_level = ((LPJPEG_DECOMPRESS)pjInfo)->nTraceLevel;
 
 	// Assign the error manager structure to the JPEG object
 	pjInfo->err = pjError;
@@ -679,18 +683,12 @@ void set_error_manager(j_common_ptr pjInfo, j_error_mgr *pjError)
 // deletes the JPEG object and returns to the JpegToDib function using throw.
 void my_error_exit(j_common_ptr pjInfo)
 {
-	LPJPEG_DECOMPRESS lpJpegDecompress;  // JPEG decompression structure
-
 	// Display error message on screen
 	(*pjInfo->err->output_message)(pjInfo);
 
 	// Delete JPEG object (e.g. delete temporary files, memory, etc.)
 	jpeg_destroy(pjInfo);
-	if (pjInfo->is_decompressor)
-	{  // JPEG decompression
-		lpJpegDecompress = (LPJPEG_DECOMPRESS)pjInfo;
-		lpJpegDecompress->bNeedDestroy = FALSE;
-	}
+	((LPJPEG_DECOMPRESS)pjInfo)->bNeedDestroy = FALSE;
 
 	longjmp(JmpBuffer, 1);  // Return to setjmp in JpegToDib
 }
@@ -701,15 +699,26 @@ void my_error_exit(j_common_ptr pjInfo)
 // This callback function formats a message and displays it on the screen.
 void my_output_message(j_common_ptr pjInfo)
 {
-	char szBuffer[JMSG_LENGTH_MAX];  // Buffer for message text
-	TCHAR szError[JMSG_LENGTH_MAX];  // Buffer for message text
+	char szBuffer[JMSG_LENGTH_MAX];    // Buffer for message text
+	TCHAR szMessage[JMSG_LENGTH_MAX];  // Buffer for message text
 
 	// Format text
 	(*pjInfo->err->format_message)(pjInfo, szBuffer);
 
 	// Output text
-	mbstowcs(szError, szBuffer, JMSG_LENGTH_MAX-1);
-	MessageBox(GetActiveWindow(), szError, g_szTitle, MB_OK | MB_ICONEXCLAMATION);
+	mbstowcs(szMessage, szBuffer, JMSG_LENGTH_MAX - 1);
+
+	HWND hwndCtl = NULL;
+	HWND hwndDlg = GetActiveWindow();
+	if (hwndDlg != NULL)
+		hwndCtl = GetDlgItem(hwndDlg, IDC_OUTPUT);
+	if (hwndCtl == NULL)
+		MessageBox(hwndDlg, szMessage, g_szTitle, MB_OK | MB_ICONEXCLAMATION);
+	else
+	{
+		OutputText(hwndCtl, szMessage);
+		OutputText(hwndCtl, TEXT("\r\n"));
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -751,27 +760,69 @@ void my_emit_message(j_common_ptr pjInfo, int nMessageLevel)
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // WebpToDib: Decodes a WebP image into a DIB using libwebp
 
-HANDLE WebpToDib(LPVOID lpWebpData, DWORD dwLenData)
+HANDLE WebpToDib(LPVOID lpWebpData, DWORD dwLenData, BOOL bFlipImage, BOOL bShowFeatures)
 {
-	int nWidth = 0;
-	int nHeight = 0;
+	WebPBitstreamFeatures features;
 
 	if (lpWebpData == NULL || dwLenData == 0 ||
-		WebPGetInfo((LPBYTE)lpWebpData, dwLenData, &nWidth, &nHeight) == 0)
+		WebPGetFeatures((LPBYTE)lpWebpData, dwLenData, &features) != VP8_STATUS_OK)
 		return NULL;
 
-	LPBYTE lpBits = WebPDecodeBGRA((LPBYTE)lpWebpData, dwLenData, &nWidth, &nHeight);
+	int nWidth = features.width;
+	int nHeight = features.height;
+
+	if (bShowFeatures)
+	{
+		HWND hwndCtl = NULL;
+		HWND hwndDlg = GetActiveWindow();
+		if (hwndDlg != NULL)
+			hwndCtl = GetDlgItem(hwndDlg, IDC_OUTPUT);
+		if (hwndCtl != NULL)
+		{
+			TCHAR szOutput[OUTPUT_LEN];
+			OutputTextFmt(hwndCtl, szOutput, TEXT("Width:\t\t%d pixels\r\n"), nWidth);
+			OutputTextFmt(hwndCtl, szOutput, TEXT("Height:\t\t%d pixels\r\n"), nHeight);
+			OutputTextFmt(hwndCtl, szOutput, TEXT("Has Alpha:\t%s\r\n"),
+				features.has_alpha ? TEXT("True") : TEXT("False"));
+			OutputTextFmt(hwndCtl, szOutput, TEXT("Has Animation:\t%s\r\n"),
+				features.has_animation ? TEXT("True") : TEXT("False"));
+			OutputText(hwndCtl, TEXT("Format:\t\t"));
+			switch (features.format)
+			{
+				case 0:
+					OutputText(hwndCtl, TEXT("Undefined/Mixed"));
+					break;
+				case 1:
+					OutputText(hwndCtl, TEXT("Lossy"));
+					break;
+				case 2:
+					OutputText(hwndCtl, TEXT("Lossless"));
+					break;
+				default:
+					OutputTextFmt(hwndCtl, szOutput, TEXT("%d"), features.format);
+			}
+			OutputText(hwndCtl, TEXT("\r\n"));
+		}
+	}
+
+	LPBYTE lpBits = NULL;
+	if (features.has_alpha)
+		lpBits = WebPDecodeBGRA((LPBYTE)lpWebpData, dwLenData, &nWidth, &nHeight);
+	else
+		lpBits = WebPDecodeBGR((LPBYTE)lpWebpData, dwLenData, &nWidth, &nHeight);
 	if (lpBits == NULL)
 		return NULL;
 	
-	DWORD dwSizeImage = nHeight * nWidth * 4;
-	if (dwSizeImage == 0)
+	int nNumChannels = features.has_alpha ? 4 : 3;
+	int nIncrement = ((nWidth * nNumChannels * 8) + 31) / 32 * 4;
+	int nSizeImage = nHeight * nIncrement;
+	if (nSizeImage == 0)
 	{
 		WebPFree(lpBits);
 		return NULL;
 	}
 
-	HANDLE hDib = GlobalAlloc(GHND, sizeof(BITMAPINFOHEADER) + dwSizeImage);
+	HANDLE hDib = GlobalAlloc(GHND, sizeof(BITMAPINFOHEADER) + nSizeImage);
 	if (hDib == NULL)
 	{
 		WebPFree(lpBits);
@@ -790,23 +841,28 @@ HANDLE WebpToDib(LPVOID lpWebpData, DWORD dwLenData)
 	lpbi->biWidth = nWidth;
 	lpbi->biHeight = nHeight;
 	lpbi->biPlanes = 1;
-	lpbi->biBitCount = 32;
+	lpbi->biBitCount = nNumChannels * 8;
 	lpbi->biCompression = BI_RGB;
-	lpbi->biSizeImage = dwSizeImage;
+	lpbi->biSizeImage = nSizeImage;
 	lpbi->biXPelsPerMeter = 0;
 	lpbi->biYPelsPerMeter = 0;
 	lpbi->biClrUsed = 0;
 	lpbi->biClrImportant = 0;
 
-	register LPBYTE lpSrc = lpBits;
-	register LPBYTE lpDest = ((LPBYTE)lpbi) + sizeof(BITMAPINFOHEADER);
+	int nSrcPtr = 0;
+	LPBYTE lpSrc = lpBits;
+	LPBYTE lpDest = ((LPBYTE)lpbi) + sizeof(BITMAPINFOHEADER);
 
 	__try
 	{
-		while (dwSizeImage--)
-			*lpDest++ = *lpSrc++;
+		for (int h = 0; h < nHeight; h++)
+		{
+			nSrcPtr = (bFlipImage ? h : nHeight-1 - h) * nWidth * nNumChannels;
+			for (int w = 0; w < nIncrement; w++)
+				*lpDest++ = lpSrc[nSrcPtr++];
+		}
 	}
-	__except (EXCEPTION_EXECUTE_HANDLER) { dwSizeImage = 0; }
+	__except (EXCEPTION_EXECUTE_HANDLER) { ; }
 
 	GlobalUnlock(hDib);
 	WebPFree(lpBits);
@@ -817,7 +873,7 @@ HANDLE WebpToDib(LPVOID lpWebpData, DWORD dwLenData)
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // DdsToDib: Decodes a DDS image into a DIB using crunch/crnlib
 
-HANDLE DdsToDib(LPVOID lpDdsData, DWORD dwLenData)
+HANDLE DdsToDib(LPVOID lpDdsData, DWORD dwLenData, BOOL bFlipImage)
 {
 	if (lpDdsData == NULL || dwLenData == 0)
 		return NULL;
@@ -872,7 +928,7 @@ HANDLE DdsToDib(LPVOID lpDdsData, DWORD dwLenData)
 	{
 		for (crn_uint32 h = 0; h < uHeight; h++)
 		{
-			uSrcPtr = (uHeight-1 - h) * uWidth * 4;	// Flip image
+			uSrcPtr = (bFlipImage ? h : uHeight-1 - h) * uWidth * 4;
 			for (crn_uint32 w = 0; w < uWidth; w++)
 			{
 				lpDest[uDestPtr + 2] = lpSrc[uSrcPtr++];	// B <-- R

@@ -2928,7 +2928,7 @@ BOOL ChallengeThumbnailChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckThumbnail)
 
 			// Decode the thumbnail image
 			HANDLE hDib = NULL;
-			__try { hDib = JpegToDib(lpData, dwThumbnailSize); }
+			__try { hDib = JpegToDib(lpData, dwThumbnailSize, TRUE); }
 			__except (EXCEPTION_EXECUTE_HANDLER) { hDib = NULL; }
 			if (hDib != NULL)
 			{
@@ -3698,7 +3698,7 @@ BOOL CollectorIconChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckIcon)
 
 	// Decode the thumbnail image
 	HANDLE hDib = NULL;
-	__try { hDib = WebpToDib(lpData, dwImageSize); }
+	__try { hDib = WebpToDib(lpData, dwImageSize, TRUE); }
 	__except (EXCEPTION_EXECUTE_HANDLER) { hDib = NULL; }
 	if (hDib != NULL)
 	{
