@@ -37,8 +37,10 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK OutputWndProc(HWND, UINT, WPARAM, LPARAM);
 
 BOOL DumpFile(HWND hwndCtl, LPCTSTR lpszFileName, LPSTR lpszUid, LPSTR lpszEnvi);
-BOOL DumpHex(HWND hwndCtl, HANDLE hFile, SIZE_T cbLen);
 BOOL DumpMux(HWND hwndCtl, HANDLE hFile);
+BOOL DumpJpeg(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize);
+BOOL DumpWebP(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize);
+BOOL DumpHex(HWND hwndCtl, HANDLE hFile, SIZE_T cbLen);
 
 int SelectText(HWND hwndCtl);
 BOOL SetWordWrap(HWND hDlg, BOOL bWordWrap);
@@ -1258,8 +1260,8 @@ BOOL DumpFile(HWND hwndCtl, LPCTSTR lpszFileName, LPSTR lpszUid, LPSTR lpszEnvi)
 	}
 
 	// Read file signature
-	BYTE achMagic[9] = {0}; // Large enough for "NadeoFile"
-	if (!ReadData(hFile, (LPVOID)&achMagic, 9))
+	BYTE achMagic[12] = {0}; // Large enough for "RIFF....WEBP"
+	if (!ReadData(hFile, (LPVOID)&achMagic, sizeof(achMagic)))
 	{
 		OutputTextErr(hwndCtl, g_bGerUI ? IDP_GER_ERR_MAGIC : IDP_ENG_ERR_MAGIC);
 		OutputText(hwndCtl, g_szSep2);
@@ -1293,6 +1295,25 @@ BOOL DumpFile(HWND hwndCtl, LPCTSTR lpszFileName, LPSTR lpszUid, LPSTR lpszEnvi)
 		OutputText(hwndCtl, TEXT("File Type:\tDirectDraw Surface\r\n"));
 
 		if (!(bRet = DumpDDS(hwndCtl, hFile, wfad.nFileSizeLow)))
+			OutputTextErr(hwndCtl, g_bGerUI ? IDP_GER_ERR_READ : IDP_ENG_ERR_READ);
+	}
+	else if (achMagic[0] == 0xFF && achMagic[1] == 0xD8 && achMagic[2] == 0xFF)
+	{ // JPEG
+		if (achMagic[3] == 0xE0) // JFIF
+			OutputText(hwndCtl, TEXT("File Type:\tJPEG/JFIF\r\n"));
+		else if (achMagic[3] == 0xE1) // Exif
+			OutputText(hwndCtl, TEXT("File Type:\tJPEG/Exif\r\n"));
+		else if (achMagic[3] != 0x00 && achMagic[3] != 0xFF) // JPEG-LS, SPIFF, etc.
+			OutputText(hwndCtl, TEXT("File Type:\tJPEG\r\n"));
+
+		if (!(bRet = DumpJpeg(hwndCtl, hFile, wfad.nFileSizeLow)))
+			OutputTextErr(hwndCtl, g_bGerUI ? IDP_GER_ERR_READ : IDP_ENG_ERR_READ);
+	}
+	else if (memcmp(achMagic, "RIFF", 4) == 0 && memcmp(achMagic + 8, "WEBP", 4) == 0)
+	{ // WebP
+		OutputText(hwndCtl, TEXT("File Type:\tWebP\r\n"));
+
+		if (!(bRet = DumpWebP(hwndCtl, hFile, wfad.nFileSizeLow)))
 			OutputTextErr(hwndCtl, g_bGerUI ? IDP_GER_ERR_READ : IDP_ENG_ERR_READ);
 	}
 	else
@@ -1338,6 +1359,156 @@ BOOL DumpMux(HWND hwndCtl, HANDLE hFile)
 		return FALSE;
 
 	OutputTextFmt(hwndCtl, szOutput, TEXT("Salt:\t\t%08X\r\n"), dwSalt);
+
+	return TRUE;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Decompresses a JPEG image and displays it as thumbnail
+
+BOOL DumpJpeg(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
+{
+	INT nTraceLevel = 1;
+
+	if (hwndCtl == NULL || hFile == NULL || dwFileSize == 0)
+		return FALSE;
+
+	// Jump to the beginning of the file
+	if (!FileSeekBegin(hFile, 0))
+		return FALSE;
+
+	// Read the file
+	LPVOID lpData = GlobalAllocPtr(GHND, dwFileSize);
+	if (lpData == NULL)
+		return FALSE;
+
+	if (!ReadData(hFile, lpData, dwFileSize))
+	{
+		GlobalFreePtr(lpData);
+		return FALSE;
+	}
+
+	// Decode the JPEG image
+	OutputText(hwndCtl, g_szSep1);
+
+	HANDLE hDib = NULL;
+	HCURSOR hOldCursor = SetCursor(LoadCursor(NULL, IDC_WAIT));
+
+	__try { hDib = JpegToDib(lpData, dwFileSize, FALSE, nTraceLevel); }
+	__except (EXCEPTION_EXECUTE_HANDLER) { hDib = NULL; }
+
+	SetCursor(hOldCursor);
+
+	if (hDib != NULL)
+	{
+		if (g_hBitmapThumb != NULL)
+			FreeBitmap(g_hBitmapThumb);
+		g_hBitmapThumb = NULL;
+
+		if (g_hDibThumb != NULL)
+			FreeDib(g_hDibThumb);
+		g_hDibThumb = hDib;
+
+		// View the thumbnail immediately
+		HWND hwndThumb = GetDlgItem(GetParent(hwndCtl), IDC_THUMB);
+		if (hwndThumb != NULL)
+		{
+			if (InvalidateRect(hwndThumb, NULL, FALSE))
+				UpdateWindow(hwndThumb);
+		}
+	}
+	else
+	{
+		// Draw "UNSUPPORTED FORMAT" lettering over the default thumbnail image
+		HWND hwndThumb = GetDlgItem(GetParent(hwndCtl), IDC_THUMB);
+		if (hwndThumb != NULL)
+		{
+			TCHAR szText[256];
+			if (LoadString(g_hInstance, g_bGerUI ? IDS_GER_UNSUPPORTED : IDS_ENG_UNSUPPORTED,
+				szText, _countof(szText)) > 0)
+			{
+				SetWindowText(hwndThumb, szText);
+				if (InvalidateRect(hwndThumb, NULL, FALSE))
+					UpdateWindow(hwndThumb);
+			}
+		}
+	}
+
+	GlobalFreePtr(lpData);
+
+	return TRUE;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Decompresses a WebP image and displays it as thumbnail
+
+BOOL DumpWebP(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
+{
+	if (hwndCtl == NULL || hFile == NULL || dwFileSize == 0)
+		return FALSE;
+
+	// Jump to the beginning of the file
+	if (!FileSeekBegin(hFile, 0))
+		return FALSE;
+
+	// Read the file
+	LPVOID lpData = GlobalAllocPtr(GHND, dwFileSize);
+	if (lpData == NULL)
+		return FALSE;
+
+	if (!ReadData(hFile, lpData, dwFileSize))
+	{
+		GlobalFreePtr(lpData);
+		return FALSE;
+	}
+
+	// Decode the WebP image
+	OutputText(hwndCtl, g_szSep1);
+
+	HANDLE hDib = NULL;
+	HCURSOR hOldCursor = SetCursor(LoadCursor(NULL, IDC_WAIT));
+
+	__try { hDib = WebpToDib(lpData, dwFileSize, FALSE, TRUE); }
+	__except (EXCEPTION_EXECUTE_HANDLER) { hDib = NULL; }
+
+	SetCursor(hOldCursor);
+
+	if (hDib != NULL)
+	{
+		if (g_hBitmapThumb != NULL)
+			FreeBitmap(g_hBitmapThumb);
+		g_hBitmapThumb = NULL;
+
+		if (g_hDibThumb != NULL)
+			FreeDib(g_hDibThumb);
+		g_hDibThumb = hDib;
+
+		// View the thumbnail immediately
+		HWND hwndThumb = GetDlgItem(GetParent(hwndCtl), IDC_THUMB);
+		if (hwndThumb != NULL)
+		{
+			if (InvalidateRect(hwndThumb, NULL, FALSE))
+				UpdateWindow(hwndThumb);
+		}
+	}
+	else
+	{
+		// Draw "UNSUPPORTED FORMAT" lettering over the default thumbnail image
+		HWND hwndThumb = GetDlgItem(GetParent(hwndCtl), IDC_THUMB);
+		if (hwndThumb != NULL)
+		{
+			TCHAR szText[256];
+			if (LoadString(g_hInstance, g_bGerUI ? IDS_GER_UNSUPPORTED : IDS_ENG_UNSUPPORTED,
+				szText, _countof(szText)) > 0)
+			{
+				SetWindowText(hwndThumb, szText);
+				if (InvalidateRect(hwndThumb, NULL, FALSE))
+					UpdateWindow(hwndThumb);
+			}
+		}
+	}
+
+	GlobalFreePtr(lpData);
 
 	return TRUE;
 }
