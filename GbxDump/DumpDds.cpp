@@ -26,7 +26,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Forward declarations of functions included in this code module
 //
-BOOL DisplayDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize);
+BOOL DisplayDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize, BOOL bShowTextureDesc = FALSE);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // String Constants
@@ -305,6 +305,11 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 	{
 		szOutput[0] = chNil;
 		dwFlags = ddsh.dwHeaderFlags;
+		if (ddsh.dwHeaderFlags & DDSD_CAPS)
+		{
+			dwFlags ^= DDSD_CAPS;
+			AppendFlagName(szOutput, _countof(szOutput), TEXT("CAPS"));
+		}
 		if (ddsh.dwHeaderFlags & DDSD_HEIGHT)
 		{
 			dwFlags ^= DDSD_HEIGHT;
@@ -320,6 +325,16 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 			dwFlags ^= DDSD_PITCH;
 			AppendFlagName(szOutput, _countof(szOutput), TEXT("PITCH"));
 		}
+		if (ddsh.dwHeaderFlags & DDSD_PIXELFORMAT)
+		{
+			dwFlags ^= DDSD_PIXELFORMAT;
+			AppendFlagName(szOutput, _countof(szOutput), TEXT("PIXELFORMAT"));
+		}
+		if (ddsh.dwHeaderFlags & DDSD_MIPMAPCOUNT)
+		{
+			dwFlags ^= DDSD_MIPMAPCOUNT;
+			AppendFlagName(szOutput, _countof(szOutput), TEXT("MIPMAPCOUNT"));
+		}
 		if (ddsh.dwHeaderFlags & DDSD_LINEARSIZE)
 		{
 			dwFlags ^= DDSD_LINEARSIZE;
@@ -329,21 +344,6 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		{
 			dwFlags ^= DDSD_DEPTH;
 			AppendFlagName(szOutput, _countof(szOutput), TEXT("DEPTH"));
-		}
-		if (ddsh.dwHeaderFlags & DDSD_MIPMAPCOUNT)
-		{
-			dwFlags ^= DDSD_MIPMAPCOUNT;
-			AppendFlagName(szOutput, _countof(szOutput), TEXT("MIPMAPCOUNT"));
-		}
-		if (ddsh.dwHeaderFlags & DDSD_PIXELFORMAT)
-		{
-			dwFlags ^= DDSD_PIXELFORMAT;
-			AppendFlagName(szOutput, _countof(szOutput), TEXT("PIXELFORMAT"));
-		}
-		if (ddsh.dwHeaderFlags & DDSD_CAPS)
-		{
-			dwFlags ^= DDSD_CAPS;
-			AppendFlagName(szOutput, _countof(szOutput), TEXT("CAPS"));
 		}
 		if (dwFlags != 0 && dwFlags != ddsh.dwHeaderFlags)
 		{
@@ -361,11 +361,11 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 	}
 	OutputText(hwndCtl, szCRLF);
 
-	if ((ddsh.dwHeaderFlags & DDSD_HEIGHT) || ddsh.dwHeight != 0)
-		OutputTextFmt(hwndCtl, szOutput, TEXT("Surface Height:\t%u pixels\r\n"), ddsh.dwHeight);
-
 	if ((ddsh.dwHeaderFlags & DDSD_WIDTH) || ddsh.dwWidth != 0)
 		OutputTextFmt(hwndCtl, szOutput, TEXT("Surface Width:\t%u pixels\r\n"), ddsh.dwWidth);
+
+	if ((ddsh.dwHeaderFlags & DDSD_HEIGHT) || ddsh.dwHeight != 0)
+		OutputTextFmt(hwndCtl, szOutput, TEXT("Surface Height:\t%u pixels\r\n"), ddsh.dwHeight);
 
 	if ((ddsh.dwHeaderFlags & DDSD_PITCH) || (ddsh.dwHeaderFlags & DDSD_LINEARSIZE))
 	{
@@ -765,14 +765,14 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 	}
 
 	// Decode and display the DDS image
-	DisplayDDS(hwndCtl, hFile, dwFileSize);
+	DisplayDDS(hwndCtl, hFile, dwFileSize, FALSE);
 
 	return TRUE;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL DisplayDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
+BOOL DisplayDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize, BOOL bShowTextureDesc)
 {
 	if (hwndCtl == NULL || hFile == NULL || dwFileSize == 0)
 		return FALSE;
@@ -793,10 +793,13 @@ BOOL DisplayDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 	}
 
 	// Decode the DDS image
+	if (bShowTextureDesc)
+		OutputText(hwndCtl, g_szSep1);
+
 	HANDLE hDib = NULL;
 	HCURSOR hOldCursor = SetCursor(LoadCursor(NULL, IDC_WAIT));
 
-	__try { hDib = DdsToDib(lpData, dwFileSize); }
+	__try { hDib = DdsToDib(lpData, dwFileSize, FALSE, bShowTextureDesc); }
 	__except (EXCEPTION_EXECUTE_HANDLER) { hDib = NULL; }
 
 	SetCursor(hOldCursor);

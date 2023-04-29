@@ -873,7 +873,7 @@ HANDLE WebpToDib(LPVOID lpWebpData, DWORD dwLenData, BOOL bFlipImage, BOOL bShow
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // DdsToDib: Decodes a DDS image into a DIB using crunch/crnlib
 
-HANDLE DdsToDib(LPVOID lpDdsData, DWORD dwLenData, BOOL bFlipImage)
+HANDLE DdsToDib(LPVOID lpDdsData, DWORD dwLenData, BOOL bFlipImage, BOOL bShowTextureDesc)
 {
 	if (lpDdsData == NULL || dwLenData == 0)
 		return NULL;
@@ -882,6 +882,26 @@ HANDLE DdsToDib(LPVOID lpDdsData, DWORD dwLenData, BOOL bFlipImage)
 	crn_uint32 *pImages[cCRNMaxFaces * cCRNMaxLevels];
 	if (!crn_decompress_dds_to_images(lpDdsData, dwLenData, pImages, tex_desc))
 		return NULL;
+
+	if (bShowTextureDesc)
+	{
+		HWND hwndCtl = NULL;
+		HWND hwndDlg = GetActiveWindow();
+		if (hwndDlg != NULL)
+			hwndCtl = GetDlgItem(hwndDlg, IDC_OUTPUT);
+		if (hwndCtl != NULL)
+		{
+			BYTE achFourCC[4];
+			TCHAR szOutput[OUTPUT_LEN];
+			memcpy(achFourCC, &tex_desc.m_fmt_fourcc, 4);
+			OutputTextFmt(hwndCtl, szOutput, TEXT("Faces:\t\t%u\r\n"), tex_desc.m_faces);
+			OutputTextFmt(hwndCtl, szOutput, TEXT("Width:\t\t%u pixels\r\n"), tex_desc.m_width);
+			OutputTextFmt(hwndCtl, szOutput, TEXT("Height:\t\t%u pixels\r\n"), tex_desc.m_height);
+			OutputTextFmt(hwndCtl, szOutput, TEXT("Levels:\t\t%u\r\n"), tex_desc.m_levels);
+			OutputTextFmt(hwndCtl, szOutput, TEXT("Format:\t\t%hc%hc%hc%hc\r\n"),
+				achFourCC[0], achFourCC[1], achFourCC[2], achFourCC[3]);
+		}
+	}
 
 	crn_uint32 uWidth = tex_desc.m_width;
 	crn_uint32 uHeight = tex_desc.m_height;

@@ -22,8 +22,8 @@ BOOL SaveBmpFile(LPCTSTR lpszFileName, HANDLE hDIB);
 BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDIB);
 
 HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData, BOOL bFlipImage = FALSE, INT nTraceLevel = 0);
-HANDLE DdsToDib(LPVOID lpDdsData, DWORD dwLenData, BOOL bFlipImage = FALSE);
 HANDLE WebpToDib(LPVOID lpWebpData, DWORD dwLenData, BOOL bFlipImage = FALSE, BOOL bShowFeatures = FALSE);
+HANDLE DdsToDib(LPVOID lpDdsData, DWORD dwLenData, BOOL bFlipImage = FALSE, BOOL bShowTextureDesc = FALSE);
 
 BOOL FreeDib(HANDLE hDib);
 
