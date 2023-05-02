@@ -254,13 +254,18 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 
 				if (hDIB != NULL)
 				{ // Output the DIB
-					LPBITMAPINFOHEADER lpbi = (LPBITMAPINFOHEADER)GlobalLock(hDIB);
+					LPSTR lpbi = (LPSTR)GlobalLock(hDIB);
 					if (lpbi != NULL)
 					{
 						int nSrcX = 0;
 						int nSrcY = 0;
 						int nSrcWidth  = ((LPBITMAPINFOHEADER)lpbi)->biWidth;
 						int nSrcHeight = ((LPBITMAPINFOHEADER)lpbi)->biHeight;
+						if (*(LPDWORD)lpbi == sizeof(BITMAPCOREHEADER))
+						{
+							nSrcWidth  = ((LPBITMAPCOREHEADER)lpbi)->bcWidth;
+							nSrcHeight = ((LPBITMAPCOREHEADER)lpbi)->bcHeight;
+						}
 						if (nSrcHeight < 0) nSrcHeight = -nSrcHeight;
 						if (lpdis->itemState & ODS_SELECTED)
 						{
@@ -1831,7 +1836,8 @@ HPALETTE DIBCreatePalette(HANDLE hDIB)
 	HPALETTE hPal = NULL;
 	LPSTR lpbi = (LPSTR)GlobalLock((HGLOBAL)hDIB);
 	LPBITMAPINFO lpbmi = (LPBITMAPINFO)lpbi;
-	if (lpbmi == NULL)
+	LPBITMAPCOREINFO lpbmc = (LPBITMAPCOREINFO)lpbi;
+	if (lpbi == NULL)
 		return NULL;
 
 	UINT uNumColors = DIBNumColors(lpbi);
@@ -1848,13 +1854,22 @@ HPALETTE DIBCreatePalette(HANDLE hDIB)
 		lpPal->palVersion    = 0x300;
 		lpPal->palNumEntries = (WORD)uNumColors;
 
-		for (register UINT i = 0; i < uNumColors; i++)
-		{
-			lpPal->palPalEntry[i].peRed   = lpbmi->bmiColors[i].rgbRed;
-			lpPal->palPalEntry[i].peGreen = lpbmi->bmiColors[i].rgbGreen;
-			lpPal->palPalEntry[i].peBlue  = lpbmi->bmiColors[i].rgbBlue;
-			lpPal->palPalEntry[i].peFlags = 0;
-		}
+		if (*(LPDWORD)lpbi == sizeof(BITMAPCOREHEADER))
+			for (UINT i = 0; i < uNumColors; i++)
+			{
+				lpPal->palPalEntry[i].peRed   = lpbmc->bmciColors[i].rgbtRed;
+				lpPal->palPalEntry[i].peGreen = lpbmc->bmciColors[i].rgbtGreen;
+				lpPal->palPalEntry[i].peBlue  = lpbmc->bmciColors[i].rgbtBlue;
+				lpPal->palPalEntry[i].peFlags = 0;
+			}
+		else
+			for (UINT i = 0; i < uNumColors; i++)
+			{
+				lpPal->palPalEntry[i].peRed   = lpbmi->bmiColors[i].rgbRed;
+				lpPal->palPalEntry[i].peGreen = lpbmi->bmiColors[i].rgbGreen;
+				lpPal->palPalEntry[i].peBlue  = lpbmi->bmiColors[i].rgbBlue;
+				lpPal->palPalEntry[i].peFlags = 0;
+			}
 
 		hPal = CreatePalette(lpPal);
 
@@ -1874,9 +1889,11 @@ HPALETTE DIBCreatePalette(HANDLE hDIB)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-__inline UINT DIBPaletteSize(LPSTR lpbi)
+UINT DIBPaletteSize(LPSTR lpbi)
 {
-	if ((((LPBITMAPINFOHEADER)lpbi)->biSize == sizeof(BITMAPINFOHEADER)) &&
+	if (*(LPDWORD)lpbi == sizeof(BITMAPCOREHEADER))
+		return (WORD)(DIBNumColors(lpbi) * sizeof(RGBTRIPLE));
+	else if ((((LPBITMAPINFOHEADER)lpbi)->biSize == sizeof(BITMAPINFOHEADER)) &&
 			((((LPBITMAPINFOHEADER)lpbi)->biBitCount == 16) ||
 			(((LPBITMAPINFOHEADER)lpbi)->biBitCount == 32)) &&
 			((LPBITMAPINFOHEADER)lpbi)->biCompression == BI_BITFIELDS)
@@ -1887,13 +1904,20 @@ __inline UINT DIBPaletteSize(LPSTR lpbi)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-__inline UINT DIBNumColors(LPCSTR lpbi)
+UINT DIBNumColors(LPCSTR lpbi)
 {
-	DWORD dwClrUsed = ((LPBITMAPINFOHEADER)lpbi)->biClrUsed;
-	if (dwClrUsed != 0)
-		return dwClrUsed;
+	if (*(LPDWORD)lpbi != sizeof(BITMAPCOREHEADER))
+	{
+		DWORD dwClrUsed = ((LPBITMAPINFOHEADER)lpbi)->biClrUsed;
+		if (dwClrUsed != 0)
+			return dwClrUsed;
+	}
 
-	WORD wBPP = ((LPBITMAPINFOHEADER)lpbi)->biBitCount;
+	WORD wBPP = 0;
+	if (*(LPDWORD)lpbi == sizeof(BITMAPCOREHEADER))
+		wBPP = ((LPBITMAPCOREHEADER)lpbi)->bcBitCount;
+	else
+		wBPP = ((LPBITMAPINFOHEADER)lpbi)->biBitCount;
 
 	if (wBPP <= 8)
 		return (1 << wBPP);
