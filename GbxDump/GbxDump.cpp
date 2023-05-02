@@ -1482,11 +1482,11 @@ BOOL DumpWebP(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 	{
 		if (g_hBitmapThumb != NULL)
 			FreeBitmap(g_hBitmapThumb);
-		g_hBitmapThumb = NULL;
-
 		if (g_hDibThumb != NULL)
 			FreeDib(g_hDibThumb);
+
 		g_hDibThumb = hDib;
+		g_hBitmapThumb = CreatePremultipliedBitmap(hDib);
 
 		// View the thumbnail immediately
 		HWND hwndThumb = GetDlgItem(GetParent(hwndCtl), IDC_THUMB);
