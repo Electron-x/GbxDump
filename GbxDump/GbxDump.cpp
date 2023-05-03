@@ -1892,35 +1892,42 @@ HPALETTE DIBCreatePalette(HANDLE hDIB)
 UINT DIBPaletteSize(LPSTR lpbi)
 {
 	if (*(LPDWORD)lpbi == sizeof(BITMAPCOREHEADER))
-		return (WORD)(DIBNumColors(lpbi) * sizeof(RGBTRIPLE));
-	else if ((((LPBITMAPINFOHEADER)lpbi)->biSize == sizeof(BITMAPINFOHEADER)) &&
-			((((LPBITMAPINFOHEADER)lpbi)->biBitCount == 16) ||
-			(((LPBITMAPINFOHEADER)lpbi)->biBitCount == 32)) &&
-			((LPBITMAPINFOHEADER)lpbi)->biCompression == BI_BITFIELDS)
-		return (3 * sizeof(DWORD));
-	else
-		return (DIBNumColors(lpbi) * sizeof(RGBQUAD));
+		return DIBNumColors(lpbi) * sizeof(RGBTRIPLE);
+
+	UINT uPaletteSize = DIBNumColors(lpbi) * sizeof(RGBQUAD);
+
+	if (*(LPDWORD)lpbi == sizeof(BITMAPINFOHEADER) &&
+		(((LPBITMAPINFOHEADER)lpbi)->biBitCount == 16 ||
+		((LPBITMAPINFOHEADER)lpbi)->biBitCount == 32))
+	{
+		if (((LPBITMAPINFOHEADER)lpbi)->biCompression == BI_BITFIELDS)
+			uPaletteSize += 3 * sizeof(DWORD);
+		else if (((LPBITMAPINFOHEADER)lpbi)->biCompression == 6)
+			uPaletteSize += 4 * sizeof(DWORD);
+	}
+
+	return uPaletteSize;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 UINT DIBNumColors(LPCSTR lpbi)
 {
-	if (*(LPDWORD)lpbi != sizeof(BITMAPCOREHEADER))
-	{
-		DWORD dwClrUsed = ((LPBITMAPINFOHEADER)lpbi)->biClrUsed;
-		if (dwClrUsed != 0)
-			return dwClrUsed;
-	}
-
 	WORD wBPP = 0;
+
 	if (*(LPDWORD)lpbi == sizeof(BITMAPCOREHEADER))
 		wBPP = ((LPBITMAPCOREHEADER)lpbi)->bcBitCount;
 	else
+	{
+		DWORD dwClrUsed = ((LPBITMAPINFOHEADER)lpbi)->biClrUsed;
 		wBPP = ((LPBITMAPINFOHEADER)lpbi)->biBitCount;
 
-	if (wBPP <= 8)
-		return (1 << wBPP);
+		if (dwClrUsed > 0 && dwClrUsed <= (1U << wBPP))
+			return dwClrUsed;
+	}
+
+	if (wBPP > 0 && wBPP < 16)
+		return (1U << wBPP);
 	else
 		return 0;
 }
