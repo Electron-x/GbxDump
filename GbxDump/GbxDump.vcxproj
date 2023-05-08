@@ -216,6 +216,7 @@
   <ItemGroup>
     <ClCompile Include="Archive.cpp" />
     <ClCompile Include="Dedimania.cpp" />
+    <ClCompile Include="DumpBmp.cpp" />
     <ClCompile Include="DumpDds.cpp" />
     <ClCompile Include="DumpGbx.cpp" />
     <ClCompile Include="DumpPak.cpp" />
@@ -235,6 +236,7 @@
     <ClInclude Include="Archive.h" />
     <ClInclude Include="ClassId.h" />
     <ClInclude Include="Dedimania.h" />
+    <ClInclude Include="DumpBmp.h" />
     <ClInclude Include="DumpDds.h" />
     <ClInclude Include="DumpGbx.h" />
     <ClInclude Include="DumpPak.h" />
