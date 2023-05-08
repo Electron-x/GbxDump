@@ -21,6 +21,7 @@
 #include "tmx.h"
 #include "dedimania.h"
 #include "archive.h"
+#include "dumpbmp.h"
 #include "dumpdds.h"
 #include "dumppak.h"
 #include "dumpgbx.h"
@@ -47,8 +48,9 @@ BOOL SetWordWrap(HWND hDlg, BOOL bWordWrap);
 HFONT CreateScaledFont(HDC hDC, LPCRECT lpRect, LPCTSTR lpszFormat);
 
 HPALETTE DIBCreatePalette(HANDLE hDIB);
-UINT DIBPaletteSize(LPSTR lpbi);
+UINT DIBPaletteSize(LPCSTR lpbi);
 UINT DIBNumColors(LPCSTR lpbi);
+LPCSTR DIBFindBits(LPCSTR lpbi);
 
 void StoreWindowRect(HWND hwnd, LPRECT lprc);
 void RetrieveWindowRect(HWND hwnd, LPRECT lprc);
@@ -324,8 +326,10 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 
 										// Blend the thumbnail with the checkerboard pattern
 										BLENDFUNCTION pixelblend = { AC_SRC_OVER, 0, 0xFF, AC_SRC_ALPHA };
-										AlphaBlend(hdcMem, rc.left, rc.top, cx, cy, hdcAlpha,
-											nSrcX, nSrcY, nSrcWidth, nSrcHeight, pixelblend);
+										if (!AlphaBlend(hdcMem, rc.left, rc.top, cx, cy, hdcAlpha,
+											nSrcX, nSrcY, nSrcWidth, nSrcHeight, pixelblend))
+											StretchBlt(hdcMem, rc.left, rc.top, cx, cy, hdcAlpha,
+												nSrcX, nSrcY, nSrcWidth, nSrcHeight, SRCCOPY);
 
 										if (hbmpThumbOld != NULL)
 											SelectObject(hdcAlpha, hbmpThumbOld);
@@ -334,7 +338,12 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 									}
 
 									// Transfer the offscreen surface to the screen
-									BitBlt(hdc, rc.left, rc.top, cx, cy, hdcMem, rc.left, rc.top, SRCCOPY);
+									if (!BitBlt(hdc, rc.left, rc.top, cx, cy, hdcMem, rc.left, rc.top, SRCCOPY))
+									{
+										HBRUSH hbr = CreateHatchBrush(HS_DIAGCROSS, RGB(0, 0, 0));
+										FillRect(hdc, &rc, hbr);
+										DeleteObject(hbr);
+									}
 
 									if (hbmpSurfaceOld != NULL)
 										SelectObject(hdcMem, hbmpSurfaceOld);
@@ -347,18 +356,26 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 						}
 						else
 						{
-							LPCSTR pBuf = (LPSTR)lpbi + *(LPDWORD)lpbi + DIBPaletteSize((LPSTR)lpbi);
-
 							SetStretchBltMode(hdc, HALFTONE);
-							StretchDIBits(hdc, rc.left, rc.top, cx, cy, nSrcX, nSrcY, nSrcWidth, nSrcHeight,
-								pBuf, (LPBITMAPINFO)lpbi, DIB_RGB_COLORS, SRCCOPY);
+							int nRet = StretchDIBits(hdc, rc.left, rc.top, cx, cy, nSrcX, nSrcY, nSrcWidth, nSrcHeight,
+								DIBFindBits(lpbi), (LPBITMAPINFO)lpbi, DIB_RGB_COLORS, SRCCOPY);
+							if (nRet == 0 || nRet == GDI_ERROR)
+							{
+								HBRUSH hbr = CreateHatchBrush(HS_DIAGCROSS, RGB(0, 0, 0));
+								FillRect(hdc, &rc, hbr);
+								DeleteObject(hbr);
+							}
 						}
 
 						GlobalUnlock(hDIB);
 					}
 				}
 				else
-					FillRect(hdc, &rc, (HBRUSH)(COLOR_BTNFACE + 1));
+				{
+					HBRUSH hbr = CreateHatchBrush(HS_DIAGCROSS, RGB(0, 0, 0));
+					FillRect(hdc, &rc, hbr);
+					DeleteObject(hbr);
+				}
 
 				if (bDrawText)
 				{ // Draw "NO THUMBNAIL" lettering over the default thumbnail image
@@ -934,7 +951,15 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 						return FALSE;
 					}
 
-					if (g_hDibThumb == NULL)
+					if (g_hDibThumb != NULL)
+					{
+						LPBITMAPINFOHEADER lpbi = (LPBITMAPINFOHEADER)GlobalLock(g_hDibThumb);
+						if (lpbi == NULL || lpbi->biSize < sizeof(BITMAPINFOHEADER) || lpbi->biBitCount < 8 ||
+							(lpbi->biCompression != BI_RGB && lpbi->biCompression != BI_BITFIELDS))
+							EnableMenuItem(hmenuTrackPopup, IDC_THUMB_SAVE, MF_BYCOMMAND | MF_GRAYED);
+						GlobalUnlock(g_hDibThumb);
+					}
+					else
 					{
 						EnableMenuItem(hmenuTrackPopup, IDC_THUMB_COPY, MF_BYCOMMAND | MF_GRAYED);
 						EnableMenuItem(hmenuTrackPopup, IDC_THUMB_SAVE, MF_BYCOMMAND | MF_GRAYED);
@@ -1319,6 +1344,13 @@ BOOL DumpFile(HWND hwndCtl, LPCTSTR lpszFileName, LPSTR lpszUid, LPSTR lpszEnvi)
 		OutputText(hwndCtl, TEXT("File Type:\tWebP\r\n"));
 
 		if (!(bRet = DumpWebP(hwndCtl, hFile, wfad.nFileSizeLow)))
+			OutputTextErr(hwndCtl, g_bGerUI ? IDP_GER_ERR_READ : IDP_ENG_ERR_READ);
+	}
+	else if (memcmp(achMagic, "BM", 2) == 0 || memcmp(achMagic, "BA", 2) == 0)
+	{ // BMP
+		OutputText(hwndCtl, TEXT("File Type:\tBitmap\r\n"));
+
+		if (!(bRet = DumpBitmap(hwndCtl, hFile, wfad.nFileSizeLow)))
 			OutputTextErr(hwndCtl, g_bGerUI ? IDP_GER_ERR_READ : IDP_ENG_ERR_READ);
 	}
 	else
@@ -1889,24 +1921,12 @@ HPALETTE DIBCreatePalette(HANDLE hDIB)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-UINT DIBPaletteSize(LPSTR lpbi)
+UINT DIBPaletteSize(LPCSTR lpbi)
 {
 	if (*(LPDWORD)lpbi == sizeof(BITMAPCOREHEADER))
 		return DIBNumColors(lpbi) * sizeof(RGBTRIPLE);
-
-	UINT uPaletteSize = DIBNumColors(lpbi) * sizeof(RGBQUAD);
-
-	if (*(LPDWORD)lpbi == sizeof(BITMAPINFOHEADER) &&
-		(((LPBITMAPINFOHEADER)lpbi)->biBitCount == 16 ||
-		((LPBITMAPINFOHEADER)lpbi)->biBitCount == 32))
-	{
-		if (((LPBITMAPINFOHEADER)lpbi)->biCompression == BI_BITFIELDS)
-			uPaletteSize += 3 * sizeof(DWORD);
-		else if (((LPBITMAPINFOHEADER)lpbi)->biCompression == 6)
-			uPaletteSize += 4 * sizeof(DWORD);
-	}
-
-	return uPaletteSize;
+	else
+		return DIBNumColors(lpbi) * sizeof(RGBQUAD);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1930,6 +1950,25 @@ UINT DIBNumColors(LPCSTR lpbi)
 		return (1U << wBPP);
 	else
 		return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+LPCSTR DIBFindBits(LPCSTR lpbi)
+{
+	LPCSTR pBits = lpbi + *(LPDWORD)lpbi + DIBPaletteSize(lpbi);
+
+	if (*(LPDWORD)lpbi == sizeof(BITMAPINFOHEADER) &&
+		(((LPBITMAPINFOHEADER)lpbi)->biBitCount == 16 ||
+			((LPBITMAPINFOHEADER)lpbi)->biBitCount == 32))
+	{
+		if (((LPBITMAPINFOHEADER)lpbi)->biCompression == BI_BITFIELDS)
+			pBits += 3 * sizeof(DWORD);
+		else if (((LPBITMAPINFOHEADER)lpbi)->biCompression == BI_ALPHABITFIELDS)
+			pBits += 4 * sizeof(DWORD);
+	}
+
+	return pBits;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
