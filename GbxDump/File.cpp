@@ -24,6 +24,7 @@
 
 #include "stdafx.h"
 #include "file.h"
+#include "dumpbmp.h"
 #include "..\libjpeg\jpeglib.h"
 #include "..\libwebp\src\webp\decode.h"
 #include "..\crunch\inc\crnlib.h"
@@ -213,7 +214,12 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDIB)
 		bFlipImage = FALSE;
 	}
 
-	INT nNumChannels = lpbi->biBitCount >> 3;
+	BOOL bIsCMYK = lpbi->biSize >= sizeof(BITMAPV4HEADER) &&
+		((LPBITMAPV4HEADER)lpbi)->bV4CSType == LCS_DEVICE_CMYK;
+
+	// CMYK DIBs are converted to RGB
+	INT nNumChannels = bIsCMYK ? 3 : lpbi->biBitCount >> 3;
+
 	// 16-bit bitmaps are saved with 3 channels (or 4 incl. alpha channel)
 	LONG lSizeImage = lHeight * lWidth * (lpbi->biBitCount == 16 ? 4 : nNumChannels);
 	if (lSizeImage == 0)
@@ -287,16 +293,36 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDIB)
 				break;
 
 			case 3:
-				for (h = 0; h < lHeight; h++)
+				if (bIsCMYK)
 				{
-					lpSrc = lpDIB + (bFlipImage ? lHeight-1 - h : h) * dwIncrement;
-					lpDest = lpRGBA + h * lWidth * nNumChannels;
-					for (w = 0; w < lWidth; w++)
+					BYTE cInvKey;
+					for (h = 0; h < lHeight; h++)
 					{
-						lpDest[2] = *lpSrc++;
-						lpDest[1] = *lpSrc++;
-						lpDest[0] = *lpSrc++;
-						lpDest += 3;
+						lpSrc = lpDIB + (bFlipImage ? lHeight-1 - h : h) * dwIncrement;
+						lpDest = lpRGBA + h * lWidth * nNumChannels;
+						for (w = 0; w < lWidth; w++)
+						{
+							cInvKey = 0xFF - lpSrc[3];
+							*lpDest++ = (0xFF - lpSrc[2]) * cInvKey / 0xFF;
+							*lpDest++ = (0xFF - lpSrc[1]) * cInvKey / 0xFF;
+							*lpDest++ = (0xFF - lpSrc[0]) * cInvKey / 0xFF;
+							lpSrc += 4;
+						}
+					}
+				}
+				else
+				{
+					for (h = 0; h < lHeight; h++)
+					{
+						lpSrc = lpDIB + (bFlipImage ? lHeight-1 - h : h) * dwIncrement;
+						lpDest = lpRGBA + h * lWidth * nNumChannels;
+						for (w = 0; w < lWidth; w++)
+						{
+							lpDest[2] = *lpSrc++;
+							lpDest[1] = *lpSrc++;
+							lpDest[0] = *lpSrc++;
+							lpDest += 3;
+						}
 					}
 				}
 				break;
@@ -984,7 +1010,7 @@ BOOL FreeDib(HANDLE hDib)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// CreatePremultipliedBitmap: Creates a copy of a 32-bit DIB with premultiplied alpha
+// CreatePremultipliedBitmap: Creates a 32-bit DIB of a 16-/32-bit DIB with premultiplied alpha
 
 HBITMAP CreatePremultipliedBitmap(HANDLE hDib)
 {
@@ -992,9 +1018,21 @@ HBITMAP CreatePremultipliedBitmap(HANDLE hDib)
 		return NULL;
 
 	LPBITMAPINFOHEADER lpbi = (LPBITMAPINFOHEADER)GlobalLock(hDib);
-	if (lpbi == NULL || lpbi->biSize != sizeof(BITMAPINFOHEADER) ||
-		lpbi->biBitCount != 32 || lpbi->biCompression != BI_RGB)
+	if (lpbi == NULL || lpbi->biSize < sizeof(BITMAPINFOHEADER) ||
+		(lpbi->biBitCount != 16 && lpbi->biBitCount != 32) ||
+		(lpbi->biCompression != BI_RGB && lpbi->biCompression != BI_BITFIELDS) ||
+		(lpbi->biSize >= sizeof(BITMAPV4HEADER) &&
+			((LPBITMAPV4HEADER)lpbi)->bV4CSType == LCS_DEVICE_CMYK))
 		return NULL;
+
+	LPBYTE lpDIB = (LPBYTE)lpbi + lpbi->biSize + lpbi->biClrUsed * sizeof(RGBQUAD);
+	if (lpbi->biSize == sizeof(BITMAPINFOHEADER) && lpbi->biCompression == BI_BITFIELDS)
+		lpDIB += 3 * sizeof(DWORD);
+
+	LONG lWidth = lpbi->biWidth;
+	LONG lHeight = lpbi->biHeight;
+	if (lHeight < 0)
+		lHeight = -lHeight;
 
 	BITMAPINFO bmi = { 0 };
 	bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
@@ -1003,34 +1041,91 @@ HBITMAP CreatePremultipliedBitmap(HANDLE hDib)
 	bmi.bmiHeader.biPlanes = 1;
 	bmi.bmiHeader.biBitCount = 32;
 	bmi.bmiHeader.biCompression = BI_RGB;
-	bmi.bmiHeader.biSizeImage = lpbi->biSizeImage;
+	bmi.bmiHeader.biSizeImage = lHeight * lWidth * 4;
 
-	LPVOID lpBMP = NULL;
-	HBITMAP hbmpDib = CreateDIBSection(NULL, &bmi, DIB_RGB_COLORS, &lpBMP, NULL, NULL);
+	LPBYTE lpRGBA = NULL;
+	HBITMAP hbmpDib = CreateDIBSection(NULL, &bmi, DIB_RGB_COLORS, (PVOID*)&lpRGBA, NULL, NULL);
 	if (hbmpDib == NULL)
 	{
 		GlobalUnlock(hDib);
 		return NULL;
 	}
 
+	LONG h, w;
 	BYTE cAlpha;
-	LONG lWidth = lpbi->biWidth;
-	LONG lHeight = abs(lpbi->biHeight);
-	LPBYTE lpSrc = ((LPBYTE)lpbi) + sizeof(BITMAPINFOHEADER);
-	LPBYTE lpDest = (LPBYTE)lpBMP;
+	LPBYTE lpSrc, lpDest;
+	LPDWORD lpdwColorMasks;
+	DWORD dwColor, dwRedMask, dwGreenMask, dwBlueMask, dwAlphaMask;
+	DWORD dwIncrement = ((lWidth * lpbi->biBitCount) + 31) / 32 * 4;
 
 	__try
 	{
-		for (LONG h = 0; h < lHeight; h++)
+		if (lpbi->biBitCount == 16)
 		{
-			for (LONG w = 0; w < lWidth; w++)
+			if (lpbi->biCompression == BI_BITFIELDS)
 			{
-				cAlpha = lpSrc[3];
-				*lpDest++ = lpSrc[0] * cAlpha / 0xFF;
-				*lpDest++ = lpSrc[1] * cAlpha / 0xFF;
-				*lpDest++ = lpSrc[2] * cAlpha / 0xFF;
-				*lpDest++ = cAlpha;
-				lpSrc += 4;
+				lpdwColorMasks = (LPDWORD)&(((LPBITMAPINFO)lpbi)->bmiColors[0]);
+				dwRedMask      = lpdwColorMasks[0];
+				dwGreenMask    = lpdwColorMasks[1];
+				dwBlueMask     = lpdwColorMasks[2];
+				dwAlphaMask    = lpbi->biSize >= 56 ? lpdwColorMasks[3] : 0;
+			}
+			else
+			{
+				dwRedMask   = 0x00007C00;
+				dwGreenMask = 0x000003E0;
+				dwBlueMask  = 0x0000001F;
+				dwAlphaMask = 0x00000000;
+			}
+
+			for (h = 0; h < lHeight; h++)
+			{
+				lpSrc = lpDIB + h * dwIncrement;
+				lpDest = lpRGBA + h * lWidth * 4;
+				for (w = 0; w < lWidth; w++)
+				{
+					dwColor = MAKELONG(MAKEWORD(lpSrc[0], lpSrc[1]), 0);
+					cAlpha = dwAlphaMask ? GetColorValue(dwColor, dwAlphaMask) : 0xFF;
+					*lpDest++ = GetColorValue(dwColor, dwBlueMask)  * cAlpha / 0xFF;
+					*lpDest++ = GetColorValue(dwColor, dwGreenMask) * cAlpha / 0xFF;
+					*lpDest++ = GetColorValue(dwColor, dwRedMask)   * cAlpha / 0xFF;
+					*lpDest++ = cAlpha;
+					lpSrc += 2;
+				}
+			}
+		}
+		else if(lpbi->biBitCount == 32)
+		{
+			if (lpbi->biCompression == BI_BITFIELDS)
+			{
+				lpdwColorMasks = (LPDWORD)&(((LPBITMAPINFO)lpbi)->bmiColors[0]);
+				dwRedMask      = lpdwColorMasks[0];
+				dwGreenMask    = lpdwColorMasks[1];
+				dwBlueMask     = lpdwColorMasks[2];
+				dwAlphaMask    = lpbi->biSize >= 56 ? lpdwColorMasks[3] : 0;
+			}
+			else
+			{
+				dwRedMask   = 0x00FF0000;
+				dwGreenMask = 0x0000FF00;
+				dwBlueMask  = 0x000000FF;
+				dwAlphaMask = 0xFF000000;
+			}
+
+			for (h = 0; h < lHeight; h++)
+			{
+				lpSrc = lpDIB + h * dwIncrement;
+				lpDest = lpRGBA + h * lWidth * 4;
+				for (w = 0; w < lWidth; w++)
+				{
+					dwColor = MAKELONG(MAKEWORD(lpSrc[0], lpSrc[1]), MAKEWORD(lpSrc[2], lpSrc[3]));
+					cAlpha = dwAlphaMask ? GetColorValue(dwColor, dwAlphaMask) : 0xFF;
+					*lpDest++ = GetColorValue(dwColor, dwBlueMask)  * cAlpha / 0xFF;
+					*lpDest++ = GetColorValue(dwColor, dwGreenMask) * cAlpha / 0xFF;
+					*lpDest++ = GetColorValue(dwColor, dwRedMask)   * cAlpha / 0xFF;
+					*lpDest++ = cAlpha;
+					lpSrc += 4;
+				}
 			}
 		}
 	}
