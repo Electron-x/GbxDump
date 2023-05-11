@@ -133,24 +133,49 @@ BOOL SaveBmpFile(LPCTSTR lpszFileName, HANDLE hDIB)
 	if (lpbi == NULL)
 		return FALSE;
 
-	DWORD dwPaletteSize = lpbi->biClrUsed * (DWORD)sizeof(RGBQUAD);
-	if (dwPaletteSize == 0 && lpbi->biBitCount <= 8)
-		dwPaletteSize = ((WORD)1 << lpbi->biBitCount) * (DWORD)sizeof(RGBQUAD);
-	DWORD dwDIBSize = *(LPDWORD)lpbi + dwPaletteSize;
-	if (lpbi->biSize == sizeof(BITMAPINFOHEADER) && lpbi->biCompression == BI_BITFIELDS)
-		dwDIBSize += 3 * sizeof(DWORD);
-	DWORD dwBmBitsSize = (((lpbi->biWidth * (DWORD)lpbi->biBitCount)+31)/32*4) * abs(lpbi->biHeight);
+	DWORD dwPaletteSize = 0;
+	DWORD dwDIBSize = 0;
+	DWORD dwOffBits = 0;
+	DWORD dwBmBitsSize = 0;
+	DWORD dwFileSize = 0;
+
+	if (lpbi->biSize == sizeof(BITMAPCOREHEADER))
+	{
+		LPBITMAPCOREHEADER lpbc = (LPBITMAPCOREHEADER)lpbi;
+		if (lpbc->bcBitCount < 16)
+			dwPaletteSize = (1 << lpbc->bcBitCount) * (DWORD)sizeof(RGBTRIPLE);
+		dwDIBSize = lpbc->bcSize + dwPaletteSize;
+		dwBmBitsSize = (((lpbc->bcWidth * lpbc->bcPlanes *
+			lpbc->bcBitCount) + 31) / 32 * 4) * lpbc->bcHeight;
+	}
+	else
+	{
+		dwPaletteSize = lpbi->biClrUsed * sizeof(RGBQUAD);
+		if (dwPaletteSize == 0 && lpbi->biBitCount < 16)
+			dwPaletteSize = (1 << lpbi->biBitCount) * (DWORD)sizeof(RGBQUAD);
+		dwDIBSize = lpbi->biSize + dwPaletteSize;
+		if (lpbi->biSize == sizeof(BITMAPINFOHEADER) && lpbi->biCompression == BI_BITFIELDS)
+			dwDIBSize += 3 * sizeof(DWORD);
+		else if (lpbi->biSize == sizeof(BITMAPINFOHEADER) && lpbi->biCompression == BI_ALPHABITFIELDS)
+			dwDIBSize += 4 * sizeof(DWORD);
+		if (lpbi->biCompression == BI_RGB || lpbi->biCompression == BI_BITFIELDS ||
+			lpbi->biCompression == BI_ALPHABITFIELDS || lpbi->biCompression == BI_CMYK)
+			dwBmBitsSize = (((lpbi->biWidth * lpbi->biPlanes *
+				lpbi->biBitCount) + 31) / 32 * 4) * abs(lpbi->biHeight);
+		else
+			dwBmBitsSize = lpbi->biSizeImage;
+	}
+
+	dwOffBits = sizeof(BITMAPFILEHEADER) + dwDIBSize;
 	dwDIBSize += dwBmBitsSize;
-	lpbi->biSizeImage = dwBmBitsSize;
+	dwFileSize = dwOffBits + dwBmBitsSize;
 
 	BITMAPFILEHEADER bmfHdr;
 	bmfHdr.bfType = 0x4d42;
-	bmfHdr.bfSize = dwDIBSize + sizeof(BITMAPFILEHEADER);
+	bmfHdr.bfSize = dwFileSize;
 	bmfHdr.bfReserved1 = 0;
 	bmfHdr.bfReserved2 = 0;
-	bmfHdr.bfOffBits = (DWORD)sizeof(BITMAPFILEHEADER) + *(LPDWORD)lpbi + dwPaletteSize;
-	if (lpbi->biSize == sizeof(BITMAPINFOHEADER) && lpbi->biCompression == BI_BITFIELDS)
-		bmfHdr.bfOffBits += 3 * sizeof(DWORD);
+	bmfHdr.bfOffBits = dwOffBits;
 
 	HANDLE hFile = CreateFile(lpszFileName, GENERIC_READ | GENERIC_WRITE, 0, NULL,
 		CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
@@ -185,7 +210,8 @@ BOOL SaveBmpFile(LPCTSTR lpszFileName, HANDLE hDIB)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Saves a DIB as a PNG file using miniz
+// Saves a DIB as a PNG file using miniz. Supports only
+// 8-bit grayscale, 16-bit, 24-bit and 32-bit color images.
 
 BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDIB)
 {
@@ -199,19 +225,19 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDIB)
 
 	DWORD dwPaletteSize = lpbi->biClrUsed * (DWORD)sizeof(RGBQUAD);
 	if (dwPaletteSize == 0 && lpbi->biBitCount <= 8)
-		dwPaletteSize = ((WORD)1 << lpbi->biBitCount) * (DWORD)sizeof(RGBQUAD);
+		dwPaletteSize = (1 << lpbi->biBitCount) * (DWORD)sizeof(RGBQUAD);
 
 	LPBYTE lpDIB = (LPBYTE)lpbi + lpbi->biSize + dwPaletteSize;
 	if (lpbi->biSize == sizeof(BITMAPINFOHEADER) && lpbi->biCompression == BI_BITFIELDS)
 		lpDIB += 3 * sizeof(DWORD);
 
-	BOOL bFlipImage = TRUE;
+	BOOL bFlipImage = FALSE;
 	LONG lWidth = lpbi->biWidth;
 	LONG lHeight = lpbi->biHeight;
 	if (lHeight < 0)
 	{
 		lHeight = -lHeight;
-		bFlipImage = FALSE;
+		bFlipImage = TRUE;
 	}
 
 	BOOL bIsCMYK = lpbi->biSize >= sizeof(BITMAPV4HEADER) &&
@@ -248,7 +274,7 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDIB)
 			case 1:
 				for (h = 0; h < lHeight; h++)
 				{
-					lpSrc = lpDIB + (bFlipImage ? lHeight-1 - h : h) * dwIncrement;
+					lpSrc = lpDIB + (bFlipImage ? h : lHeight-1 - h) * dwIncrement;
 					lpDest = lpRGBA + h * lWidth * nNumChannels;
 					for (w = 0; w < lWidth; w++)
 						*lpDest++ = *lpSrc++;
@@ -276,7 +302,7 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDIB)
 
 				for (h = 0; h < lHeight; h++)
 				{
-					lpSrc = lpDIB + (bFlipImage ? lHeight-1 - h : h) * dwIncrement;
+					lpSrc = lpDIB + (bFlipImage ? h : lHeight-1 - h) * dwIncrement;
 					lpDest = lpRGBA + h * lWidth * nNumChannels;
 					for (w = 0; w < lWidth; w++)
 					{
@@ -298,7 +324,7 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDIB)
 					BYTE cInvKey;
 					for (h = 0; h < lHeight; h++)
 					{
-						lpSrc = lpDIB + (bFlipImage ? lHeight-1 - h : h) * dwIncrement;
+						lpSrc = lpDIB + (bFlipImage ? h : lHeight-1 - h) * dwIncrement;
 						lpDest = lpRGBA + h * lWidth * nNumChannels;
 						for (w = 0; w < lWidth; w++)
 						{
@@ -314,7 +340,7 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDIB)
 				{
 					for (h = 0; h < lHeight; h++)
 					{
-						lpSrc = lpDIB + (bFlipImage ? lHeight-1 - h : h) * dwIncrement;
+						lpSrc = lpDIB + (bFlipImage ? h : lHeight-1 - h) * dwIncrement;
 						lpDest = lpRGBA + h * lWidth * nNumChannels;
 						for (w = 0; w < lWidth; w++)
 						{
@@ -346,7 +372,7 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDIB)
 
 				for (h = 0; h < lHeight; h++)
 				{
-					lpSrc = lpDIB + (bFlipImage ? lHeight-1 - h : h) * dwIncrement;
+					lpSrc = lpDIB + (bFlipImage ? h : lHeight-1 - h) * dwIncrement;
 					lpDest = lpRGBA + h * lWidth * nNumChannels;
 					for (w = 0; w < lWidth; w++)
 					{
@@ -568,7 +594,7 @@ HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData, BOOL bFlipImage, INT nTrace
 	lpBI->biPlanes        = 1;
 	lpBI->biBitCount      = (WORD)JpegDecompress.uBPP;
 	lpBI->biCompression   = BI_RGB;
-	lpBI->biSizeImage     = JpegDecompress.dwSize;
+	lpBI->biSizeImage     = 0;
 	lpBI->biXPelsPerMeter = JpegDecompress.dwXPelsPerMeter;
 	lpBI->biYPelsPerMeter = JpegDecompress.dwYPelsPerMeter;
 	lpBI->biClrUsed       = JpegDecompress.uWinColors;
@@ -869,7 +895,7 @@ HANDLE WebpToDib(LPVOID lpWebpData, DWORD dwLenData, BOOL bFlipImage, BOOL bShow
 	lpbi->biPlanes = 1;
 	lpbi->biBitCount = nNumChannels * 8;
 	lpbi->biCompression = BI_RGB;
-	lpbi->biSizeImage = nSizeImage;
+	lpbi->biSizeImage = 0;
 	lpbi->biXPelsPerMeter = 0;
 	lpbi->biYPelsPerMeter = 0;
 	lpbi->biClrUsed = 0;
@@ -959,7 +985,7 @@ HANDLE DdsToDib(LPVOID lpDdsData, DWORD dwLenData, BOOL bFlipImage, BOOL bShowTe
 	lpbi->biPlanes = 1;
 	lpbi->biBitCount = 32;
 	lpbi->biCompression = BI_RGB;
-	lpbi->biSizeImage = uSizeImage;
+	lpbi->biSizeImage = 0;
 	lpbi->biXPelsPerMeter = 0;
 	lpbi->biYPelsPerMeter = 0;
 	lpbi->biClrUsed = 0;
@@ -1041,10 +1067,10 @@ HBITMAP CreatePremultipliedBitmap(HANDLE hDib)
 	bmi.bmiHeader.biPlanes = 1;
 	bmi.bmiHeader.biBitCount = 32;
 	bmi.bmiHeader.biCompression = BI_RGB;
-	bmi.bmiHeader.biSizeImage = lHeight * lWidth * 4;
+	bmi.bmiHeader.biSizeImage = 0;
 
-	LPBYTE lpRGBA = NULL;
-	HBITMAP hbmpDib = CreateDIBSection(NULL, &bmi, DIB_RGB_COLORS, (PVOID*)&lpRGBA, NULL, NULL);
+	LPBYTE lpBGRA = NULL;
+	HBITMAP hbmpDib = CreateDIBSection(NULL, &bmi, DIB_RGB_COLORS, (PVOID*)&lpBGRA, NULL, NULL);
 	if (hbmpDib == NULL)
 	{
 		GlobalUnlock(hDib);
@@ -1081,7 +1107,7 @@ HBITMAP CreatePremultipliedBitmap(HANDLE hDib)
 			for (h = 0; h < lHeight; h++)
 			{
 				lpSrc = lpDIB + h * dwIncrement;
-				lpDest = lpRGBA + h * lWidth * 4;
+				lpDest = lpBGRA + h * lWidth * 4;
 				for (w = 0; w < lWidth; w++)
 				{
 					dwColor = MAKELONG(MAKEWORD(lpSrc[0], lpSrc[1]), 0);
@@ -1115,7 +1141,7 @@ HBITMAP CreatePremultipliedBitmap(HANDLE hDib)
 			for (h = 0; h < lHeight; h++)
 			{
 				lpSrc = lpDIB + h * dwIncrement;
-				lpDest = lpRGBA + h * lWidth * 4;
+				lpDest = lpBGRA + h * lWidth * 4;
 				for (w = 0; w < lWidth; w++)
 				{
 					dwColor = MAKELONG(MAKEWORD(lpSrc[0], lpSrc[1]), MAKEWORD(lpSrc[2], lpSrc[3]));
