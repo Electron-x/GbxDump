@@ -452,7 +452,18 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		OutputText(hwndCtl, TEXT("\r\n"));
 
 		OutputTextFmt(hwndCtl, szOutput, TEXT("ProfileData:\t%u bytes\r\n"), lpbih->bV5ProfileData);
-		OutputTextFmt(hwndCtl, szOutput, TEXT("ProfileSize:\t%u bytes\r\n"), lpbih->bV5ProfileSize);
+
+		OutputTextFmt(hwndCtl, szOutput, TEXT("ProfileSize:\t%u bytes"), lpbih->bV5ProfileSize);
+		if (lpbih->bV5ProfileData != 0 && lpbih->bV5ProfileSize != 0 &&
+			lpbih->bV5CSType == PROFILE_LINKED && dwDibSize > lpbih->bV5ProfileData)
+		{
+			char szPath[MAX_PATH] = { 0 };
+			int nLen = min(min(lpbih->bV5ProfileSize, dwDibSize - lpbih->bV5ProfileData), _countof(szPath));
+			lstrcpynA(szPath, (LPSTR)lpbih + lpbih->bV5ProfileData, nLen);
+			OutputTextFmt(hwndCtl, szOutput, TEXT(" (%hs)"), szPath);
+		}
+		OutputText(hwndCtl, TEXT("\r\n"));
+
 		OutputTextFmt(hwndCtl, szOutput, TEXT("Reserved:\t%u\r\n"), lpbih->bV5Reserved);
 	}
 
