@@ -1083,6 +1083,7 @@ HBITMAP CreatePremultipliedBitmap(HANDLE hDib)
 	LPDWORD lpdwColorMasks;
 	DWORD dwColor, dwRedMask, dwGreenMask, dwBlueMask, dwAlphaMask;
 	DWORD dwIncrement = ((lWidth * lpbi->biBitCount) + 31) / 32 * 4;
+	BOOL bHasVisiblePixels = FALSE;
 
 	__try
 	{
@@ -1112,6 +1113,7 @@ HBITMAP CreatePremultipliedBitmap(HANDLE hDib)
 				{
 					dwColor = MAKELONG(MAKEWORD(lpSrc[0], lpSrc[1]), 0);
 					cAlpha = dwAlphaMask ? GetColorValue(dwColor, dwAlphaMask) : 0xFF;
+					if (cAlpha != 0) bHasVisiblePixels = TRUE;
 					*lpDest++ = GetColorValue(dwColor, dwBlueMask)  * cAlpha / 0xFF;
 					*lpDest++ = GetColorValue(dwColor, dwGreenMask) * cAlpha / 0xFF;
 					*lpDest++ = GetColorValue(dwColor, dwRedMask)   * cAlpha / 0xFF;
@@ -1146,6 +1148,7 @@ HBITMAP CreatePremultipliedBitmap(HANDLE hDib)
 				{
 					dwColor = MAKELONG(MAKEWORD(lpSrc[0], lpSrc[1]), MAKEWORD(lpSrc[2], lpSrc[3]));
 					cAlpha = dwAlphaMask ? GetColorValue(dwColor, dwAlphaMask) : 0xFF;
+					if (cAlpha != 0) bHasVisiblePixels = TRUE;
 					*lpDest++ = GetColorValue(dwColor, dwBlueMask)  * cAlpha / 0xFF;
 					*lpDest++ = GetColorValue(dwColor, dwGreenMask) * cAlpha / 0xFF;
 					*lpDest++ = GetColorValue(dwColor, dwRedMask)   * cAlpha / 0xFF;
@@ -1158,6 +1161,12 @@ HBITMAP CreatePremultipliedBitmap(HANDLE hDib)
 	__except (EXCEPTION_EXECUTE_HANDLER) { ; }
 
 	GlobalUnlock(hDib);
+
+	if (!bHasVisiblePixels)
+	{
+		FreeBitmap(hbmpDib);
+		return FALSE;
+	}
 
 	return hbmpDib;
 }
