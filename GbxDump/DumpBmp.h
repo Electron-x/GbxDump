@@ -25,10 +25,15 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
+#define BI_BGRA             5L          // Windows NT 5
 #define BI_ALPHABITFIELDS   6L          // Windows CE
 #define BI_CMYK             11L         // Windows Metafile
 #define BI_CMYKRLE8         12L         // Windows Metafile
 #define BI_CMYKRLE4         13L         // Windows Metafile
+
+#ifndef BI_1632
+#define BI_1632             0x32333631  // '1632'
+#endif
 
 #ifndef LCS_DEVICE_RGB
 #define LCS_DEVICE_RGB                  0x00000001L
