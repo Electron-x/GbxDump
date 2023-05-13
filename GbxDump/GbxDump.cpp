@@ -809,8 +809,6 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 						}
 						__except (EXCEPTION_EXECUTE_HANDLER) { cbLen = 0; }
 
-						BOOL bIsDIBV5 = *(LPDWORD)lpSrc == sizeof(BITMAPV5HEADER);
-
 						GlobalUnlock((HGLOBAL)hDIB);
 						GlobalUnlock((HGLOBAL)hNewDIB);
 
@@ -829,7 +827,7 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 							return FALSE;
 						}
 
-						if (SetClipboardData(bIsDIBV5 ? CF_DIBV5 : CF_DIB, (HANDLE)hNewDIB) == NULL)
+						if (SetClipboardData(CF_DIB, (HANDLE)hNewDIB) == NULL)
 							GlobalFree((HGLOBAL)hNewDIB);
 
 						CloseClipboard();
@@ -956,17 +954,9 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 					if (g_hDibThumb != NULL)
 					{
 						LPBITMAPINFOHEADER lpbi = (LPBITMAPINFOHEADER)GlobalLock(g_hDibThumb);
-
-						if (lpbi == NULL ||
-							lpbi->biSize != sizeof(BITMAPCOREHEADER) || lpbi->biSize != sizeof(BITMAPINFOHEADER) ||
-							lpbi->biSize != sizeof(BITMAPV4HEADER) || lpbi->biSize != sizeof(BITMAPV5HEADER))
-							EnableMenuItem(hmenuTrackPopup, IDC_THUMB_COPY, MF_BYCOMMAND | MF_GRAYED);
-						
-						// Format restrictions based on the used PNG writer
 						if (lpbi == NULL || lpbi->biSize < sizeof(BITMAPINFOHEADER) || lpbi->biBitCount < 8 ||
 							(lpbi->biCompression != BI_RGB && lpbi->biCompression != BI_BITFIELDS))
 							EnableMenuItem(hmenuTrackPopup, IDC_THUMB_SAVE, MF_BYCOMMAND | MF_GRAYED);
-						
 						GlobalUnlock(g_hDibThumb);
 					}
 					else
