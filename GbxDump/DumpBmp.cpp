@@ -167,8 +167,12 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		OutputTextFmt(hwndCtl, szOutput, TEXT("Planes:\t\t%u\r\n"), lpbch->bcPlanes);
 		OutputTextFmt(hwndCtl, szOutput, TEXT("BitCount:\t%u bpp\r\n"), lpbch->bcBitCount);
 		
+		UINT64 ullBitsSize = (UINT64)((((lpbch->bcWidth * lpbch->bcPlanes *
+			lpbch->bcBitCount) + 31) / 32) * 4) * lpbch->bcHeight;
+
 		// Windows also supports the Windows Version 2.0 variant with 16 bpp and 32 bpp
-		if (lpbch->bcBitCount > 32)
+		if (ullBitsSize == 0 || ullBitsSize > 0xFFFFFFFF ||
+			lpbch->bcPlanes > 4 || lpbch->bcBitCount > 32)
 			bIsUnsupportedFormat = TRUE;
 	}
 
@@ -179,8 +183,12 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		OutputTextFmt(hwndCtl, szOutput, TEXT("Planes:\t\t%u\r\n"), lpbih->bV5Planes);
 		OutputTextFmt(hwndCtl, szOutput, TEXT("BitCount:\t%u bpp\r\n"), lpbih->bV5BitCount);
 
+		INT64 llBitsSize = (INT64)((((lpbih->bV5Width * lpbih->bV5Planes *
+			lpbih->bV5BitCount) + 31) / 32) * 4) * abs(lpbih->bV5Height);
+
 		// BitCount == 2 is valid for Windows CE, but is not supported by the PC version of Windows
-		if (lpbih->bV5Width < 0 || lpbih->bV5BitCount == 2 || lpbih->bV5BitCount > 32)
+		if (llBitsSize <= 0 || llBitsSize > 0xFFFFFFFFL || lpbih->bV5Planes > 4 ||
+			lpbih->bV5BitCount == 2 || lpbih->bV5BitCount > 32)
 			bIsUnsupportedFormat = TRUE;
 
 		DWORD dwCompression = lpbih->bV5Compression;
