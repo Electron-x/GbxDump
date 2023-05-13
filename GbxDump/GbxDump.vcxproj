@@ -220,7 +220,7 @@
     <ClCompile Include="DumpDds.cpp" />
     <ClCompile Include="DumpGbx.cpp" />
     <ClCompile Include="DumpPak.cpp" />
-    <ClCompile Include="File.cpp" />
+    <ClCompile Include="ImgFmt.cpp" />
     <ClCompile Include="GbxDump.cpp" />
     <ClCompile Include="Internet.cpp" />
     <ClCompile Include="Misc.cpp" />
@@ -240,7 +240,7 @@
     <ClInclude Include="DumpDds.h" />
     <ClInclude Include="DumpGbx.h" />
     <ClInclude Include="DumpPak.h" />
-    <ClInclude Include="File.h" />
+    <ClInclude Include="ImgFmt.h" />
     <ClInclude Include="GbxDump.h" />
     <ClInclude Include="Internet.h" />
     <ClInclude Include="Misc.h" />

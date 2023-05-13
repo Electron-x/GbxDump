@@ -17,7 +17,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "stdafx.h"
-#include "file.h"
+#include "imgfmt.h"
 #include "tmx.h"
 #include "dedimania.h"
 #include "archive.h"

@@ -400,11 +400,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\File.cpp"
+				RelativePath=".\GbxDump.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\GbxDump.cpp"
+				RelativePath=".\ImgFmt.cpp"
 				>
 			</File>
 			<File
@@ -490,11 +490,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\File.h"
+				RelativePath=".\GbxDump.h"
 				>
 			</File>
 			<File
-				RelativePath=".\GbxDump.h"
+				RelativePath=".\ImgFmt.h"
 				>
 			</File>
 			<File

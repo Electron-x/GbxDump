@@ -30,7 +30,7 @@
     <ClCompile Include="DumpPak.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="File.cpp">
+    <ClCompile Include="ImgFmt.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="GbxDump.cpp">
@@ -71,7 +71,7 @@
     <ClInclude Include="DumpPak.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="File.h">
+    <ClInclude Include="ImgFmt.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="GbxDump.h">

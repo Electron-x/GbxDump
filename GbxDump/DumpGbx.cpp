@@ -21,7 +21,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "stdafx.h"
-#include "file.h"
+#include "imgfmt.h"
 #include "classid.h"
 #include "archive.h"
 #include "dumpgbx.h"
