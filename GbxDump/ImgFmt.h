@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// File.h - Copyright (c) 2010-2023 by Electron.
+// ImgFmt.h - Copyright (c) 2010-2023 by Electron.
 //
 // Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -16,6 +16,15 @@
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
+#define WIDTHBYTES(bits)    (((bits) + 31) / 32 * 4)
+
+#define IS_OS2PM_DIB(lpbi)  ((*(LPDWORD)(lpbi)) == sizeof(BITMAPCOREHEADER))
+#define IS_WIN30_DIB(lpbi)  ((*(LPDWORD)(lpbi)) == sizeof(BITMAPINFOHEADER))
+#define IS_WIN40_DIB(lpbi)  ((*(LPDWORD)(lpbi)) == sizeof(BITMAPV4HEADER))
+#define IS_WIN50_DIB(lpbi)  ((*(LPDWORD)(lpbi)) == sizeof(BITMAPV5HEADER))
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+
 BOOL GetFileName(HWND hDlg, LPTSTR lpszFileName, SIZE_T cchStringLen, LPDWORD lpdwFilterIndex, BOOL bSave = FALSE);
 
 BOOL SaveBmpFile(LPCTSTR lpszFileName, HANDLE hDIB);
@@ -24,10 +33,14 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDIB);
 HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData, BOOL bFlipImage = FALSE, INT nTraceLevel = 0);
 HANDLE WebpToDib(LPVOID lpWebpData, DWORD dwLenData, BOOL bFlipImage = FALSE, BOOL bShowFeatures = FALSE);
 HANDLE DdsToDib(LPVOID lpDdsData, DWORD dwLenData, BOOL bFlipImage = FALSE, BOOL bShowTextureDesc = FALSE);
-
 BOOL FreeDib(HANDLE hDib);
 
 HBITMAP CreatePremultipliedBitmap(HANDLE hDib);
 BOOL FreeBitmap(HBITMAP hbmpDib);
+
+HPALETTE DIBCreatePalette(HANDLE hDIB);
+UINT DIBPaletteSize(LPCSTR lpbi);
+UINT DIBNumColors(LPCSTR lpbi);
+LPBYTE DIBFindBits(LPCSTR lpbi);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////

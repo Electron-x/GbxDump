@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// File.cpp - Copyright (c) 2010-2023 by Electron.
+// ImgFmt.cpp - Copyright (c) 2010-2023 by Electron.
 //
 // Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -133,35 +133,27 @@ BOOL SaveBmpFile(LPCTSTR lpszFileName, HANDLE hDIB)
 	if (lpbi == NULL)
 		return FALSE;
 
-	DWORD dwPaletteSize = 0;
 	DWORD dwDIBSize = 0;
 	DWORD dwOffBits = 0;
 	DWORD dwBmBitsSize = 0;
 	DWORD dwFileSize = 0;
 
-	if (lpbi->biSize == sizeof(BITMAPCOREHEADER))
+	if (IS_OS2PM_DIB(lpbi))
 	{
 		LPBITMAPCOREHEADER lpbc = (LPBITMAPCOREHEADER)lpbi;
-		if (lpbc->bcBitCount < 16)
-			dwPaletteSize = (1 << lpbc->bcBitCount) * (DWORD)sizeof(RGBTRIPLE);
-		dwDIBSize = lpbc->bcSize + dwPaletteSize;
-		dwBmBitsSize = (((lpbc->bcWidth * lpbc->bcPlanes *
-			lpbc->bcBitCount) + 31) / 32 * 4) * lpbc->bcHeight;
+		dwDIBSize = lpbc->bcSize + DIBNumColors((LPCSTR)lpbc);
+		dwBmBitsSize = WIDTHBYTES(lpbc->bcWidth * lpbc->bcPlanes * lpbc->bcBitCount) * lpbc->bcHeight;
 	}
 	else
 	{
-		dwPaletteSize = lpbi->biClrUsed * sizeof(RGBQUAD);
-		if (dwPaletteSize == 0 && lpbi->biBitCount < 16)
-			dwPaletteSize = (1 << lpbi->biBitCount) * (DWORD)sizeof(RGBQUAD);
-		dwDIBSize = lpbi->biSize + dwPaletteSize;
-		if (lpbi->biSize == sizeof(BITMAPINFOHEADER) && lpbi->biCompression == BI_BITFIELDS)
+		dwDIBSize = lpbi->biSize + DIBNumColors((LPCSTR)lpbi);
+		if (IS_WIN30_DIB(lpbi) && lpbi->biCompression == BI_BITFIELDS)
 			dwDIBSize += 3 * sizeof(DWORD);
-		else if (lpbi->biSize == sizeof(BITMAPINFOHEADER) && lpbi->biCompression == BI_ALPHABITFIELDS)
+		else if (IS_WIN30_DIB(lpbi) && lpbi->biCompression == BI_ALPHABITFIELDS)
 			dwDIBSize += 4 * sizeof(DWORD);
 		if (lpbi->biCompression == BI_RGB || lpbi->biCompression == BI_BITFIELDS ||
 			lpbi->biCompression == BI_ALPHABITFIELDS || lpbi->biCompression == BI_CMYK)
-			dwBmBitsSize = (((lpbi->biWidth * lpbi->biPlanes *
-				lpbi->biBitCount) + 31) / 32 * 4) * abs(lpbi->biHeight);
+			dwBmBitsSize = WIDTHBYTES(lpbi->biWidth * lpbi->biPlanes * lpbi->biBitCount) * abs(lpbi->biHeight);
 		else
 			dwBmBitsSize = lpbi->biSizeImage;
 	}
@@ -223,14 +215,6 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDIB)
 		(lpbi->biCompression != BI_RGB && lpbi->biCompression != BI_BITFIELDS))
 		return FALSE;
 
-	DWORD dwPaletteSize = lpbi->biClrUsed * (DWORD)sizeof(RGBQUAD);
-	if (dwPaletteSize == 0 && lpbi->biBitCount <= 8)
-		dwPaletteSize = (1 << lpbi->biBitCount) * (DWORD)sizeof(RGBQUAD);
-
-	LPBYTE lpDIB = (LPBYTE)lpbi + lpbi->biSize + dwPaletteSize;
-	if (lpbi->biSize == sizeof(BITMAPINFOHEADER) && lpbi->biCompression == BI_BITFIELDS)
-		lpDIB += 3 * sizeof(DWORD);
-
 	BOOL bFlipImage = FALSE;
 	LONG lWidth = lpbi->biWidth;
 	LONG lHeight = lpbi->biHeight;
@@ -254,6 +238,7 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDIB)
 		return FALSE;
 	}
 
+	LPBYTE lpDIB = DIBFindBits((LPCSTR)lpbi);
 	LPBYTE lpRGBA = (LPBYTE)GlobalAllocPtr(GHND, lSizeImage);
 	if (lpRGBA == NULL)
 	{
@@ -265,7 +250,7 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDIB)
 	LPBYTE lpSrc, lpDest;
 	LPDWORD lpdwColorMasks;
 	DWORD dwColor, dwRedMask, dwGreenMask, dwBlueMask, dwAlphaMask;
-	DWORD dwIncrement = ((lWidth * lpbi->biBitCount) + 31) / 32 * 4;
+	DWORD dwIncrement = WIDTHBYTES(lWidth * lpbi->biBitCount);
 
 	__try
 	{
@@ -866,7 +851,7 @@ HANDLE WebpToDib(LPVOID lpWebpData, DWORD dwLenData, BOOL bFlipImage, BOOL bShow
 		return NULL;
 	
 	int nNumChannels = features.has_alpha ? 4 : 3;
-	int nIncrement = ((nWidth * nNumChannels * 8) + 31) / 32 * 4;
+	int nIncrement = WIDTHBYTES(nWidth * nNumChannels * 8);
 	int nSizeImage = nHeight * nIncrement;
 	if (nSizeImage == 0)
 	{
@@ -1051,10 +1036,6 @@ HBITMAP CreatePremultipliedBitmap(HANDLE hDib)
 			((LPBITMAPV4HEADER)lpbi)->bV4CSType == LCS_DEVICE_CMYK))
 		return NULL;
 
-	LPBYTE lpDIB = (LPBYTE)lpbi + lpbi->biSize + lpbi->biClrUsed * sizeof(RGBQUAD);
-	if (lpbi->biSize == sizeof(BITMAPINFOHEADER) && lpbi->biCompression == BI_BITFIELDS)
-		lpDIB += 3 * sizeof(DWORD);
-
 	LONG lWidth = lpbi->biWidth;
 	LONG lHeight = lpbi->biHeight;
 	if (lHeight < 0)
@@ -1070,6 +1051,8 @@ HBITMAP CreatePremultipliedBitmap(HANDLE hDib)
 	bmi.bmiHeader.biSizeImage = 0;
 
 	LPBYTE lpBGRA = NULL;
+	LPBYTE lpDIB = DIBFindBits((LPCSTR)lpbi);
+
 	HBITMAP hbmpDib = CreateDIBSection(NULL, &bmi, DIB_RGB_COLORS, (PVOID*)&lpBGRA, NULL, NULL);
 	if (hbmpDib == NULL)
 	{
@@ -1082,7 +1065,7 @@ HBITMAP CreatePremultipliedBitmap(HANDLE hDib)
 	LPBYTE lpSrc, lpDest;
 	LPDWORD lpdwColorMasks;
 	DWORD dwColor, dwRedMask, dwGreenMask, dwBlueMask, dwAlphaMask;
-	DWORD dwIncrement = ((lWidth * lpbi->biBitCount) + 31) / 32 * 4;
+	DWORD dwIncrement = WIDTHBYTES(lWidth * lpbi->biBitCount);
 	BOOL bHasVisiblePixels = FALSE;
 
 	__try
@@ -1180,6 +1163,120 @@ BOOL FreeBitmap(HBITMAP hbmpDib)
 		return FALSE;
 
 	return DeleteObject(hbmpDib);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Creates a logical color palette from a given DIB
+
+HPALETTE DIBCreatePalette(HANDLE hDIB)
+{
+	if (hDIB == NULL)
+		return NULL;
+
+	HPALETTE hPal = NULL;
+	LPSTR lpbi = (LPSTR)GlobalLock((HGLOBAL)hDIB);
+	LPBITMAPINFO lpbmi = (LPBITMAPINFO)lpbi;
+	LPBITMAPCOREINFO lpbmc = (LPBITMAPCOREINFO)lpbi;
+	if (lpbi == NULL)
+		return NULL;
+
+	UINT uNumColors = DIBNumColors(lpbi);
+	if (uNumColors != 0)
+	{ // Create a palette from the colors of the DIB
+		LPLOGPALETTE lpPal = (LPLOGPALETTE)GlobalAllocPtr(GHND,
+			sizeof(LOGPALETTE) + sizeof(PALETTEENTRY) * uNumColors);
+		if (lpPal == NULL)
+		{
+			GlobalUnlock((HGLOBAL)hDIB);
+			return NULL;
+		}
+
+		lpPal->palVersion = 0x300;
+		lpPal->palNumEntries = (WORD)uNumColors;
+
+		if (IS_OS2PM_DIB(lpbi))
+			for (UINT i = 0; i < uNumColors; i++)
+			{
+				lpPal->palPalEntry[i].peRed = lpbmc->bmciColors[i].rgbtRed;
+				lpPal->palPalEntry[i].peGreen = lpbmc->bmciColors[i].rgbtGreen;
+				lpPal->palPalEntry[i].peBlue = lpbmc->bmciColors[i].rgbtBlue;
+				lpPal->palPalEntry[i].peFlags = 0;
+			}
+		else
+			for (UINT i = 0; i < uNumColors; i++)
+			{
+				lpPal->palPalEntry[i].peRed = lpbmi->bmiColors[i].rgbRed;
+				lpPal->palPalEntry[i].peGreen = lpbmi->bmiColors[i].rgbGreen;
+				lpPal->palPalEntry[i].peBlue = lpbmi->bmiColors[i].rgbBlue;
+				lpPal->palPalEntry[i].peFlags = 0;
+			}
+
+		hPal = CreatePalette(lpPal);
+
+		GlobalFreePtr((LPVOID)lpPal);
+	}
+	else
+	{ // Create a halftone palette
+		HDC hDC = GetDC(NULL);
+		hPal = CreateHalftonePalette(hDC);
+		ReleaseDC(NULL, hDC);
+	}
+
+	GlobalUnlock((HGLOBAL)hDIB);
+
+	return hPal;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+UINT DIBPaletteSize(LPCSTR lpbi)
+{
+	if (IS_OS2PM_DIB(lpbi))
+		return DIBNumColors(lpbi) * sizeof(RGBTRIPLE);
+	else
+		return DIBNumColors(lpbi) * sizeof(RGBQUAD);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+UINT DIBNumColors(LPCSTR lpbi)
+{
+	WORD wBPP = 0;
+
+	if (IS_OS2PM_DIB(lpbi))
+		wBPP = ((LPBITMAPCOREHEADER)lpbi)->bcBitCount;
+	else
+	{
+		DWORD dwClrUsed = ((LPBITMAPINFOHEADER)lpbi)->biClrUsed;
+		wBPP = ((LPBITMAPINFOHEADER)lpbi)->biBitCount;
+
+		if (dwClrUsed > 0 && dwClrUsed <= (1U << wBPP))
+			return dwClrUsed;
+	}
+
+	if (wBPP > 0 && wBPP < 16)
+		return (1U << wBPP);
+	else
+		return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+LPBYTE DIBFindBits(LPCSTR lpbi)
+{
+	LPBYTE pBits = (LPBYTE)lpbi + *(LPDWORD)lpbi + DIBPaletteSize(lpbi);
+
+	if (IS_WIN30_DIB(lpbi) &&
+		(((LPBITMAPINFOHEADER)lpbi)->biBitCount == 16 ||
+		((LPBITMAPINFOHEADER)lpbi)->biBitCount == 32))
+	{
+		if (((LPBITMAPINFOHEADER)lpbi)->biCompression == BI_BITFIELDS)
+			pBits += 3 * sizeof(DWORD);
+		else if (((LPBITMAPINFOHEADER)lpbi)->biCompression == BI_ALPHABITFIELDS)
+			pBits += 4 * sizeof(DWORD);
+	}
+
+	return pBits;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////

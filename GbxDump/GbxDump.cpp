@@ -47,11 +47,6 @@ int SelectText(HWND hwndCtl);
 BOOL SetWordWrap(HWND hDlg, BOOL bWordWrap);
 HFONT CreateScaledFont(HDC hDC, LPCRECT lpRect, LPCTSTR lpszFormat);
 
-HPALETTE DIBCreatePalette(HANDLE hDIB);
-UINT DIBPaletteSize(LPCSTR lpbi);
-UINT DIBNumColors(LPCSTR lpbi);
-LPCSTR DIBFindBits(LPCSTR lpbi);
-
 void StoreWindowRect(HWND hwnd, LPRECT lprc);
 void RetrieveWindowRect(HWND hwnd, LPRECT lprc);
 void DeleteWindowRect(HWND hwnd);
@@ -263,7 +258,7 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 						int nSrcY = 0;
 						int nSrcWidth  = ((LPBITMAPINFOHEADER)lpbi)->biWidth;
 						int nSrcHeight = ((LPBITMAPINFOHEADER)lpbi)->biHeight;
-						if (*(LPDWORD)lpbi == sizeof(BITMAPCOREHEADER))
+						if (IS_OS2PM_DIB(lpbi))
 						{
 							nSrcWidth  = ((LPBITMAPCOREHEADER)lpbi)->bcWidth;
 							nSrcHeight = ((LPBITMAPCOREHEADER)lpbi)->bcHeight;
@@ -957,9 +952,8 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 					{
 						LPBITMAPINFOHEADER lpbi = (LPBITMAPINFOHEADER)GlobalLock(g_hDibThumb);
 
-						if (lpbi == NULL ||
-							(lpbi->biSize != sizeof(BITMAPCOREHEADER) && lpbi->biSize != sizeof(BITMAPINFOHEADER) &&
-							lpbi->biSize != sizeof(BITMAPV4HEADER) && lpbi->biSize != sizeof(BITMAPV5HEADER)))
+						if (lpbi == NULL || (!IS_OS2PM_DIB(lpbi) && !IS_WIN30_DIB(lpbi) &&
+							!IS_WIN40_DIB(lpbi) && !IS_WIN50_DIB(lpbi)))
 							EnableMenuItem(hmenuTrackPopup, IDC_THUMB_COPY, MF_BYCOMMAND | MF_GRAYED);
 						
 						// Format restrictions based on the used PNG writer
@@ -1865,120 +1859,6 @@ HFONT CreateScaledFont(HDC hDC, LPCRECT lpRect, LPCTSTR lpszText)
 	}
 
 	return hFont;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////
-// Creates a logical color palette from a given DIB
-
-HPALETTE DIBCreatePalette(HANDLE hDIB)
-{
-	if (hDIB == NULL)
-		return NULL;
-
-	HPALETTE hPal = NULL;
-	LPSTR lpbi = (LPSTR)GlobalLock((HGLOBAL)hDIB);
-	LPBITMAPINFO lpbmi = (LPBITMAPINFO)lpbi;
-	LPBITMAPCOREINFO lpbmc = (LPBITMAPCOREINFO)lpbi;
-	if (lpbi == NULL)
-		return NULL;
-
-	UINT uNumColors = DIBNumColors(lpbi);
-	if (uNumColors != 0)
-	{ // Create a palette from the colors of the DIB
-		LPLOGPALETTE lpPal = (LPLOGPALETTE)GlobalAllocPtr(GHND,
-			sizeof(LOGPALETTE) + sizeof(PALETTEENTRY) * uNumColors);
-		if (lpPal == NULL)
-		{
-			GlobalUnlock((HGLOBAL)hDIB);
-			return NULL;
-		}
-
-		lpPal->palVersion    = 0x300;
-		lpPal->palNumEntries = (WORD)uNumColors;
-
-		if (*(LPDWORD)lpbi == sizeof(BITMAPCOREHEADER))
-			for (UINT i = 0; i < uNumColors; i++)
-			{
-				lpPal->palPalEntry[i].peRed   = lpbmc->bmciColors[i].rgbtRed;
-				lpPal->palPalEntry[i].peGreen = lpbmc->bmciColors[i].rgbtGreen;
-				lpPal->palPalEntry[i].peBlue  = lpbmc->bmciColors[i].rgbtBlue;
-				lpPal->palPalEntry[i].peFlags = 0;
-			}
-		else
-			for (UINT i = 0; i < uNumColors; i++)
-			{
-				lpPal->palPalEntry[i].peRed   = lpbmi->bmiColors[i].rgbRed;
-				lpPal->palPalEntry[i].peGreen = lpbmi->bmiColors[i].rgbGreen;
-				lpPal->palPalEntry[i].peBlue  = lpbmi->bmiColors[i].rgbBlue;
-				lpPal->palPalEntry[i].peFlags = 0;
-			}
-
-		hPal = CreatePalette(lpPal);
-
-		GlobalFreePtr((LPVOID)lpPal);
-	}
-	else
-	{ // Create a halftone palette
-		HDC hDC = GetDC(NULL);
-		hPal = CreateHalftonePalette(hDC);
-		ReleaseDC(NULL, hDC);
-	}
-
-	GlobalUnlock((HGLOBAL)hDIB);
-
-	return hPal;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////
-
-UINT DIBPaletteSize(LPCSTR lpbi)
-{
-	if (*(LPDWORD)lpbi == sizeof(BITMAPCOREHEADER))
-		return DIBNumColors(lpbi) * sizeof(RGBTRIPLE);
-	else
-		return DIBNumColors(lpbi) * sizeof(RGBQUAD);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////
-
-UINT DIBNumColors(LPCSTR lpbi)
-{
-	WORD wBPP = 0;
-
-	if (*(LPDWORD)lpbi == sizeof(BITMAPCOREHEADER))
-		wBPP = ((LPBITMAPCOREHEADER)lpbi)->bcBitCount;
-	else
-	{
-		DWORD dwClrUsed = ((LPBITMAPINFOHEADER)lpbi)->biClrUsed;
-		wBPP = ((LPBITMAPINFOHEADER)lpbi)->biBitCount;
-
-		if (dwClrUsed > 0 && dwClrUsed <= (1U << wBPP))
-			return dwClrUsed;
-	}
-
-	if (wBPP > 0 && wBPP < 16)
-		return (1U << wBPP);
-	else
-		return 0;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////
-
-LPCSTR DIBFindBits(LPCSTR lpbi)
-{
-	LPCSTR pBits = lpbi + *(LPDWORD)lpbi + DIBPaletteSize(lpbi);
-
-	if (*(LPDWORD)lpbi == sizeof(BITMAPINFOHEADER) &&
-		(((LPBITMAPINFOHEADER)lpbi)->biBitCount == 16 ||
-			((LPBITMAPINFOHEADER)lpbi)->biBitCount == 32))
-	{
-		if (((LPBITMAPINFOHEADER)lpbi)->biCompression == BI_BITFIELDS)
-			pBits += 3 * sizeof(DWORD);
-		else if (((LPBITMAPINFOHEADER)lpbi)->biCompression == BI_ALPHABITFIELDS)
-			pBits += 4 * sizeof(DWORD);
-	}
-
-	return pBits;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
