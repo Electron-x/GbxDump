@@ -360,6 +360,25 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		return TRUE;
 	}
 
+	if (dwDibHeaderSize == sizeof(BITMAPINFOHEADER))
+	{ // Windows Version 3.0 Bitmap
+		if (lpbih->bV5BitCount == 16 || lpbih->bV5BitCount == 32)
+		{
+			if (lpbih->bV5Compression == BI_BITFIELDS || lpbih->bV5Compression == BI_ALPHABITFIELDS)
+			{
+				LPDWORD lpdwMasks = (LPDWORD)(lpbi + dwDibHeaderSize);
+				
+				OutputText(hwndCtl, g_szSep1);
+				OutputTextFmt(hwndCtl, szOutput, TEXT("RedMask:\t%08X\r\n"), lpdwMasks[0]);
+				OutputTextFmt(hwndCtl, szOutput, TEXT("GreenMask:\t%08X\r\n"), lpdwMasks[1]);
+				OutputTextFmt(hwndCtl, szOutput, TEXT("BlueMask:\t%08X\r\n"), lpdwMasks[2]);
+
+				if (lpbih->bV5Compression == BI_ALPHABITFIELDS)
+					OutputTextFmt(hwndCtl, szOutput, TEXT("AlphaMask:\t%08X\r\n"), lpdwMasks[3]);
+			}
+		}
+	}
+
 	if (dwDibHeaderSize >= sizeof(BITMAPV2INFOHEADER))
 	{ // Adobe Photoshop
 		OutputTextFmt(hwndCtl, szOutput, TEXT("RedMask:\t%08X\r\n"), lpbih->bV5RedMask);
@@ -467,7 +486,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		{
 			char szPath[MAX_PATH] = { 0 };
 			int nLen = min(min(lpbih->bV5ProfileSize, dwDibSize - lpbih->bV5ProfileData), _countof(szPath));
-			lstrcpynA(szPath, (LPSTR)lpbih + lpbih->bV5ProfileData, nLen);
+			lstrcpynA(szPath, lpbi + lpbih->bV5ProfileData, nLen);
 			OutputTextFmt(hwndCtl, szOutput, TEXT(" (%hs)"), szPath);
 		}
 		OutputText(hwndCtl, TEXT("\r\n"));
