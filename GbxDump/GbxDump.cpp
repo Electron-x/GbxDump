@@ -75,7 +75,6 @@ const TCHAR g_szLeft[]     = TEXT("GbxDumpWndLeft");
 const TCHAR g_szRight[]    = TEXT("GbxDumpWndRight");
 const TCHAR g_szArial[]    = TEXT("Arial");
 const TCHAR g_szConsolas[] = TEXT("Consolas");
-const TCHAR g_szCourier[]  = TEXT("Courier New");
 const TCHAR g_szScrlBar[]  = TEXT("Scrollbar");
 const TCHAR g_szEdit[]     = TEXT("Edit");
 
@@ -1109,8 +1108,7 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 				lf.lfHeight = -11 * s_nDpi / 72;
 				lf.lfWeight = FW_NORMAL;
 				lf.lfPitchAndFamily = FIXED_PITCH | FF_MODERN;
-				lstrcpyn(lf.lfFaceName, LOBYTE(LOWORD(GetVersion())) >= 6 ? g_szConsolas : g_szCourier,
-					_countof(lf.lfFaceName));
+				lstrcpyn(lf.lfFaceName, g_szConsolas, _countof(lf.lfFaceName));
 
 				if (s_hfontEditBox != NULL)
 					DeleteFont(s_hfontEditBox);
