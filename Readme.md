@@ -63,11 +63,11 @@ the subprojects `libjpeg` with the [Independent JPEG Group's JPEG software](http
 `libwebpdecoder` with a decode-only library of the [WebP Codec](https://github.com/webmproject/libwebp)
 and `crnlib` with the [Advanced DXTn texture compression library](https://github.com/BinomialLLC/crunch)
 as well as two setup projects for 32 and 64 bit.  
-This repository contains two VC++ project files for Visual Studio 2005 and Visual Studio 2017.
-VS2005 requires the [Microsoft Windows SDK 7.1](https://www.microsoft.com/en-us/download/details.aspx?id=8279) and VS2017 requires Visual C++ ATL for x86 and x64 and the Windows XP platform toolset.
 
-To create the project with versions between VS2005 and VS2017, please note the following points:
--   For all configurations, the Windows XP platform toolset `Visual Studio 20xx - Windows XP (v1xx_xp)` should be selected.
+This repository contains two VC++ project files for Visual Studio 2005 and Visual Studio 2022.
+If you want to use the VS2005 project file, please note the following points:
+-   Visual Studio 2005, 2008 and 2010 require the [Microsoft Windows SDK 7.1](https://www.microsoft.com/en-us/download/details.aspx?id=8279)
+    to obtain the XmlLite development files.
 -   All manifest files that Visual Studio manages on its own must be removed from the project configurations.
     For example, starting with Visual Studio 2008, the reference to the file `TrustInfo.manifest` has to be removed and starting with Visual Studio 2010,
     the reference to the file `DeclareDPIAware.manifest` has to be removed, etc. The corresponding metadata must then be set in the project settings.
@@ -105,8 +105,8 @@ This software is based in part on the work of the Independent JPEG Group.
 ## Links
 - [Gbx File Dumper web page](http://www.wolfgang-rolke.de/gbxdump/)
 - [Gbx file format specification](https://wiki.xaseco.org/wiki/GBX)
-- [Microsoft Windows SDK for Windows 7](https://www.microsoft.com/en-us/download/details.aspx?id=8279) (VS2005/VS2008/VS2010)
-- Installer Projects for Microsoft Visual Studio [2013](https://marketplace.visualstudio.com/items?itemName=UnniRavindranathan-MSFT.MicrosoftVisualStudio2013InstallerProjects), 
+- [Microsoft Windows SDK for Windows 7](https://www.microsoft.com/en-us/download/details.aspx?id=8279)
+- Installer Projects for Visual Studio [2013](https://marketplace.visualstudio.com/items?itemName=UnniRavindranathan-MSFT.MicrosoftVisualStudio2013InstallerProjects), 
 [2015](https://marketplace.visualstudio.com/items?itemName=VisualStudioProductTeam.MicrosoftVisualStudio2015InstallerProjects), 
 [2017/2019](https://marketplace.visualstudio.com/items?itemName=VisualStudioProductTeam.MicrosoftVisualStudio2017InstallerProjects), 
 [2022](https://marketplace.visualstudio.com/items?itemName=VisualStudioClient.MicrosoftVisualStudio2022InstallerProjects)
