@@ -515,6 +515,11 @@ BOOL RequestMxData(HWND hwndCtl, LPCTSTR lpszMxUrl, PINT pnTrackId)
 	}
 
 	LPSTR lpszData = (LPSTR)GlobalLock(hXml);
+	if (lpszData == NULL)
+	{
+		GlobalFree(hXml);
+		return FALSE;
+	}
 
 	if (!ReadInternetFile(hwndCtl, lpszMxUrl, lpszData, dwSize))
 	{
@@ -561,11 +566,8 @@ HRESULT ParseAndPrintXml(HWND hwndCtl, HGLOBAL hXml, PINT pnTrackId)
 		return E_INVALIDARG;
 
 	HRESULT hr = S_FALSE;
-
-	// Use smart pointer class to manage the COM interface pointers.
-	// CComPtr will auto-release the underlying interface pointers as needed.
-	CComPtr<IStream> pStream;
-	CComPtr<IXmlReader> pReader;
+	IStream* pStream = NULL;
+	IXmlReader* pReader = NULL;
 
 	XmlNodeType nodeType = XmlNodeType_None;
 	XmlArrayType arrayType = XmlArrayType_None;
@@ -594,13 +596,13 @@ HRESULT ParseAndPrintXml(HWND hwndCtl, HGLOBAL hXml, PINT pnTrackId)
 	wszObjectAuthor[0] = L'\0';
 
 	if (FAILED(hr = CreateStreamOnHGlobal(hXml, FALSE, &pStream)))
-		return hr;
+		goto CleanUp;
 	if (FAILED(hr = CreateXmlReader(IID_IXmlReader, (void**)&pReader, NULL)))
-		return hr;
+		goto CleanUp;
 	if (FAILED(hr = pReader->SetProperty(XmlReaderProperty_DtdProcessing, DtdProcessing_Prohibit)))
-		return hr;
+		goto CleanUp;
 	if (FAILED(hr = pReader->SetInput(pStream)))
-		return hr;
+		goto CleanUp;
 
 	// Read until there are no more nodes
 	while ((hr = pReader->Read(&nodeType)) == S_OK)
@@ -609,7 +611,9 @@ HRESULT ParseAndPrintXml(HWND hwndCtl, HGLOBAL hXml, PINT pnTrackId)
 		{
 		case XmlNodeType_Element:
 			if (FAILED(hr = pReader->GetLocalName(&pwszElement, NULL)))
-				return hr;
+				goto CleanUp;
+			if (pwszElement == NULL)
+				break;
 
 			if (_wcsicmp(pwszElement, L"TrackInfo") == 0)
 				arrayType = XmlArrayType_TrackInfo;
@@ -627,7 +631,9 @@ HRESULT ParseAndPrintXml(HWND hwndCtl, HGLOBAL hXml, PINT pnTrackId)
 
 		case XmlNodeType_Text:
 			if (FAILED(hr = pReader->GetValue(&pwszValue, NULL)))
-				return hr;
+				goto CleanUp;
+			if (pwszValue == NULL)
+				break;
 
 			if (arrayType == XmlArrayType_TrackInfo)
 			{
@@ -674,7 +680,9 @@ HRESULT ParseAndPrintXml(HWND hwndCtl, HGLOBAL hXml, PINT pnTrackId)
 
 		case XmlNodeType_EndElement:
 			if (FAILED(hr = pReader->GetLocalName(&pwszElement, NULL)))
-				return hr;
+				goto CleanUp;
+			if (pwszElement == NULL)
+				break;
 
 			if (_wcsicmp(pwszElement, L"TrackInfo") == 0)
 				arrayType = XmlArrayType_None;
@@ -704,7 +712,19 @@ HRESULT ParseAndPrintXml(HWND hwndCtl, HGLOBAL hXml, PINT pnTrackId)
 		}
 	}
 
-	return S_OK;
+	hr = S_OK;
+
+CleanUp:
+	if (pReader != NULL)
+	{
+		pReader->SetInput(NULL);
+		pReader->Release();
+	}
+
+	if (pStream != NULL)
+		pStream->Release();
+
+	return hr;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
