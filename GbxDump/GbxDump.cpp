@@ -1029,13 +1029,6 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 				s_bWordWrap = FALSE;
 				SetWindowText(hDlg, g_szTitle);
 
-				// Windows 10 1809+ dark mode
-				if (g_bUseDarkMode)
-				{
-					UseImmersiveDarkMode(hDlg, g_bUseDarkMode);
-					AllowDarkModeForWindow(hDlg, g_bUseDarkMode);
-				}
-
 				// Determine logical DPI
 				HDC hdc = GetDC(hDlg);
 				if (hdc != NULL)
@@ -1119,6 +1112,13 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 				s_szUid[0] = '\0'; s_szEnvi[0] = '\0';
 				Button_Enable(GetDlgItem(hDlg, IDC_TMX), FALSE);
 				Button_Enable(GetDlgItem(hDlg, IDC_DEDIMANIA), FALSE);
+
+				// Windows 10 1809+ dark mode
+				if (g_bUseDarkMode)
+				{
+					UseImmersiveDarkMode(hDlg, g_bUseDarkMode);
+					AllowDarkModeForWindow(hDlg, g_bUseDarkMode);
+				}
 
 				if ((LPCTSTR)lParam != NULL && ((LPCTSTR)lParam)[0] != TEXT('\0'))
 				{ // Open a GBX file passed by program argument
