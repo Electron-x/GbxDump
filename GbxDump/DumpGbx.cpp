@@ -3872,6 +3872,9 @@ BOOL ObjectInfoTypeChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckType)
 		case 14:
 			OutputText(hwndCtl, TEXT("Procedural"));
 			break;
+		case 15:
+			OutputText(hwndCtl, TEXT("Generic"));
+			break;
 		case UNASSIGNED:
 			OutputText(hwndCtl, g_szUnknown);
 			break;
