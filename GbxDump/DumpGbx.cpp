@@ -637,6 +637,14 @@ BASECLASS GetBaseClass(HWND hwndCtl, DWORD dwClassId)
 			OutputText(hwndCtl, TEXT(" (CampaignsScoresManager)"));
 			break;
 
+		case CLSID_SCOREANDLBCACHE:
+			OutputText(hwndCtl, TEXT(" (ScoreAndLeaderBoardCache)"));
+			break;
+
+		case CLSID_SAVELAUNCHEDCP:
+			OutputText(hwndCtl, TEXT(" (SaveLaunchedCheckpoints)"));
+			break;
+
 		case CLSID_REGATTA_VSK:
 			OutputText(hwndCtl, TEXT(" (Regatta)"));
 			break;
