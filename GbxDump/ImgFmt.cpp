@@ -211,9 +211,15 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDIB)
 		return FALSE;
 
 	LPBITMAPINFOHEADER lpbi = (LPBITMAPINFOHEADER)GlobalLock(hDIB);
-	if (lpbi == NULL || lpbi->biSize < sizeof(BITMAPINFOHEADER) || lpbi->biBitCount < 8 ||
-		(lpbi->biCompression != BI_RGB && lpbi->biCompression != BI_BITFIELDS))
+	if (lpbi == NULL)
 		return FALSE;
+
+	if (lpbi->biSize < sizeof(BITMAPINFOHEADER) || lpbi->biBitCount < 8 ||
+		(lpbi->biCompression != BI_RGB && lpbi->biCompression != BI_BITFIELDS))
+	{
+		GlobalUnlock(hDIB);
+		return FALSE;
+	}
 
 	BOOL bFlipImage = FALSE;
 	LONG lWidth = lpbi->biWidth;
@@ -1029,12 +1035,18 @@ HBITMAP CreatePremultipliedBitmap(HANDLE hDib)
 		return NULL;
 
 	LPBITMAPINFOHEADER lpbi = (LPBITMAPINFOHEADER)GlobalLock(hDib);
-	if (lpbi == NULL || lpbi->biSize < sizeof(BITMAPINFOHEADER) ||
+	if (lpbi == NULL)
+		return NULL;
+
+	if (lpbi->biSize < sizeof(BITMAPINFOHEADER) ||
 		(lpbi->biBitCount != 16 && lpbi->biBitCount != 32) ||
 		(lpbi->biCompression != BI_RGB && lpbi->biCompression != BI_BITFIELDS) ||
 		(lpbi->biSize >= sizeof(BITMAPV4HEADER) &&
 			((LPBITMAPV4HEADER)lpbi)->bV4CSType == LCS_DEVICE_CMYK))
+	{
+		GlobalUnlock(hDib);
 		return NULL;
+	}
 
 	LONG lWidth = lpbi->biWidth;
 	LONG lHeight = lpbi->biHeight;
