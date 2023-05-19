@@ -168,7 +168,10 @@ BOOL PrintDedimaniaData(HWND hwndCtl, LPCSTR lpszUid, BOOL bIsManiaPlanet, LPBOO
 		lpsz = lpszNewLine + 2;
 	}
 	else
+	{
+		GlobalFreePtr((LPVOID)lpszData);
 		return TRUE;
+	}
 
 	// Check for existing records
 	if (*lpsz == '\0')
