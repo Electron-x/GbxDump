@@ -216,42 +216,50 @@ BOOL CleanupString(LPCTSTR lpszInput, LPTSTR lpszOutput, SIZE_T cchLenOutput)
 	if (_tcschr(lpszInput, TEXT('$')) == NULL)
 		return FALSE;
 
+	BOOL bRet = TRUE;
+	LPCTSTR lpszMem1 = NULL;
+	LPCTSTR lpszMem2 = NULL;
+	LPCTSTR lpszMem3 = NULL;
+
 	__try
 	{
 		// Replace dollar signs with alert escape characters
-		LPCTSTR lpszTemp1 = AllocReplaceString(lpszInput, TEXT("$$"), TEXT("\a"));
-		if (lpszTemp1 == NULL)
+		lpszMem1 = AllocReplaceString(lpszInput, TEXT("$$"), TEXT("\a"));
+		if (lpszMem1 == NULL)
 			return FALSE;
 
 		// Remove formatting characters
-		LPCTSTR lpszTemp2 = AllocCleanupString(lpszTemp1);
-		if (lpszTemp2 == NULL)
+		lpszMem2 = AllocCleanupString(lpszMem1);
+		if (lpszMem2 == NULL)
 		{
-			GlobalFreePtr((LPVOID)lpszTemp1);
+			GlobalFreePtr((LPVOID)lpszMem1);
 			return FALSE;
 		}
 
 		// Replace alert escape characters back to dollar signs
-		LPCTSTR lpszTemp3 = AllocReplaceString(lpszTemp2, TEXT("\a"), TEXT("$"));
-		if (lpszTemp3 == NULL)
+		lpszMem3 = AllocReplaceString(lpszMem2, TEXT("\a"), TEXT("$"));
+		if (lpszMem3 == NULL)
 		{
-			GlobalFreePtr((LPVOID)lpszTemp2);
-			GlobalFreePtr((LPVOID)lpszTemp1);
+			GlobalFreePtr((LPVOID)lpszMem2);
+			GlobalFreePtr((LPVOID)lpszMem1);
 			return FALSE;
 		}
 
-		lstrcpyn(lpszOutput, lpszTemp3, (int)cchLenOutput);
-
-		GlobalFreePtr((LPVOID)lpszTemp3);
-		GlobalFreePtr((LPVOID)lpszTemp2);
-		GlobalFreePtr((LPVOID)lpszTemp1);
+		lstrcpyn(lpszOutput, lpszMem3, (int)cchLenOutput);
 	}
 	__except (EXCEPTION_EXECUTE_HANDLER)
 	{
-		return FALSE;
+		bRet = FALSE;
 	}
 
-	return TRUE;
+	if (lpszMem3 != NULL)
+		GlobalFreePtr((LPVOID)lpszMem3);
+	if (lpszMem2 != NULL)
+		GlobalFreePtr((LPVOID)lpszMem2);
+	if (lpszMem1 != NULL)
+		GlobalFreePtr((LPVOID)lpszMem1);
+
+	return bRet;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
