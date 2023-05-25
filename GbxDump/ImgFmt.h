@@ -27,8 +27,8 @@
 
 BOOL GetFileName(HWND hDlg, LPTSTR lpszFileName, SIZE_T cchStringLen, LPDWORD lpdwFilterIndex, BOOL bSave = FALSE);
 
-BOOL SaveBmpFile(LPCTSTR lpszFileName, HANDLE hDIB);
-BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDIB);
+BOOL SaveBmpFile(LPCTSTR lpszFileName, HANDLE hDib);
+BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDib);
 
 HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData, BOOL bFlipImage = FALSE, INT nTraceLevel = 0);
 HANDLE WebpToDib(LPVOID lpWebpData, DWORD dwLenData, BOOL bFlipImage = FALSE, BOOL bShowFeatures = FALSE);
@@ -38,9 +38,10 @@ BOOL FreeDib(HANDLE hDib);
 HBITMAP CreatePremultipliedBitmap(HANDLE hDib);
 BOOL FreeBitmap(HBITMAP hbmpDib);
 
-HPALETTE DIBCreatePalette(HANDLE hDIB);
-UINT DIBPaletteSize(LPCSTR lpbi);
-UINT DIBNumColors(LPCSTR lpbi);
-LPBYTE DIBFindBits(LPCSTR lpbi);
+HPALETTE CreateDibPalette(HANDLE hDib);
+UINT PaletteSize(LPCSTR lpbi);
+UINT DibNumColors(LPCSTR lpbi);
+LPBYTE FindDibBits(LPCSTR lpbi);
+BOOL IsDibVideoCompressed(LPCSTR lpbi);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////

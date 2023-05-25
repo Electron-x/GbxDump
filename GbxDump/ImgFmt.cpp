@@ -124,12 +124,12 @@ BOOL GetFileName(HWND hDlg, LPTSTR lpszFileName, SIZE_T cchStringLen, LPDWORD lp
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Saves a DIB as a Windows Bitmap file
 
-BOOL SaveBmpFile(LPCTSTR lpszFileName, HANDLE hDIB)
+BOOL SaveBmpFile(LPCTSTR lpszFileName, HANDLE hDib)
 {
-	if (hDIB == NULL || lpszFileName == NULL)
+	if (hDib == NULL || lpszFileName == NULL)
 		return FALSE;
 
-	LPBITMAPINFOHEADER lpbi = (LPBITMAPINFOHEADER)GlobalLock(hDIB);
+	LPBITMAPINFOHEADER lpbi = (LPBITMAPINFOHEADER)GlobalLock(hDib);
 	if (lpbi == NULL)
 		return FALSE;
 
@@ -141,12 +141,12 @@ BOOL SaveBmpFile(LPCTSTR lpszFileName, HANDLE hDIB)
 	if (IS_OS2PM_DIB(lpbi))
 	{
 		LPBITMAPCOREHEADER lpbc = (LPBITMAPCOREHEADER)lpbi;
-		dwDIBSize = lpbc->bcSize + DIBNumColors((LPCSTR)lpbc);
+		dwDIBSize = lpbc->bcSize + DibNumColors((LPCSTR)lpbc);
 		dwBmBitsSize = WIDTHBYTES(lpbc->bcWidth * lpbc->bcPlanes * lpbc->bcBitCount) * lpbc->bcHeight;
 	}
 	else
 	{
-		dwDIBSize = lpbi->biSize + DIBNumColors((LPCSTR)lpbi);
+		dwDIBSize = lpbi->biSize + DibNumColors((LPCSTR)lpbi);
 		if (IS_WIN30_DIB(lpbi) && lpbi->biCompression == BI_BITFIELDS)
 			dwDIBSize += 3 * sizeof(DWORD);
 		else if (IS_WIN30_DIB(lpbi) && lpbi->biCompression == BI_ALPHABITFIELDS)
@@ -173,7 +173,7 @@ BOOL SaveBmpFile(LPCTSTR lpszFileName, HANDLE hDIB)
 		CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (hFile == INVALID_HANDLE_VALUE)
 	{
-		GlobalUnlock(hDIB);
+		GlobalUnlock(hDib);
 		return FALSE;
 	}
 
@@ -181,7 +181,7 @@ BOOL SaveBmpFile(LPCTSTR lpszFileName, HANDLE hDIB)
 	if (!WriteFile(hFile, &bmfHdr, sizeof(BITMAPFILEHEADER), &dwWrite, NULL) ||
 		dwWrite != sizeof(BITMAPFILEHEADER))
 	{
-		GlobalUnlock(hDIB);
+		GlobalUnlock(hDib);
 		CloseHandle(hFile);
 		DeleteFile(lpszFileName);
 		return FALSE;
@@ -189,13 +189,13 @@ BOOL SaveBmpFile(LPCTSTR lpszFileName, HANDLE hDIB)
 
 	if (!WriteFile(hFile, (LPVOID)lpbi, dwDIBSize, &dwWrite, NULL) || dwWrite != dwDIBSize)
 	{
-		GlobalUnlock(hDIB);
+		GlobalUnlock(hDib);
 		CloseHandle(hFile);
 		DeleteFile(lpszFileName);
 		return FALSE;
 	}
 
-	GlobalUnlock(hDIB);
+	GlobalUnlock(hDib);
 	CloseHandle(hFile);
 
 	return TRUE;
@@ -205,19 +205,19 @@ BOOL SaveBmpFile(LPCTSTR lpszFileName, HANDLE hDIB)
 // Saves a DIB as a PNG file using miniz. Supports only
 // 8-bit grayscale, 16-bit, 24-bit and 32-bit color images.
 
-BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDIB)
+BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDib)
 {
-	if (hDIB == NULL || lpszFileName == NULL)
+	if (hDib == NULL || lpszFileName == NULL)
 		return FALSE;
 
-	LPBITMAPINFOHEADER lpbi = (LPBITMAPINFOHEADER)GlobalLock(hDIB);
+	LPBITMAPINFOHEADER lpbi = (LPBITMAPINFOHEADER)GlobalLock(hDib);
 	if (lpbi == NULL)
 		return FALSE;
 
 	if (lpbi->biSize < sizeof(BITMAPINFOHEADER) || lpbi->biBitCount < 8 ||
 		(lpbi->biCompression != BI_RGB && lpbi->biCompression != BI_BITFIELDS))
 	{
-		GlobalUnlock(hDIB);
+		GlobalUnlock(hDib);
 		return FALSE;
 	}
 
@@ -240,15 +240,15 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDIB)
 	LONG lSizeImage = lHeight * lWidth * (lpbi->biBitCount == 16 ? 4 : nNumChannels);
 	if (lSizeImage == 0)
 	{
-		GlobalUnlock(hDIB);
+		GlobalUnlock(hDib);
 		return FALSE;
 	}
 
-	LPBYTE lpDIB = DIBFindBits((LPCSTR)lpbi);
+	LPBYTE lpDIB = FindDibBits((LPCSTR)lpbi);
 	LPBYTE lpRGBA = (LPBYTE)GlobalAllocPtr(GHND, lSizeImage);
 	if (lpRGBA == NULL)
 	{
-		GlobalUnlock(hDIB);
+		GlobalUnlock(hDib);
 		return FALSE;
 	}
 
@@ -312,6 +312,7 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDIB)
 			case 3:
 				if (bIsCMYK)
 				{
+					WORD wTemp;
 					BYTE cInvKey;
 					for (h = 0; h < lHeight; h++)
 					{
@@ -320,9 +321,12 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDIB)
 						for (w = 0; w < lWidth; w++)
 						{
 							cInvKey = 0xFF - lpSrc[3];
-							*lpDest++ = (0xFF - lpSrc[2]) * cInvKey / 0xFF;
-							*lpDest++ = (0xFF - lpSrc[1]) * cInvKey / 0xFF;
-							*lpDest++ = (0xFF - lpSrc[0]) * cInvKey / 0xFF;
+							wTemp = ((0xFF - lpSrc[2]) * cInvKey) + 127;
+							*lpDest++ = (wTemp + (wTemp >> 8)) >> 8;
+							wTemp = ((0xFF - lpSrc[1]) * cInvKey) + 127;
+							*lpDest++ = (wTemp + (wTemp >> 8)) >> 8;
+							wTemp = ((0xFF - lpSrc[0]) * cInvKey) + 127;
+							*lpDest++ = (wTemp + (wTemp >> 8)) >> 8;
 							lpSrc += 4;
 						}
 					}
@@ -386,7 +390,7 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDIB)
 	if (lpPNG == NULL)
 	{
 		GlobalFreePtr((LPVOID)lpRGBA);
-		GlobalUnlock(hDIB);
+		GlobalUnlock(hDib);
 		return FALSE;
 	}
 
@@ -396,7 +400,7 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDIB)
 	{
 		mz_free(lpPNG);
 		GlobalFreePtr((LPVOID)lpRGBA);
-		GlobalUnlock(hDIB);
+		GlobalUnlock(hDib);
 		return FALSE;
 	}
 
@@ -405,7 +409,7 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDIB)
 	{
 		mz_free(lpPNG);
 		GlobalFreePtr((LPVOID)lpRGBA);
-		GlobalUnlock(hDIB);
+		GlobalUnlock(hDib);
 		CloseHandle(hFile);
 		DeleteFile(lpszFileName);
 		return FALSE;
@@ -413,7 +417,7 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDIB)
 
 	mz_free(lpPNG);
 	GlobalFreePtr((LPVOID)lpRGBA);
-	GlobalUnlock(hDIB);
+	GlobalUnlock(hDib);
 	CloseHandle(hFile);
 
 	return TRUE;
@@ -449,7 +453,7 @@ typedef struct _JPEG_DECOMPRESS
 static jmp_buf JmpBuffer;  // Buffer for processor status
 
 // Helper functions
-void cleanup_jpeg_to_dib(LPJPEG_DECOMPRESS lpJpegDecompress, HANDLE hDIB);
+void cleanup_jpeg_to_dib(LPJPEG_DECOMPRESS lpJpegDecompress, HANDLE hDib);
 void set_error_manager(j_common_ptr pjInfo, j_error_mgr *pjError);
 
 // Callback functions
@@ -462,7 +466,7 @@ METHODDEF(void my_emit_message(j_common_ptr pjInfo, int nMessageLevel));
 
 HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData, BOOL bFlipImage, INT nTraceLevel)
 {
-	HANDLE hDIB = NULL;  // Handle of the DIB
+	HANDLE hDib = NULL;  // Handle of the DIB
 
 	// Initialize the JPEG decompression object
 	JPEG_DECOMPRESS JpegDecompress; // JPEG decompression structure
@@ -473,7 +477,7 @@ HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData, BOOL bFlipImage, INT nTrace
 	// Save processor status for error handling
 	if (setjmp(JmpBuffer))
 	{
-		cleanup_jpeg_to_dib(&JpegDecompress, hDIB);
+		cleanup_jpeg_to_dib(&JpegDecompress, hDib);
 		return NULL;
 	}
 
@@ -556,26 +560,26 @@ HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData, BOOL bFlipImage, INT nTrace
 	}
 
 	// Size of one DIB row
-	JpegDecompress.dwIncrement = (((DWORD)JpegDecompress.uWidth * JpegDecompress.uBPP + 31) / 32) * 4;
+	JpegDecompress.dwIncrement = WIDTHBYTES(JpegDecompress.uWidth * JpegDecompress.uBPP);
 	// Size of the DIB data
 	JpegDecompress.dwSize = JpegDecompress.dwIncrement * JpegDecompress.uHeight;
 
 	// Create a Windows Bitmap
 	// Allocate memory for the DIB
-	hDIB = GlobalAlloc(GHND, sizeof(BITMAPINFOHEADER) +
+	hDib = GlobalAlloc(GHND, sizeof(BITMAPINFOHEADER) +
 		JpegDecompress.uWinColors * sizeof(RGBQUAD) + JpegDecompress.dwSize);
-	if (hDIB == NULL)
+	if (hDib == NULL)
 	{
-		cleanup_jpeg_to_dib(&JpegDecompress, hDIB);
+		cleanup_jpeg_to_dib(&JpegDecompress, hDib);
 		return NULL;
 	}
 
 	// Fill bitmap information block
-	LPBITMAPINFO lpBMI = (LPBITMAPINFO)GlobalLock(hDIB);
+	LPBITMAPINFO lpBMI = (LPBITMAPINFO)GlobalLock(hDib);
 	LPBITMAPINFOHEADER lpBI = (LPBITMAPINFOHEADER)lpBMI;
 	if (lpBI == NULL)
 	{
-		cleanup_jpeg_to_dib(&JpegDecompress, hDIB);
+		cleanup_jpeg_to_dib(&JpegDecompress, hDib);
 		return NULL;
 	}
 
@@ -668,7 +672,7 @@ HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData, BOOL bFlipImage, INT nTrace
 	}
 
 	// Finish decompression
-	GlobalUnlock(hDIB);
+	GlobalUnlock(hDib);
 	jpeg_finish_decompress(pjInfo);
 
 	// Free the JPEG decompression object
@@ -676,13 +680,13 @@ HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData, BOOL bFlipImage, INT nTrace
 	JpegDecompress.bNeedDestroy = FALSE;
 
 	// Return the DIB handle
-	return hDIB;
+	return hDib;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 // cleanup_jpeg_to_dib: Performs housekeeping
-void cleanup_jpeg_to_dib(LPJPEG_DECOMPRESS lpJpegDecompress, HANDLE hDIB)
+void cleanup_jpeg_to_dib(LPJPEG_DECOMPRESS lpJpegDecompress, HANDLE hDib)
 {
 	// Destroy the JPEG decompress object
 	if (lpJpegDecompress)
@@ -690,11 +694,11 @@ void cleanup_jpeg_to_dib(LPJPEG_DECOMPRESS lpJpegDecompress, HANDLE hDIB)
 			jpeg_destroy_decompress(&lpJpegDecompress->jInfo);
 
 	// Release the DIB
-	if (hDIB != NULL)
+	if (hDib != NULL)
 	{
-		GlobalUnlock(hDIB);
-		GlobalFree(hDIB);
-		hDIB = NULL;
+		GlobalUnlock(hDib);
+		GlobalFree(hDib);
+		hDib = NULL;
 	}
 }
 
@@ -1063,7 +1067,7 @@ HBITMAP CreatePremultipliedBitmap(HANDLE hDib)
 	bmi.bmiHeader.biSizeImage = 0;
 
 	LPBYTE lpBGRA = NULL;
-	LPBYTE lpDIB = DIBFindBits((LPCSTR)lpbi);
+	LPBYTE lpDIB = FindDibBits((LPCSTR)lpbi);
 
 	HBITMAP hbmpDib = CreateDIBSection(NULL, &bmi, DIB_RGB_COLORS, (PVOID*)&lpBGRA, NULL, NULL);
 	if (hbmpDib == NULL)
@@ -1073,6 +1077,7 @@ HBITMAP CreatePremultipliedBitmap(HANDLE hDib)
 	}
 
 	LONG h, w;
+	WORD wTemp;
 	BYTE cAlpha;
 	LPBYTE lpSrc, lpDest;
 	LPDWORD lpdwColorMasks;
@@ -1109,9 +1114,13 @@ HBITMAP CreatePremultipliedBitmap(HANDLE hDib)
 					dwColor = MAKELONG(MAKEWORD(lpSrc[0], lpSrc[1]), 0);
 					cAlpha = dwAlphaMask ? GetColorValue(dwColor, dwAlphaMask) : 0xFF;
 					if (cAlpha != 0) bHasVisiblePixels = TRUE;
-					*lpDest++ = GetColorValue(dwColor, dwBlueMask)  * cAlpha / 0xFF;
-					*lpDest++ = GetColorValue(dwColor, dwGreenMask) * cAlpha / 0xFF;
-					*lpDest++ = GetColorValue(dwColor, dwRedMask)   * cAlpha / 0xFF;
+					// Taken from the documentation of the DrvAlphaBlend function:
+					wTemp = (GetColorValue(dwColor, dwBlueMask) * cAlpha) + 127;
+					*lpDest++ = (wTemp + (wTemp >> 8)) >> 8;
+					wTemp = (GetColorValue(dwColor, dwGreenMask) * cAlpha) + 127;
+					*lpDest++ = (wTemp + (wTemp >> 8)) >> 8;
+					wTemp = (GetColorValue(dwColor, dwRedMask) * cAlpha) + 127;
+					*lpDest++ = (wTemp + (wTemp >> 8)) >> 8;
 					*lpDest++ = cAlpha;
 					lpSrc += 2;
 				}
@@ -1144,9 +1153,12 @@ HBITMAP CreatePremultipliedBitmap(HANDLE hDib)
 					dwColor = MAKELONG(MAKEWORD(lpSrc[0], lpSrc[1]), MAKEWORD(lpSrc[2], lpSrc[3]));
 					cAlpha = dwAlphaMask ? GetColorValue(dwColor, dwAlphaMask) : 0xFF;
 					if (cAlpha != 0) bHasVisiblePixels = TRUE;
-					*lpDest++ = GetColorValue(dwColor, dwBlueMask)  * cAlpha / 0xFF;
-					*lpDest++ = GetColorValue(dwColor, dwGreenMask) * cAlpha / 0xFF;
-					*lpDest++ = GetColorValue(dwColor, dwRedMask)   * cAlpha / 0xFF;
+					wTemp = (GetColorValue(dwColor, dwBlueMask) * cAlpha) + 127;
+					*lpDest++ = (wTemp + (wTemp >> 8)) >> 8;
+					wTemp = (GetColorValue(dwColor, dwGreenMask) * cAlpha) + 127;
+					*lpDest++ = (wTemp + (wTemp >> 8)) >> 8;
+					wTemp = (GetColorValue(dwColor, dwRedMask) * cAlpha) + 127;
+					*lpDest++ = (wTemp + (wTemp >> 8)) >> 8;
 					*lpDest++ = cAlpha;
 					lpSrc += 4;
 				}
@@ -1180,26 +1192,26 @@ BOOL FreeBitmap(HBITMAP hbmpDib)
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Creates a logical color palette from a given DIB
 
-HPALETTE DIBCreatePalette(HANDLE hDIB)
+HPALETTE CreateDibPalette(HANDLE hDib)
 {
-	if (hDIB == NULL)
+	if (hDib == NULL)
 		return NULL;
 
 	HPALETTE hPal = NULL;
-	LPSTR lpbi = (LPSTR)GlobalLock((HGLOBAL)hDIB);
+	LPSTR lpbi = (LPSTR)GlobalLock((HGLOBAL)hDib);
 	LPBITMAPINFO lpbmi = (LPBITMAPINFO)lpbi;
 	LPBITMAPCOREINFO lpbmc = (LPBITMAPCOREINFO)lpbi;
 	if (lpbi == NULL)
 		return NULL;
 
-	UINT uNumColors = DIBNumColors(lpbi);
+	UINT uNumColors = DibNumColors(lpbi);
 	if (uNumColors != 0)
 	{ // Create a palette from the colors of the DIB
 		LPLOGPALETTE lpPal = (LPLOGPALETTE)GlobalAllocPtr(GHND,
 			sizeof(LOGPALETTE) + sizeof(PALETTEENTRY) * uNumColors);
 		if (lpPal == NULL)
 		{
-			GlobalUnlock((HGLOBAL)hDIB);
+			GlobalUnlock((HGLOBAL)hDib);
 			return NULL;
 		}
 
@@ -1234,35 +1246,41 @@ HPALETTE DIBCreatePalette(HANDLE hDIB)
 		ReleaseDC(NULL, hDC);
 	}
 
-	GlobalUnlock((HGLOBAL)hDIB);
+	GlobalUnlock((HGLOBAL)hDib);
 
 	return hPal;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
+// Gets the size required to store the DIB's palette
 
-UINT DIBPaletteSize(LPCSTR lpbi)
+UINT PaletteSize(LPCSTR lpbi)
 {
-	if (IS_OS2PM_DIB(lpbi))
-		return DIBNumColors(lpbi) * sizeof(RGBTRIPLE);
+	if (lpbi == NULL)
+		return 0;
+	else if (IS_OS2PM_DIB(lpbi))
+		return DibNumColors(lpbi) * sizeof(RGBTRIPLE);
 	else
-		return DIBNumColors(lpbi) * sizeof(RGBQUAD);
+		return DibNumColors(lpbi) * sizeof(RGBQUAD);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
+// Calculates the number of colors in the DIB's color table
 
-UINT DIBNumColors(LPCSTR lpbi)
+UINT DibNumColors(LPCSTR lpbi)
 {
 	WORD wBPP = 0;
 
-	if (IS_OS2PM_DIB(lpbi))
+	if (lpbi == NULL)
+		return 0;
+	else if (IS_OS2PM_DIB(lpbi))
 		wBPP = ((LPBITMAPCOREHEADER)lpbi)->bcBitCount;
 	else
 	{
-		DWORD dwClrUsed = ((LPBITMAPINFOHEADER)lpbi)->biClrUsed;
 		wBPP = ((LPBITMAPINFOHEADER)lpbi)->biBitCount;
 
-		if (dwClrUsed > 0 && dwClrUsed <= (1U << wBPP))
+		DWORD dwClrUsed = ((LPBITMAPINFOHEADER)lpbi)->biClrUsed;
+		if (dwClrUsed > 0 && dwClrUsed <= (1U << 12U))
 			return dwClrUsed;
 	}
 
@@ -1273,10 +1291,14 @@ UINT DIBNumColors(LPCSTR lpbi)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
+// Returns a pointer to the pixel bits of a packed DIB
 
-LPBYTE DIBFindBits(LPCSTR lpbi)
+LPBYTE FindDibBits(LPCSTR lpbi)
 {
-	LPBYTE pBits = (LPBYTE)lpbi + *(LPDWORD)lpbi + DIBPaletteSize(lpbi);
+	if (lpbi == NULL)
+		return NULL;
+
+	LPBYTE pBits = (LPBYTE)lpbi + *(LPDWORD)lpbi + PaletteSize(lpbi);
 
 	if (IS_WIN30_DIB(lpbi) &&
 		(((LPBITMAPINFOHEADER)lpbi)->biBitCount == 16 ||
@@ -1289,6 +1311,22 @@ LPBYTE DIBFindBits(LPCSTR lpbi)
 	}
 
 	return pBits;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Checks if the biCompression member of a DIBv3 struct contains a FourCC code
+
+BOOL IsDibVideoCompressed(LPCSTR lpbi)
+{
+	if (lpbi == NULL || *(LPDWORD)lpbi != sizeof(BITMAPINFOHEADER))
+		return FALSE;
+
+	DWORD dwCompression = ((LPBITMAPINFOHEADER)lpbi)->biCompression;
+
+	return (isprint(dwCompression & 0xff) &&
+		isprint((dwCompression >> 8) & 0xff) &&
+		isprint((dwCompression >> 16) & 0xff) &&
+		isprint((dwCompression >> 24) & 0xff));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
