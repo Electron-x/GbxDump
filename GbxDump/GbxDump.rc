@@ -65,7 +65,7 @@ IDI_GBXDUMP             ICON                    "GbxDump.ico"
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,72,1,115
+ FILEVERSION 1,72,2,116
  PRODUCTVERSION 1,0,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
@@ -84,7 +84,7 @@ BEGIN
             VALUE "Comments", "GBX file header viewer application"
             VALUE "CompanyName", "Electron"
             VALUE "FileDescription", "Gbx File Dumper"
-            VALUE "FileVersion", "1.72.1.115"
+            VALUE "FileVersion", "1.72.2.116"
             VALUE "InternalName", "GbxDump"
             VALUE "LegalCopyright", "Copyright © 2010-2023 by Electron"
             VALUE "OriginalFilename", "GbxDump.exe"
