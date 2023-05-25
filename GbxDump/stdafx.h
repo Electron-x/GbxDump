@@ -45,6 +45,7 @@
 #include <commctrl.h>
 #include <shellapi.h>
 #include <mmsystem.h>
+#include <vfw.h>
 #include <ole2.h>
 #include <xmllite.h>
 #include <Uxtheme.h>
