@@ -22,23 +22,11 @@
 #include "dumpbmp.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
+// Forward declarations of functions included in this code module
 
-static void MarkAsUnsupported(HWND hwndCtl)
-{
-	// Draw "UNSUPPORTED FORMAT" lettering over the default thumbnail image
-	HWND hwndThumb = GetDlgItem(GetParent(hwndCtl), IDC_THUMB);
-	if (hwndThumb != NULL)
-	{
-		TCHAR szText[256];
-		if (LoadString(g_hInstance, g_bGerUI ? IDS_GER_UNSUPPORTED : IDS_ENG_UNSUPPORTED,
-			szText, _countof(szText)) > 0)
-		{
-			SetWindowText(hwndThumb, szText);
-			if (InvalidateRect(hwndThumb, NULL, FALSE))
-				UpdateWindow(hwndThumb);
-		}
-	}
-}
+BOOL IsDibSupported(LPCSTR lpbi);
+DWORD QueryDibSupport(LPCSTR lpbi);
+void MarkAsUnsupported(HWND hwndCtl);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // DumpBitmap is called by DumpFile from GbxDump.cpp
@@ -66,8 +54,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		LPBITMAPARRAYFILEHEADER lpbafh = (LPBITMAPARRAYFILEHEADER)&bfh;
 
 		OutputText(hwndCtl, g_szSep1);
-		OutputTextFmt(hwndCtl, szOutput, TEXT("Type:\t\t%hc%hc\r\n"),
-			LOBYTE(lpbafh->usType), HIBYTE(lpbafh->usType));
+		OutputTextFmt(hwndCtl, szOutput, TEXT("Type:\t\t%hc%hc\r\n"), LOBYTE(lpbafh->usType), HIBYTE(lpbafh->usType));
 		OutputTextFmt(hwndCtl, szOutput, TEXT("Size:\t\t%u bytes\r\n"), lpbafh->cbSize);
 		OutputTextFmt(hwndCtl, szOutput, TEXT("OffNext:\t%u bytes\r\n"), lpbafh->offNext);
 		OutputTextFmt(hwndCtl, szOutput, TEXT("CxDisplay:\t%u\r\n"), lpbafh->cxDisplay);
@@ -97,8 +84,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 	}
 
 	OutputText(hwndCtl, g_szSep1);
-	OutputTextFmt(hwndCtl, szOutput, TEXT("Type:\t\t%hc%hc\r\n"),
-		LOBYTE(bfh.bfType), HIBYTE(bfh.bfType));
+	OutputTextFmt(hwndCtl, szOutput, TEXT("Type:\t\t%hc%hc\r\n"), LOBYTE(bfh.bfType), HIBYTE(bfh.bfType));
 	OutputTextFmt(hwndCtl, szOutput, TEXT("Size:\t\t%u bytes\r\n"), bfh.bfSize);
 	OutputTextFmt(hwndCtl, szOutput, TEXT("Reserved1:\t%u\r\n"), bfh.bfReserved1);
 	OutputTextFmt(hwndCtl, szOutput, TEXT("Reserved2:\t%u\r\n"), bfh.bfReserved2);
@@ -167,12 +153,8 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		OutputTextFmt(hwndCtl, szOutput, TEXT("Planes:\t\t%u\r\n"), lpbch->bcPlanes);
 		OutputTextFmt(hwndCtl, szOutput, TEXT("BitCount:\t%u bpp\r\n"), lpbch->bcBitCount);
 		
-		UINT64 ullBitsSize = (UINT64)((((lpbch->bcWidth * lpbch->bcPlanes *
-			lpbch->bcBitCount) + 31) / 32) * 4) * lpbch->bcHeight;
-
-		// Windows also supports the Windows Version 2.0 variant with 16 bpp and 32 bpp
-		if (ullBitsSize == 0 || ullBitsSize > 0xFFFFFFFF ||
-			lpbch->bcPlanes > 4 || lpbch->bcBitCount > 32)
+		UINT64 ullBitsSize = WIDTHBYTES(lpbch->bcWidth * lpbch->bcPlanes *	lpbch->bcBitCount) * lpbch->bcHeight;
+		if (ullBitsSize == 0 || ullBitsSize > 0xFFFFFFFF || lpbch->bcPlanes > 4 || lpbch->bcBitCount > 32)
 			bIsUnsupportedFormat = TRUE;
 	}
 
@@ -183,12 +165,9 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		OutputTextFmt(hwndCtl, szOutput, TEXT("Planes:\t\t%u\r\n"), lpbih->bV5Planes);
 		OutputTextFmt(hwndCtl, szOutput, TEXT("BitCount:\t%u bpp\r\n"), lpbih->bV5BitCount);
 
-		INT64 llBitsSize = (INT64)((((lpbih->bV5Width * lpbih->bV5Planes *
-			lpbih->bV5BitCount) + 31) / 32) * 4) * abs(lpbih->bV5Height);
-
-		// BitCount == 2 is valid for Windows CE, but is not supported by the PC version of Windows
-		if (llBitsSize <= 0 || llBitsSize > 0xFFFFFFFFL || lpbih->bV5Planes > 4 ||
-			lpbih->bV5BitCount == 2 || lpbih->bV5BitCount > 32)
+		bIsUnsupportedFormat = !IsDibSupported(lpbi);
+		INT64 llBitsSize = WIDTHBYTES(lpbih->bV5Width * lpbih->bV5Planes * lpbih->bV5BitCount) * abs(lpbih->bV5Height);
+		if (llBitsSize <= 0 || llBitsSize > 0xFFFFFFFFL || lpbih->bV5Planes > 4)
 			bIsUnsupportedFormat = TRUE;
 
 		DWORD dwCompression = lpbih->bV5Compression;
@@ -222,8 +201,9 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 				isprint((dwCompression >>  8) & 0xff) &&
 				isprint((dwCompression >> 16) & 0xff) &&
 				isprint((dwCompression >> 24) & 0xff))
-			{ // All video formats are unsupported
-				bIsUnsupportedFormat = TRUE;
+			{ // biCompression contains a FourCC code
+				// Not supported by GDI, but may be rendered by VfW/DrawDib
+				bIsUnsupportedFormat = FALSE;
 				OutputTextFmt(hwndCtl, szOutput, TEXT("%hc%hc%hc%hc"),
 					(char)(dwCompression & 0xff),
 					(char)((dwCompression >>  8) & 0xff),
@@ -248,31 +228,27 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 						break;
 					case BI_JPEG:
 						OutputText(hwndCtl, TEXT("JPEG"));
-						bIsUnsupportedFormat = TRUE;
 						break;
 					case BI_PNG:
 						OutputText(hwndCtl, TEXT("PNG"));
-						bIsUnsupportedFormat = TRUE;
 						break;
 					case BI_ALPHABITFIELDS:
 						OutputText(hwndCtl, TEXT("ALPHABITFIELDS"));
-						bIsUnsupportedFormat = TRUE;
+						break;
+					case BI_FOURCC:
+						OutputText(hwndCtl, TEXT("FOURCC"));
 						break;
 					case BI_CMYK:
 						OutputText(hwndCtl, TEXT("CMYK"));
-						bIsUnsupportedFormat = TRUE;
 						break;
 					case BI_CMYKRLE8:
 						OutputText(hwndCtl, TEXT("CMYKRLE8"));
-						bIsUnsupportedFormat = TRUE;
 						break;
 					case BI_CMYKRLE4:
 						OutputText(hwndCtl, TEXT("CMYKRLE4"));
-						bIsUnsupportedFormat = TRUE;
 						break;
 					default:
 						OutputTextFmt(hwndCtl, szOutput, TEXT("%u"), dwCompression);
-						bIsUnsupportedFormat = TRUE;
 				}
 			}
 		}
@@ -282,14 +258,12 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 
 		OutputTextFmt(hwndCtl, szOutput, TEXT("XPelsPerMeter:\t%d"), lpbih->bV5XPelsPerMeter);
 		if (lpbih->bV5XPelsPerMeter > 0)
-			OutputTextFmt(hwndCtl, szOutput, TEXT(" (%d dpi)"),
-				MulDiv(lpbih->bV5XPelsPerMeter, 127, 5000));
+			OutputTextFmt(hwndCtl, szOutput, TEXT(" (%d dpi)"), MulDiv(lpbih->bV5XPelsPerMeter, 127, 5000));
 		OutputText(hwndCtl, TEXT("\r\n"));
 			
 		OutputTextFmt(hwndCtl, szOutput, TEXT("YPelsPerMeter:\t%d"), lpbih->bV5YPelsPerMeter);
 		if (lpbih->bV5YPelsPerMeter > 0)
-			OutputTextFmt(hwndCtl, szOutput, TEXT(" (%d dpi)"),
-				MulDiv(lpbih->bV5YPelsPerMeter, 127, 5000));
+			OutputTextFmt(hwndCtl, szOutput, TEXT(" (%d dpi)"), MulDiv(lpbih->bV5YPelsPerMeter, 127, 5000));
 		OutputText(hwndCtl, TEXT("\r\n"));
 			
 		OutputTextFmt(hwndCtl, szOutput, TEXT("ClrUsed:\t%u\r\n"), lpbih->bV5ClrUsed);
@@ -494,6 +468,12 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		OutputTextFmt(hwndCtl, szOutput, TEXT("Reserved:\t%u\r\n"), lpbih->bV5Reserved);
 	}
 
+	// Check for a gap between header/color table and pixel array
+	DWORD dwGap = bfh.bfOffBits - dwFileHeaderSize - (DWORD)(FindDibBits(lpbi) - (LPBYTE)lpbi);
+	// HACK: Declare the gap as (additional) color table entries to get a packed DIB
+	if (dwGap > 0 && dwDibHeaderSize >= sizeof(BITMAPINFOHEADER))
+		lpbih->bV5ClrUsed += dwGap / sizeof(RGBQUAD);
+
 	GlobalUnlock(hDib);
 
 	if (bIsUnsupportedFormat)
@@ -520,6 +500,64 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 	}
 
 	return TRUE;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// IsDibSupported: Determines whether GDI can display a specific DIB image.
+// Returns TRUE even if the info could not be retrieved (e.g. for a core DIB).
+
+static BOOL IsDibSupported(LPCSTR lpbi)
+{
+	if (lpbi == NULL)
+		return FALSE;
+
+	DWORD dwFlags = QueryDibSupport(lpbi);
+	if (dwFlags & QDI_DIBTOSCREEN)
+		return TRUE;
+
+	return FALSE;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// The QUERYDIBSUPPORT escape function determines whether GDI supports a specific DIB image.
+// It only checks if biCompression contains either BI_RGB, BI_RLE4, BI_RLE8 or BI_BITFIELDS
+// and if the value of biBitCount matches the format. Core DIBs are therefore not supported.
+
+static DWORD QueryDibSupport(LPCSTR lpbi)
+{
+	if (lpbi == NULL)
+		return (DWORD)-1;
+
+	HDC hdc = GetDC(NULL);
+	if (hdc == NULL)
+		return (DWORD)-1;
+
+	DWORD dwFlags = 0;
+	if (Escape(hdc, QUERYDIBSUPPORT, *(LPDWORD)lpbi, lpbi, (LPVOID)&dwFlags) <= 0)
+		dwFlags = (DWORD)-1;
+
+	ReleaseDC(NULL, hdc);
+
+	return dwFlags;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Draws "UNSUPPORTED FORMAT" lettering over the default thumbnail image
+
+static void MarkAsUnsupported(HWND hwndCtl)
+{
+	HWND hwndThumb = GetDlgItem(GetParent(hwndCtl), IDC_THUMB);
+	if (hwndThumb != NULL)
+	{
+		TCHAR szText[256];
+		if (LoadString(g_hInstance, g_bGerUI ? IDS_GER_UNSUPPORTED : IDS_ENG_UNSUPPORTED,
+			szText, _countof(szText)) > 0)
+		{
+			SetWindowText(hwndThumb, szText);
+			if (InvalidateRect(hwndThumb, NULL, FALSE))
+				UpdateWindow(hwndThumb);
+		}
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
