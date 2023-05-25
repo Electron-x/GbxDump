@@ -27,13 +27,12 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize);
 
 #define BI_BGRA             5L          // Windows NT 5 only
 #define BI_ALPHABITFIELDS   6L          // Windows CE 3.0+
+#define BI_FOURCC           7L          // Windows Mobile 5.0+, Windows CE 6.0+
 #define BI_CMYK             10L         // GDI internal
 #define BI_CMYKRLE8         11L         // GDI internal
 #define BI_CMYKRLE4         12L         // GDI internal
 
-#ifndef BI_1632
-#define BI_1632             0x32333631  // Defined in VfW.H
-#endif
+#define BI_SRCPREROTATE     0x8000      // Windows Mobile 5.0+, Windows CE 6.0+
 
 #ifndef LCS_DEVICE_RGB
 #define LCS_DEVICE_RGB                  0x00000001L // Now GDI internal
