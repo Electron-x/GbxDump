@@ -3,7 +3,7 @@
 ## GBX file header viewer application
 
 GbxDump is a little Windows application that displays the contents of the file header of mainly maps, challenges, replays, packs, blocks, objects and items
-used by the [Nadeo](https://nadeo.com/) game engine GameBox (.gbx files). The tool is also able to display the file header of DirectDraw Surface files (.dds files).
+used by the [Nadeo](https://nadeo.com/) game engine GameBox (.gbx files). The tool is also able to display the file headers of Bitmap files (.bmp files) and DirectDraw Surface files (.dds files).
 
 **Main features:**
 - Displays general track properties
