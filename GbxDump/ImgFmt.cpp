@@ -33,6 +33,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Forward declarations of functions included in this code module
 
+int Mul8Bit(int a, int b);
 BYTE GetColorValue(DWORD dwPixel, DWORD dwMask);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -312,7 +313,6 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDib)
 			case 3:
 				if (bIsCMYK)
 				{
-					WORD wTemp;
 					BYTE cInvKey;
 					for (h = 0; h < lHeight; h++)
 					{
@@ -321,12 +321,9 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDib)
 						for (w = 0; w < lWidth; w++)
 						{
 							cInvKey = 0xFF - lpSrc[3];
-							wTemp = ((0xFF - lpSrc[2]) * cInvKey) + 127;
-							*lpDest++ = (wTemp + (wTemp >> 8)) >> 8;
-							wTemp = ((0xFF - lpSrc[1]) * cInvKey) + 127;
-							*lpDest++ = (wTemp + (wTemp >> 8)) >> 8;
-							wTemp = ((0xFF - lpSrc[0]) * cInvKey) + 127;
-							*lpDest++ = (wTemp + (wTemp >> 8)) >> 8;
+							*lpDest++ = Mul8Bit(0xFF - lpSrc[2], cInvKey);
+							*lpDest++ = Mul8Bit(0xFF - lpSrc[1], cInvKey);
+							*lpDest++ = Mul8Bit(0xFF - lpSrc[0], cInvKey);
 							lpSrc += 4;
 						}
 					}
@@ -1077,13 +1074,13 @@ HBITMAP CreatePremultipliedBitmap(HANDLE hDib)
 	}
 
 	LONG h, w;
-	WORD wTemp;
 	BYTE cAlpha;
 	LPBYTE lpSrc, lpDest;
 	LPDWORD lpdwColorMasks;
 	DWORD dwColor, dwRedMask, dwGreenMask, dwBlueMask, dwAlphaMask;
 	DWORD dwIncrement = WIDTHBYTES(lWidth * lpbi->biBitCount);
 	BOOL bHasVisiblePixels = FALSE;
+	BOOL bHasTransparentPixels = FALSE;
 
 	__try
 	{
@@ -1113,14 +1110,11 @@ HBITMAP CreatePremultipliedBitmap(HANDLE hDib)
 				{
 					dwColor = MAKELONG(MAKEWORD(lpSrc[0], lpSrc[1]), 0);
 					cAlpha = dwAlphaMask ? GetColorValue(dwColor, dwAlphaMask) : 0xFF;
-					if (cAlpha != 0) bHasVisiblePixels = TRUE;
-					// Taken from the documentation of the DrvAlphaBlend function:
-					wTemp = (GetColorValue(dwColor, dwBlueMask) * cAlpha) + 127;
-					*lpDest++ = (wTemp + (wTemp >> 8)) >> 8;
-					wTemp = (GetColorValue(dwColor, dwGreenMask) * cAlpha) + 127;
-					*lpDest++ = (wTemp + (wTemp >> 8)) >> 8;
-					wTemp = (GetColorValue(dwColor, dwRedMask) * cAlpha) + 127;
-					*lpDest++ = (wTemp + (wTemp >> 8)) >> 8;
+					if (cAlpha != 0x00) bHasVisiblePixels = TRUE;
+					if (cAlpha != 0xFF) bHasTransparentPixels = TRUE;
+					*lpDest++ = Mul8Bit(GetColorValue(dwColor, dwBlueMask), cAlpha);
+					*lpDest++ = Mul8Bit(GetColorValue(dwColor, dwGreenMask), cAlpha);
+					*lpDest++ = Mul8Bit(GetColorValue(dwColor, dwRedMask), cAlpha);
 					*lpDest++ = cAlpha;
 					lpSrc += 2;
 				}
@@ -1152,13 +1146,11 @@ HBITMAP CreatePremultipliedBitmap(HANDLE hDib)
 				{
 					dwColor = MAKELONG(MAKEWORD(lpSrc[0], lpSrc[1]), MAKEWORD(lpSrc[2], lpSrc[3]));
 					cAlpha = dwAlphaMask ? GetColorValue(dwColor, dwAlphaMask) : 0xFF;
-					if (cAlpha != 0) bHasVisiblePixels = TRUE;
-					wTemp = (GetColorValue(dwColor, dwBlueMask) * cAlpha) + 127;
-					*lpDest++ = (wTemp + (wTemp >> 8)) >> 8;
-					wTemp = (GetColorValue(dwColor, dwGreenMask) * cAlpha) + 127;
-					*lpDest++ = (wTemp + (wTemp >> 8)) >> 8;
-					wTemp = (GetColorValue(dwColor, dwRedMask) * cAlpha) + 127;
-					*lpDest++ = (wTemp + (wTemp >> 8)) >> 8;
+					if (cAlpha != 0x00) bHasVisiblePixels = TRUE;
+					if (cAlpha != 0xFF) bHasTransparentPixels = TRUE;
+					*lpDest++ = Mul8Bit(GetColorValue(dwColor, dwBlueMask), cAlpha);
+					*lpDest++ = Mul8Bit(GetColorValue(dwColor, dwGreenMask), cAlpha);
+					*lpDest++ = Mul8Bit(GetColorValue(dwColor, dwRedMask), cAlpha);
 					*lpDest++ = cAlpha;
 					lpSrc += 4;
 				}
@@ -1169,10 +1161,10 @@ HBITMAP CreatePremultipliedBitmap(HANDLE hDib)
 
 	GlobalUnlock(hDib);
 
-	if (!bHasVisiblePixels)
+	if (!bHasVisiblePixels || !bHasTransparentPixels)
 	{
 		FreeBitmap(hbmpDib);
-		return FALSE;
+		return NULL;
 	}
 
 	return hbmpDib;
@@ -1327,6 +1319,16 @@ BOOL IsDibVideoCompressed(LPCSTR lpbi)
 		isprint((dwCompression >> 8) & 0xff) &&
 		isprint((dwCompression >> 16) & 0xff) &&
 		isprint((dwCompression >> 24) & 0xff));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Incorporating rounding, Mul8Bit is an approximation of a * b / 255 for values in the
+// range [0...255]. For details, see the documentation of the DrvAlphaBlend function.
+
+static __inline int Mul8Bit(int a, int b)
+{
+	int t = a * b + 128;
+	return (t + (t >> 8)) >> 8;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
