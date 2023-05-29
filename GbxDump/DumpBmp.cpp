@@ -154,7 +154,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		OutputTextFmt(hwndCtl, szOutput, TEXT("BitCount:\t%u bpp\r\n"), lpbch->bcBitCount);
 		
 		UINT64 ullBitsSize = WIDTHBYTES(lpbch->bcWidth * lpbch->bcPlanes *	lpbch->bcBitCount) * lpbch->bcHeight;
-		if (ullBitsSize == 0 || ullBitsSize > 0xFFFFFFFF || lpbch->bcPlanes > 4 || lpbch->bcBitCount > 32)
+		if (ullBitsSize == 0 || ullBitsSize > 0x40000000 || lpbch->bcPlanes > 4 || lpbch->bcBitCount > 32)
 			bIsUnsupportedFormat = TRUE;
 	}
 
@@ -167,9 +167,10 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 
 		bIsUnsupportedFormat = !IsDibSupported(lpbi);
 		INT64 llBitsSize = WIDTHBYTES(lpbih->bV5Width * lpbih->bV5Planes * lpbih->bV5BitCount) * abs(lpbih->bV5Height);
-		if (llBitsSize <= 0 || llBitsSize > 0xFFFFFFFFL || lpbih->bV5Planes > 4)
+		if (llBitsSize <= 0 || llBitsSize > 0x40000000L || lpbih->bV5Planes > 4)
 			bIsUnsupportedFormat = TRUE;
 
+		// lpbih->bV5Compression &= ~BI_SRCPREROTATE;
 		DWORD dwCompression = lpbih->bV5Compression;
 		OutputText(hwndCtl, TEXT("Compression:\t"));
 		if (dwDibHeaderSize == sizeof(BITMAPINFOHEADER2))
@@ -312,8 +313,17 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		}
 		OutputText(hwndCtl, TEXT("\r\n"));
 
-		OutputTextFmt(hwndCtl, szOutput, TEXT("Size1:\t\t%u\r\n"), lpbih2->cSize1);
-		OutputTextFmt(hwndCtl, szOutput, TEXT("Size2:\t\t%u\r\n"), lpbih2->cSize2);
+		OutputTextFmt(hwndCtl, szOutput, TEXT("Size1:\t\t%u"), lpbih2->cSize1);
+		if (usRendering == BRH_ERRORDIFFUSION && lpbih2->cSize1 <= 100)
+			OutputText(hwndCtl, TEXT("%"));
+		else if (usRendering == BRH_PANDA || usRendering == BRH_SUPERCIRCLE)
+			OutputText(hwndCtl, TEXT(" pels"));
+		OutputText(hwndCtl, TEXT("\r\n"));
+
+		OutputTextFmt(hwndCtl, szOutput, TEXT("Size2:\t\t%u"), lpbih2->cSize2);
+		if (usRendering == BRH_PANDA || usRendering == BRH_SUPERCIRCLE)
+			OutputText(hwndCtl, TEXT(" pels"));
+		OutputText(hwndCtl, TEXT("\r\n"));
 
 		OutputText(hwndCtl, TEXT("ColorEncoding:\t"));
 		if (lpbih2->ulColorEncoding == BCE_RGB)
@@ -330,7 +340,6 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		GlobalUnlock(hDib);
 		GlobalFree(hDib);
 		MarkAsUnsupported(hwndCtl);
-
 		return TRUE;
 	}
 
@@ -469,10 +478,14 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 	}
 
 	// Check for a gap between header/color table and pixel array
-	DWORD dwGap = bfh.bfOffBits - dwFileHeaderSize - (DWORD)(FindDibBits(lpbi) - (LPBYTE)lpbi);
-	// HACK: Declare the gap as (additional) color table entries to get a packed DIB
-	if (dwGap > 0 && dwDibHeaderSize >= sizeof(BITMAPINFOHEADER))
-		lpbih->bV5ClrUsed += dwGap / sizeof(RGBQUAD);
+	DWORD dwOffBits = dwFileHeaderSize + (DWORD)(FindDibBits(lpbi) - (LPBYTE)lpbi);
+	if (bfh.bfOffBits > dwOffBits)
+	{
+		DWORD dwGap = bfh.bfOffBits - dwOffBits;
+		// HACK: Declare the gap as (additional) color table entries to get a packed DIB
+		if (dwGap > 0 && dwDibHeaderSize >= sizeof(BITMAPINFOHEADER))
+			lpbih->bV5ClrUsed += dwGap / sizeof(RGBQUAD);
+	}
 
 	GlobalUnlock(hDib);
 
@@ -491,13 +504,13 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 	g_hDibThumb = hDib;
 	g_hBitmapThumb = CreatePremultipliedBitmap(hDib);
 
-	// View the thumbnail immediately
 	HWND hwndThumb = GetDlgItem(GetParent(hwndCtl), IDC_THUMB);
-	if (hwndThumb != NULL)
-	{
-		if (InvalidateRect(hwndThumb, NULL, FALSE))
-			UpdateWindow(hwndThumb);
-	}
+	if (hwndThumb == NULL)
+		return TRUE;
+
+	// View the thumbnail immediately
+	if (InvalidateRect(hwndThumb, NULL, FALSE))
+		UpdateWindow(hwndThumb);
 
 	return TRUE;
 }
@@ -511,11 +524,7 @@ static BOOL IsDibSupported(LPCSTR lpbi)
 	if (lpbi == NULL)
 		return FALSE;
 
-	DWORD dwFlags = QueryDibSupport(lpbi);
-	if (dwFlags & QDI_DIBTOSCREEN)
-		return TRUE;
-
-	return FALSE;
+	return (QueryDibSupport(lpbi) & QDI_DIBTOSCREEN) != 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -547,17 +556,17 @@ static DWORD QueryDibSupport(LPCSTR lpbi)
 static void MarkAsUnsupported(HWND hwndCtl)
 {
 	HWND hwndThumb = GetDlgItem(GetParent(hwndCtl), IDC_THUMB);
-	if (hwndThumb != NULL)
-	{
-		TCHAR szText[256];
-		if (LoadString(g_hInstance, g_bGerUI ? IDS_GER_UNSUPPORTED : IDS_ENG_UNSUPPORTED,
-			szText, _countof(szText)) > 0)
-		{
-			SetWindowText(hwndThumb, szText);
-			if (InvalidateRect(hwndThumb, NULL, FALSE))
-				UpdateWindow(hwndThumb);
-		}
-	}
+	if (hwndThumb == NULL)
+		return;
+
+	TCHAR szText[256];
+	if (!LoadString(g_hInstance, g_bGerUI ? IDS_GER_UNSUPPORTED : IDS_ENG_UNSUPPORTED,
+		szText, _countof(szText)))
+		return;
+
+	SetWindowText(hwndThumb, szText);
+	if (InvalidateRect(hwndThumb, NULL, FALSE))
+		UpdateWindow(hwndThumb);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
