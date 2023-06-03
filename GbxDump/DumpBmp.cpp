@@ -471,7 +471,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		{
 			char szPath[MAX_PATH] = { 0 };
 			int nLen = min(min(lpbih->bV5ProfileSize, dwDibSize - lpbih->bV5ProfileData), _countof(szPath));
-			if (lstrcpynA(szPath, lpbi + lpbih->bV5ProfileData, nLen) != NULL)
+			if (MyStrNCpyA(szPath, lpbi + lpbih->bV5ProfileData, nLen) != NULL)
 				OutputTextFmt(hwndCtl, szOutput, TEXT(" (%hs)"), szPath);
 		}
 		OutputText(hwndCtl, TEXT("\r\n"));

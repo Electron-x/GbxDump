@@ -302,7 +302,7 @@ BOOL ConvertDediString(LPVOID lpData, SIZE_T cbLenData, LPTSTR lpszOutput, SIZE_
 	if (lpszTemp != NULL)
 	{
 		if (CleanupString(lpszOutput, lpszTemp, cchLen))
-			lstrcpyn(lpszOutput, lpszTemp, (int)cchLenOutput);
+			MyStrNCpy(lpszOutput, lpszTemp, (int)cchLenOutput);
 		MyGlobalFreePtr((LPVOID)lpszTemp);
 	}
 

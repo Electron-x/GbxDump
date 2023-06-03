@@ -26,6 +26,14 @@ __inline BOOL FileSeekCurrent(HANDLE hFile, LONG lDistanceToMove)
 LPVOID MyGlobalAllocPtr(UINT uFlags, SIZE_T dwBytes);
 void MyGlobalFreePtr(LPCVOID pMem);
 
+LPSTR MyStrNCpyA(LPSTR lpString1, LPCSTR lpString2, int iMaxLength);
+LPWSTR MyStrNCpyW(LPWSTR lpString1, LPCWSTR lpString2, int iMaxLength);
+#ifdef UNICODE
+#define MyStrNCpy MyStrNCpyW
+#else
+#define MyStrNCpy MyStrNCpyA
+#endif
+
 void OutputText(HWND hwndCtl, LPCTSTR lpszOutput);
 void OutputTextFmt(HWND hwndCtl, LPTSTR lpszOutput, LPCTSTR lpszFormat, ...);
 BOOL OutputTextErr(HWND hwndCtl, UINT uID);

@@ -115,7 +115,7 @@ int APIENTRY _tWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstanc
 		pszCommandLine = (LPTSTR)MyGlobalAllocPtr(GHND, (cchCmdLineLen + 1) * sizeof(TCHAR));
 		if (pszCommandLine != NULL)
 		{
-			lstrcpyn(pszCommandLine, lpCmdLine, (int)cchCmdLineLen + 1);
+			MyStrNCpy(pszCommandLine, lpCmdLine, (int)cchCmdLineLen + 1);
 			pszFilename = pszCommandLine;
 
 			// Remove quotation marks
@@ -882,7 +882,7 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 					{ // Save the current thumbnail as a PNG file
 						DWORD dwFilterIndex = 1;
 						TCHAR szFileName[MAX_PATH];
-						lstrcpyn(szFileName, s_szFileName, _countof(szFileName));
+						MyStrNCpy(szFileName, s_szFileName, _countof(szFileName));
 
 						if (GetFileName(hDlg, szFileName, _countof(szFileName), &dwFilterIndex, TRUE))
 						{
@@ -1055,6 +1055,7 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 				lParam != NULL && _tcscmp((LPCTSTR)lParam, TEXT("ImmersiveColorSet")) != 0)
 				return FALSE;
 
+			// Perform a logical XOR for an arbitrary type (!a != !b)
 			if (!g_bUseDarkMode != !(ShouldAppsUseDarkMode() && !IsHighContrast()))
 			{
 				g_bUseDarkMode = !g_bUseDarkMode;
@@ -1150,7 +1151,7 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 				lf.lfHeight = -11 * s_nDpi / 72;
 				lf.lfWeight = FW_NORMAL;
 				lf.lfPitchAndFamily = FIXED_PITCH | FF_MODERN;
-				lstrcpyn(lf.lfFaceName, g_szConsolas, _countof(lf.lfFaceName));
+				MyStrNCpy(lf.lfFaceName, g_szConsolas, _countof(lf.lfFaceName));
 
 				if (s_hfontEditBox != NULL)
 					DeleteFont(s_hfontEditBox);
@@ -1171,7 +1172,7 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 
 				if ((LPCTSTR)lParam != NULL && ((LPCTSTR)lParam)[0] != TEXT('\0'))
 				{ // Open a GBX file passed by program argument
-					lstrcpyn(s_szFileName, (LPCTSTR)lParam, _countof(s_szFileName));
+					MyStrNCpy(s_szFileName, (LPCTSTR)lParam, _countof(s_szFileName));
 					PostMessage(hDlg, WMU_FILEOPEN, 0, lParam);
 				}
 				else
@@ -1876,7 +1877,7 @@ HFONT CreateScaledFont(HDC hDC, LPCRECT lpRect, LPCTSTR lpszText)
 	lf.lfHeight = -sizeTextMax.cy; // Set the max practicable font size
 	lf.lfWeight = FW_BOLD;
 	lf.lfPitchAndFamily = DEFAULT_PITCH | FF_SWISS;
-	lstrcpyn(lf.lfFaceName, g_szArial, _countof(lf.lfFaceName));
+	MyStrNCpy(lf.lfFaceName, g_szArial, _countof(lf.lfFaceName));
 
 	HFONT hFont = CreateFontIndirect(&lf);
 	if (hFont == NULL)

@@ -57,7 +57,7 @@ BOOL GetFileName(HWND hDlg, LPTSTR lpszFileName, SIZE_T cchStringLen, LPDWORD lp
 	TCHAR* pszInitialDir = szInitialDir;
 	if (lpszFileName != NULL && lpszFileName[0] != TEXT('\0'))
 	{
-		lstrcpyn(pszInitialDir, lpszFileName, _countof(szInitialDir));
+		MyStrNCpy(pszInitialDir, lpszFileName, _countof(szInitialDir));
 		TCHAR* token = _tcsrchr(pszInitialDir, TEXT('\\'));
 		if (token != NULL)
 			pszInitialDir[token - szInitialDir] = TEXT('\0');
@@ -72,7 +72,7 @@ BOOL GetFileName(HWND hDlg, LPTSTR lpszFileName, SIZE_T cchStringLen, LPDWORD lp
 	if (bSave)
 	{
 		if (lpszFileName != NULL && lpszFileName[0] != TEXT('\0'))
-			lstrcpyn(szFile, lpszFileName, _countof(szFile));
+			MyStrNCpy(szFile, lpszFileName, _countof(szFile));
 		else
 			_tcscpy(szFile, TEXT("*"));
 		TCHAR* token = _tcsrchr(szFile, TEXT('.'));
@@ -114,7 +114,7 @@ BOOL GetFileName(HWND hDlg, LPTSTR lpszFileName, SIZE_T cchStringLen, LPDWORD lp
 	if (bRet)
 	{
 		if (lpszFileName != NULL)
-			lstrcpyn(lpszFileName, szFile, (int)cchStringLen);
+			MyStrNCpy(lpszFileName, szFile, (int)cchStringLen);
 		if (lpdwFilterIndex != NULL)
 			*lpdwFilterIndex = of.nFilterIndex;
 	}

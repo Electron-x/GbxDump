@@ -1647,7 +1647,7 @@ BOOL ReadSubFolders(HWND hwndCtl, HANDLE hFile, PDWORD pdwIndex, LPCSTR lpszFold
 
 	szFolder[0] = '\0';
 	if (lpszFolder != NULL)
-		lstrcpynA(szFolder, lpszFolder, _countof(szFolder));
+		MyStrNCpyA(szFolder, lpszFolder, _countof(szFolder));
 
 	// Directory name
 	if ((nRet = ReadString(hFile, szRead, _countof(szRead), bIsText)) < 0)
@@ -2106,7 +2106,7 @@ BOOL ChallengeCommonChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckCommon, LPSTR lp
 
 	if (nRet > 0)
 	{
-		lstrcpynA(lpszUid, szRead, UID_LENGTH);
+		MyStrNCpyA(lpszUid, szRead, UID_LENGTH);
 		OutputText(hwndCtl, TEXT("Map UID:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
 		OutputText(hwndCtl, szOutput);
@@ -2119,7 +2119,7 @@ BOOL ChallengeCommonChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckCommon, LPSTR lp
 
 	if (nRet > 0)
 	{
-		lstrcpynA(lpszEnvi, szRead, ENVI_LENGTH);
+		MyStrNCpyA(lpszEnvi, szRead, ENVI_LENGTH);
 		OutputText(hwndCtl, TEXT("Collection:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
 		OutputText(hwndCtl, szOutput);
@@ -3096,7 +3096,7 @@ BOOL ReplayVersionChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVersion, LPSTR lps
 
 		if (nRet > 0)
 		{
-			lstrcpynA(lpszUid, szRead, UID_LENGTH);
+			MyStrNCpyA(lpszUid, szRead, UID_LENGTH);
 			OutputText(hwndCtl, TEXT("Map UID:\t"));
 			ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
 			OutputText(hwndCtl, szOutput);
@@ -3109,7 +3109,7 @@ BOOL ReplayVersionChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVersion, LPSTR lps
 
 		if (nRet > 0)
 		{
-			lstrcpynA(lpszEnvi, szRead, ENVI_LENGTH);
+			MyStrNCpyA(lpszEnvi, szRead, ENVI_LENGTH);
 			OutputText(hwndCtl, TEXT("Collection:\t"));
 			ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
 			OutputText(hwndCtl, szOutput);

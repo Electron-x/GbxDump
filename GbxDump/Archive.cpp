@@ -323,7 +323,7 @@ SSIZE_T ReadString(HANDLE hFile, PSTR pszString, SIZE_T cchStringLen, BOOL bIsTe
 		}
 
 		// Copy the read string into the return buffer
-		lstrcpynA(pszString, (LPSTR)lpData, (int)cchStringLen);
+		MyStrNCpyA(pszString, (LPSTR)lpData, (int)cchStringLen);
 
 		MyGlobalFreePtr(lpData);
 	}
@@ -383,7 +383,7 @@ SSIZE_T ReadIdentifier(HANDLE hFile, PIDENTIFIER pIdList, PSTR pszString, SIZE_T
 		// Copy the string to the ID list and increment the index
 		if (cchLen > 0 && pIdList->dwIndex < ID_DIM)
 		{
-			lstrcpynA(pIdList->aszList[pIdList->dwIndex], pszString, _countof(pIdList->aszList[pIdList->dwIndex]));
+			MyStrNCpyA(pIdList->aszList[pIdList->dwIndex], pszString, _countof(pIdList->aszList[pIdList->dwIndex]));
 			pIdList->dwIndex++;
 		}
 
@@ -399,7 +399,7 @@ SSIZE_T ReadIdentifier(HANDLE hFile, PIDENTIFIER pIdList, PSTR pszString, SIZE_T
 	}
 
 	// Get the string from the ID list
-	lstrcpynA(pszString, pIdList->aszList[dwIndex-1], (int)cchStringLen);
+	MyStrNCpyA(pszString, pIdList->aszList[dwIndex-1], (int)cchStringLen);
 
 	return strlen(pszString);
 }
@@ -415,148 +415,148 @@ SIZE_T GetCollectionString(DWORD dwId, LPSTR lpszCollection, SIZE_T cchStringLen
 	switch (dwId)
 	{
 		case 0: // Speed
-			lstrcpynA(lpszCollection, "Desert", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "Desert", (int)cchStringLen);
 			break;
 		case 1: // Alpine
-			lstrcpynA(lpszCollection, "Snow", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "Snow", (int)cchStringLen);
 			break;
 		case 2: // Rally
-			lstrcpynA(lpszCollection, "Rally", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "Rally", (int)cchStringLen);
 			break;
 		case 3: // Island
-			lstrcpynA(lpszCollection, "Island", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "Island", (int)cchStringLen);
 			break;
 		case 4: // Bay
-			lstrcpynA(lpszCollection, "Bay", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "Bay", (int)cchStringLen);
 			break;
 		case 5: // Coast
-			lstrcpynA(lpszCollection, "Coast", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "Coast", (int)cchStringLen);
 			break;
 		case 6: // StadiumMP4
-			lstrcpynA(lpszCollection, "Stadium", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "Stadium", (int)cchStringLen);
 			break;
 		case 7: // Basic
-			lstrcpynA(lpszCollection, "Basic", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "Basic", (int)cchStringLen);
 			break;
 		case 8: // Plain
-			lstrcpynA(lpszCollection, "Plain", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "Plain", (int)cchStringLen);
 			break;
 		case 9: // Moon
-			lstrcpynA(lpszCollection, "Moon", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "Moon", (int)cchStringLen);
 			break;
 		case 10: // Toy
-			lstrcpynA(lpszCollection, "Toy", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "Toy", (int)cchStringLen);
 			break;
 		case 11: // Valley
-			lstrcpynA(lpszCollection, "Valley", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "Valley", (int)cchStringLen);
 			break;
 		case 12: // Canyon
-			lstrcpynA(lpszCollection, "Canyon", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "Canyon", (int)cchStringLen);
 			break;
 		case 13: // Lagoon
-			lstrcpynA(lpszCollection, "Lagoon", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "Lagoon", (int)cchStringLen);
 			break;
 		case 14: // Deprecated_Arena
-			lstrcpynA(lpszCollection, "Arena", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "Arena", (int)cchStringLen);
 			break;
 		case 15: // TMTest8
-			lstrcpynA(lpszCollection, "TMTest8", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "TMTest8", (int)cchStringLen);
 			break;
 		case 16: // TMTest9
-			lstrcpynA(lpszCollection, "TMTest9", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "TMTest9", (int)cchStringLen);
 			break;
 		case 17: // TMCommon
-			lstrcpynA(lpszCollection, "TMCommon", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "TMCommon", (int)cchStringLen);
 			break;
 		case 18: // Canyon4
-			lstrcpynA(lpszCollection, "Canyon4", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "Canyon4", (int)cchStringLen);
 			break;
 		case 19: // Canyon256
-			lstrcpynA(lpszCollection, "Canyon256", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "Canyon256", (int)cchStringLen);
 			break;
 		case 20: // Valley4
-			lstrcpynA(lpszCollection, "Valley4", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "Valley4", (int)cchStringLen);
 			break;
 		case 21: // Valley256
-			lstrcpynA(lpszCollection, "Valley256", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "Valley256", (int)cchStringLen);
 			break;
 		case 22: // Lagoon4
-			lstrcpynA(lpszCollection, "Lagoon4", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "Lagoon4", (int)cchStringLen);
 			break;
 		case 23: // Lagoon256
-			lstrcpynA(lpszCollection, "Lagoon256", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "Lagoon256", (int)cchStringLen);
 			break;
 		case 24: // Stadium4
-			lstrcpynA(lpszCollection, "Stadium4", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "Stadium4", (int)cchStringLen);
 			break;
 		case 25: // Stadium256
-			lstrcpynA(lpszCollection, "Stadium256", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "Stadium256", (int)cchStringLen);
 			break;
 		case 26: // Stadium
-			lstrcpynA(lpszCollection, "Stadium", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "Stadium", (int)cchStringLen);
 			break;
 		case 27: // Voxel
-			lstrcpynA(lpszCollection, "Voxel", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "Voxel", (int)cchStringLen);
 			break;
 		case 100: // History
-			lstrcpynA(lpszCollection, "History", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "History", (int)cchStringLen);
 			break;
 		case 101: // Society
-			lstrcpynA(lpszCollection, "Society", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "Society", (int)cchStringLen);
 			break;
 		case 102: // Galaxy
-			lstrcpynA(lpszCollection, "Galaxy", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "Galaxy", (int)cchStringLen);
 			break;
 		case 103: // QMTest1
-			lstrcpynA(lpszCollection, "QMTest1", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "QMTest1", (int)cchStringLen);
 			break;
 		case 104: // QMTest2
-			lstrcpynA(lpszCollection, "QMTest2", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "QMTest2", (int)cchStringLen);
 			break;
 		case 105: // QMTest3
-			lstrcpynA(lpszCollection, "QMTest3", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "QMTest3", (int)cchStringLen);
 			break;
 		case 200: // Gothic
-			lstrcpynA(lpszCollection, "Gothic", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "Gothic", (int)cchStringLen);
 			break;
 		case 201: // Paris
-			lstrcpynA(lpszCollection, "Paris", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "Paris", (int)cchStringLen);
 			break;
 		case 202: // Storm
-			lstrcpynA(lpszCollection, "Storm", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "Storm", (int)cchStringLen);
 			break;
 		case 203: // Cryo
-			lstrcpynA(lpszCollection, "Cryo", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "Cryo", (int)cchStringLen);
 			break;
 		case 204: // Meteor
-			lstrcpynA(lpszCollection, "Meteor", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "Meteor", (int)cchStringLen);
 			break;
 		case 205: // Meteor4
-			lstrcpynA(lpszCollection, "Meteor4", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "Meteor4", (int)cchStringLen);
 			break;
 		case 206: // Meteor256
-			lstrcpynA(lpszCollection, "Meteor256", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "Meteor256", (int)cchStringLen);
 			break;
 		case 207: // SMTest3
-			lstrcpynA(lpszCollection, "SMTest3", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "SMTest3", (int)cchStringLen);
 			break;
 		case 299: // SMCommon
-			lstrcpynA(lpszCollection, "SMCommon", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "SMCommon", (int)cchStringLen);
 			break;
 		case 10000: // Vehicles
-			lstrcpynA(lpszCollection, "Vehicles", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "Vehicles", (int)cchStringLen);
 			break;
 		case 10001: // Orbital
-			lstrcpynA(lpszCollection, "Orbital", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "Orbital", (int)cchStringLen);
 			break;
 		case 10002: // Actors
-			lstrcpynA(lpszCollection, "Actors", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "Actors", (int)cchStringLen);
 			break;
 		case 10003: // Common
-			lstrcpynA(lpszCollection, "Common", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "Common", (int)cchStringLen);
 			break;
 		case UNASSIGNED:
-			lstrcpynA(lpszCollection, "_Unassigned", (int)cchStringLen);
+			MyStrNCpyA(lpszCollection, "_Unassigned", (int)cchStringLen);
 			break;
 		default:
 			{
@@ -564,7 +564,7 @@ SIZE_T GetCollectionString(DWORD dwId, LPSTR lpszCollection, SIZE_T cchStringLen
 				_snprintf(szId, _countof(szId), "%u", dwId);
 				szId[31] = '\0';
 				if (cchStringLen > strlen(szId))
-					lstrcpynA(lpszCollection, szId, (int)cchStringLen);
+					MyStrNCpyA(lpszCollection, szId, (int)cchStringLen);
 				else
 				{
 					lpszCollection[0] = '\0';

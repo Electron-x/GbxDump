@@ -38,6 +38,22 @@ void MyGlobalFreePtr(LPCVOID pMem)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
+// Wrapper for lstrcpynA to avoid warning C6031
+
+LPSTR MyStrNCpyA(LPSTR lpString1, LPCSTR lpString2, int iMaxLength)
+{
+	return lstrcpynA(lpString1, lpString2, iMaxLength);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Wrapper for lstrcpynW to avoid warning C6031
+
+LPWSTR MyStrNCpyW(LPWSTR lpString1, LPCWSTR lpString2, int iMaxLength)
+{
+	return lstrcpynW(lpString1, lpString2, iMaxLength);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
 // Inserts the passed text at the current cursor position of an edit control
 
 void OutputText(HWND hwndCtl, LPCTSTR lpszOutput)
@@ -99,7 +115,7 @@ BOOL OutputErrorMessage(HWND hwndCtl, DWORD dwError)
 
 	if (dwLen > 0 && lpMsgBuf != NULL)
 	{
-		lstrcpyn(szOutput, (LPTSTR)lpMsgBuf, _countof(szOutput));
+		MyStrNCpy(szOutput, (LPTSTR)lpMsgBuf, _countof(szOutput));
 		OutputText(hwndCtl, g_szSep1);
 		OutputText(hwndCtl, szOutput);
 		LocalFree(lpMsgBuf);
@@ -263,7 +279,7 @@ BOOL CleanupString(LPCTSTR lpszInput, LPTSTR lpszOutput, SIZE_T cchLenOutput)
 			return FALSE;
 		}
 
-		lstrcpyn(lpszOutput, lpszMem3, (int)cchLenOutput);
+		MyStrNCpy(lpszOutput, lpszMem3, (int)cchLenOutput);
 	}
 	__except (EXCEPTION_EXECUTE_HANDLER)
 	{

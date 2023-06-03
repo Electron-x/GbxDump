@@ -175,19 +175,19 @@ BOOL ProcessTmx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 	switch (nGame)
 	{
 		case GAME_TMNF:
-			lstrcpyn(szSubDomain, g_szForever, _countof(szSubDomain));
+			MyStrNCpy(szSubDomain, g_szForever, _countof(szSubDomain));
 			break;
 		case GAME_TMU:
-			lstrcpyn(szSubDomain, g_szUnited, _countof(szSubDomain));
+			MyStrNCpy(szSubDomain, g_szUnited, _countof(szSubDomain));
 			break;
 		case GAME_TMN:
-			lstrcpyn(szSubDomain, g_szNations, _countof(szSubDomain));
+			MyStrNCpy(szSubDomain, g_szNations, _countof(szSubDomain));
 			break;
 		case GAME_TMS:
-			lstrcpyn(szSubDomain, g_szSunrise, _countof(szSubDomain));
+			MyStrNCpy(szSubDomain, g_szSunrise, _countof(szSubDomain));
 			break;
 		case GAME_TMO:
-			lstrcpyn(szSubDomain, g_szOriginal, _countof(szSubDomain));
+			MyStrNCpy(szSubDomain, g_szOriginal, _countof(szSubDomain));
 			break;
 		default:
 			return TRUE;
@@ -244,7 +244,7 @@ BOOL ProcessTmx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 		switch (i)
 		{
 			case 1:
-				lstrcpynA(szTrackId, token, _countof(szTrackId));
+				MyStrNCpyA(szTrackId, token, _countof(szTrackId));
 				OutputTextFmt(hwndCtl, szOutput, TEXT("Track ID:\t%hs\r\n"), token);
 				break;
 			case 2:
@@ -260,11 +260,11 @@ BOOL ProcessTmx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 				OutputText(hwndCtl, TEXT("\r\n"));
 				break;
 			case 5:
-				lstrcpynA(szVersion, token, _countof(szVersion));
+				MyStrNCpyA(szVersion, token, _countof(szVersion));
 				OutputTextFmt(hwndCtl, szOutput, TEXT("Uploaded:\t%hs\r\n"), token);
 				break;
 			case 6:
-				lstrcpynA(szVersion, token, _countof(szVersion));
+				MyStrNCpyA(szVersion, token, _countof(szVersion));
 				OutputTextFmt(hwndCtl, szOutput, TEXT("Updated:\t%hs\r\n"), token);
 				break;
 			case 7:
@@ -445,16 +445,16 @@ BOOL ProcessMx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 	switch (nGame)
 	{
 		case GAME_TM2020:
-			lstrcpyn(szSubDomain, g_szTrackMania, _countof(szSubDomain));
+			MyStrNCpy(szSubDomain, g_szTrackMania, _countof(szSubDomain));
 			break;
 		case GAME_TM2:
-			lstrcpyn(szSubDomain, g_szTM, _countof(szSubDomain));
+			MyStrNCpy(szSubDomain, g_szTM, _countof(szSubDomain));
 			break;
 		case GAME_SM:
-			lstrcpyn(szSubDomain, g_szSM, _countof(szSubDomain));
+			MyStrNCpy(szSubDomain, g_szSM, _countof(szSubDomain));
 			break;
 		case GAME_QM:
-			lstrcpyn(szSubDomain, g_szQM, _countof(szSubDomain));
+			MyStrNCpy(szSubDomain, g_szQM, _countof(szSubDomain));
 			break;
 		default:
 			return TRUE;
@@ -625,7 +625,7 @@ HRESULT ParseAndPrintXml(HWND hwndCtl, HGLOBAL hXml, PINT pnTrackId)
 				arrayType = XmlArrayType_Item;
 
 			if (arrayType != XmlArrayType_None)
-				lstrcpynW(wszElement, pwszElement, _countof(wszElement));
+				MyStrNCpyW(wszElement, pwszElement, _countof(wszElement));
 
 			break;
 
@@ -650,23 +650,23 @@ HRESULT ParseAndPrintXml(HWND hwndCtl, HGLOBAL hXml, PINT pnTrackId)
 			else if (arrayType == XmlArrayType_TrackObject)
 			{
 				if (_wcsicmp(wszElement, L"ObjectPath") == 0)
-					lstrcpynW(wszObjectPath, pwszValue, _countof(wszObjectPath));
+					MyStrNCpyW(wszObjectPath, pwszValue, _countof(wszObjectPath));
 				if (_wcsicmp(wszElement, L"ObjectAuthor") == 0)
 				{
 					wszUsername[0] = L'\0';	// Username element can be empty or missing
-					lstrcpynW(wszObjectAuthor, pwszValue, _countof(wszObjectAuthor));
+					MyStrNCpyW(wszObjectAuthor, pwszValue, _countof(wszObjectAuthor));
 				}
 				if (_wcsicmp(wszElement, L"Username") == 0)
-					lstrcpynW(wszUsername, pwszValue, _countof(wszUsername));
+					MyStrNCpyW(wszUsername, pwszValue, _countof(wszUsername));
 			}
 			else if (arrayType == XmlArrayType_Replay)
 			{
 				if (_wcsicmp(wszElement, L"Username") == 0)
-					lstrcpynW(wszUsername, pwszValue, _countof(wszUsername));
+					MyStrNCpyW(wszUsername, pwszValue, _countof(wszUsername));
 				if (_wcsicmp(wszElement, L"ReplayTime") == 0)
 					nReplayTime = _wtoi(pwszValue);
 				if (_wcsicmp(wszElement, L"StuntScore") == 0)
-					lstrcpynW(wszStuntScore, pwszValue, _countof(wszStuntScore));
+					MyStrNCpyW(wszStuntScore, pwszValue, _countof(wszStuntScore));
 				if (_wcsicmp(wszElement, L"Position") == 0)
 					nReplayPos = _wtoi(pwszValue);
 			}
