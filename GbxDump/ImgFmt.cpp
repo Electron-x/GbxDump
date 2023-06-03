@@ -163,7 +163,7 @@ BOOL SaveBmpFile(LPCTSTR lpszFileName, HANDLE hDib)
 	dwDIBSize += dwBmBitsSize;
 	dwFileSize = dwOffBits + dwBmBitsSize;
 
-	BITMAPFILEHEADER bmfHdr;
+	BITMAPFILEHEADER bmfHdr = { 0 };
 	bmfHdr.bfType = 0x4d42;
 	bmfHdr.bfSize = dwFileSize;
 	bmfHdr.bfReserved1 = 0;
@@ -225,6 +225,8 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDib)
 	BOOL bFlipImage = FALSE;
 	LONG lWidth = lpbi->biWidth;
 	LONG lHeight = lpbi->biHeight;
+	if (lWidth < 0)
+		lWidth = -lWidth;
 	if (lHeight < 0)
 	{
 		lHeight = -lHeight;
@@ -246,7 +248,7 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDib)
 	}
 
 	LPBYTE lpDIB = FindDibBits((LPCSTR)lpbi);
-	LPBYTE lpRGBA = (LPBYTE)GlobalAllocPtr(GHND, lSizeImage);
+	LPBYTE lpRGBA = (LPBYTE)MyGlobalAllocPtr(GHND, lSizeImage);
 	if (lpRGBA == NULL)
 	{
 		GlobalUnlock(hDib);
@@ -266,8 +268,8 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDib)
 			case 1:
 				for (h = 0; h < lHeight; h++)
 				{
-					lpSrc = lpDIB + (bFlipImage ? h : lHeight-1 - h) * dwIncrement;
-					lpDest = lpRGBA + h * lWidth * nNumChannels;
+					lpSrc = lpDIB + (ULONG_PTR)(bFlipImage ? h : lHeight-1 - h) * dwIncrement;
+					lpDest = lpRGBA + (ULONG_PTR)h * lWidth * nNumChannels;
 					for (w = 0; w < lWidth; w++)
 						*lpDest++ = *lpSrc++;
 				}
@@ -287,15 +289,15 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDib)
 					dwRedMask   = 0x00007C00;
 					dwGreenMask = 0x000003E0;
 					dwBlueMask  = 0x0000001F;
-					dwAlphaMask = 0x00000000;
+					dwAlphaMask = 0x00008000;
 				}
 
 				nNumChannels = dwAlphaMask ? 4 : 3;
 
 				for (h = 0; h < lHeight; h++)
 				{
-					lpSrc = lpDIB + (bFlipImage ? h : lHeight-1 - h) * dwIncrement;
-					lpDest = lpRGBA + h * lWidth * nNumChannels;
+					lpSrc = lpDIB + (ULONG_PTR)(bFlipImage ? h : lHeight-1 - h) * dwIncrement;
+					lpDest = lpRGBA + (ULONG_PTR)h * lWidth * nNumChannels;
 					for (w = 0; w < lWidth; w++)
 					{
 						dwColor = MAKELONG(MAKEWORD(lpSrc[0], lpSrc[1]), 0);
@@ -316,8 +318,8 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDib)
 					BYTE cInvKey;
 					for (h = 0; h < lHeight; h++)
 					{
-						lpSrc = lpDIB + (bFlipImage ? h : lHeight-1 - h) * dwIncrement;
-						lpDest = lpRGBA + h * lWidth * nNumChannels;
+						lpSrc = lpDIB + (ULONG_PTR)(bFlipImage ? h : lHeight-1 - h) * dwIncrement;
+						lpDest = lpRGBA + (ULONG_PTR)h * lWidth * nNumChannels;
 						for (w = 0; w < lWidth; w++)
 						{
 							cInvKey = 0xFF - lpSrc[3];
@@ -332,8 +334,8 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDib)
 				{
 					for (h = 0; h < lHeight; h++)
 					{
-						lpSrc = lpDIB + (bFlipImage ? h : lHeight-1 - h) * dwIncrement;
-						lpDest = lpRGBA + h * lWidth * nNumChannels;
+						lpSrc = lpDIB + (ULONG_PTR)(bFlipImage ? h : lHeight-1 - h) * dwIncrement;
+						lpDest = lpRGBA + (ULONG_PTR)h * lWidth * nNumChannels;
 						for (w = 0; w < lWidth; w++)
 						{
 							lpDest[2] = *lpSrc++;
@@ -364,8 +366,8 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDib)
 
 				for (h = 0; h < lHeight; h++)
 				{
-					lpSrc = lpDIB + (bFlipImage ? h : lHeight-1 - h) * dwIncrement;
-					lpDest = lpRGBA + h * lWidth * nNumChannels;
+					lpSrc = lpDIB + (ULONG_PTR)(bFlipImage ? h : lHeight-1 - h) * dwIncrement;
+					lpDest = lpRGBA + (ULONG_PTR)h * lWidth * nNumChannels;
 					for (w = 0; w < lWidth; w++)
 					{
 						dwColor = MAKELONG(MAKEWORD(lpSrc[0], lpSrc[1]), MAKEWORD(lpSrc[2], lpSrc[3]));
@@ -386,7 +388,7 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDib)
 	LPVOID lpPNG = tdefl_write_image_to_png_file_in_memory(lpRGBA, lWidth, lHeight, nNumChannels, &cbSize);
 	if (lpPNG == NULL)
 	{
-		GlobalFreePtr((LPVOID)lpRGBA);
+		MyGlobalFreePtr((LPVOID)lpRGBA);
 		GlobalUnlock(hDib);
 		return FALSE;
 	}
@@ -396,7 +398,7 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDib)
 	if (hFile == INVALID_HANDLE_VALUE)
 	{
 		mz_free(lpPNG);
-		GlobalFreePtr((LPVOID)lpRGBA);
+		MyGlobalFreePtr((LPVOID)lpRGBA);
 		GlobalUnlock(hDib);
 		return FALSE;
 	}
@@ -405,7 +407,7 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDib)
 	if (!WriteFile(hFile, lpPNG, (DWORD)cbSize, &dwWrite, NULL) || dwWrite != cbSize)
 	{
 		mz_free(lpPNG);
-		GlobalFreePtr((LPVOID)lpRGBA);
+		MyGlobalFreePtr((LPVOID)lpRGBA);
 		GlobalUnlock(hDib);
 		CloseHandle(hFile);
 		DeleteFile(lpszFileName);
@@ -413,7 +415,7 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDib)
 	}
 
 	mz_free(lpPNG);
-	GlobalFreePtr((LPVOID)lpRGBA);
+	MyGlobalFreePtr((LPVOID)lpRGBA);
 	GlobalUnlock(hDib);
 	CloseHandle(hFile);
 
@@ -466,7 +468,7 @@ HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData, BOOL bFlipImage, INT nTrace
 	HANDLE hDib = NULL;  // Handle of the DIB
 
 	// Initialize the JPEG decompression object
-	JPEG_DECOMPRESS JpegDecompress; // JPEG decompression structure
+	JPEG_DECOMPRESS JpegDecompress;
 	j_decompress_ptr pjInfo = &JpegDecompress.jInfo;
 	JpegDecompress.nTraceLevel = nTraceLevel;
 	set_error_manager((j_common_ptr)pjInfo, &JpegDecompress.jError);
@@ -562,7 +564,6 @@ HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData, BOOL bFlipImage, INT nTrace
 	JpegDecompress.dwSize = JpegDecompress.dwIncrement * JpegDecompress.uHeight;
 
 	// Create a Windows Bitmap
-	// Allocate memory for the DIB
 	hDib = GlobalAlloc(GHND, sizeof(BITMAPINFOHEADER) +
 		JpegDecompress.uWinColors * sizeof(RGBQUAD) + JpegDecompress.dwSize);
 	if (hDib == NULL)
@@ -663,7 +664,7 @@ HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData, BOOL bFlipImage, INT nTrace
 	while (pjInfo->output_scanline < pjInfo->output_height)
 	{
 		uScanline = bFlipImage ? pjInfo->output_scanline : JpegDecompress.uHeight-1 - pjInfo->output_scanline;
-		lpBits = lpDIB + uScanline * JpegDecompress.dwIncrement;
+		lpBits = lpDIB + (UINT_PTR)uScanline * JpegDecompress.dwIncrement;
 		lpScanlines[0] = lpBits;
 		jpeg_read_scanlines(pjInfo, lpScanlines, 1);  // Decompress one line
 	}
@@ -743,8 +744,8 @@ void my_error_exit(j_common_ptr pjInfo)
 // This callback function formats a message and displays it on the screen.
 void my_output_message(j_common_ptr pjInfo)
 {
-	char szBuffer[JMSG_LENGTH_MAX];    // Buffer for message text
-	TCHAR szMessage[JMSG_LENGTH_MAX];  // Buffer for message text
+	char szBuffer[JMSG_LENGTH_MAX];
+	TCHAR szMessage[JMSG_LENGTH_MAX];
 
 	// Format text
 	(*pjInfo->err->format_message)(pjInfo, szBuffer);
@@ -775,7 +776,7 @@ void my_output_message(j_common_ptr pjInfo)
 // 1-3: Trace information
 void my_emit_message(j_common_ptr pjInfo, int nMessageLevel)
 {
-	char szBuffer[JMSG_LENGTH_MAX];  // Buffer for message text
+	char szBuffer[JMSG_LENGTH_MAX];
 
 	// Process message level
 	if (nMessageLevel < 0)
@@ -995,10 +996,10 @@ HANDLE DdsToDib(LPVOID lpDdsData, DWORD dwLenData, BOOL bFlipImage, BOOL bShowTe
 			uSrcPtr = (bFlipImage ? h : uHeight-1 - h) * uWidth * 4;
 			for (crn_uint32 w = 0; w < uWidth; w++)
 			{
-				lpDest[uDestPtr + 2] = lpSrc[uSrcPtr++];	// B <-- R
-				lpDest[uDestPtr + 1] = lpSrc[uSrcPtr++];	// G <-- G
-				lpDest[uDestPtr + 0] = lpSrc[uSrcPtr++];	// R <-- B
-				lpDest[uDestPtr + 3] = lpSrc[uSrcPtr++];	// A <-- A
+				lpDest[uDestPtr + 2] = lpSrc[uSrcPtr++]; // B <-- R
+				lpDest[uDestPtr + 1] = lpSrc[uSrcPtr++]; // G <-- G
+				lpDest[uDestPtr + 0] = lpSrc[uSrcPtr++]; // R <-- B
+				lpDest[uDestPtr + 3] = lpSrc[uSrcPtr++]; // A <-- A
 				uDestPtr += 4;
 			}
 		}
@@ -1049,10 +1050,8 @@ HBITMAP CreatePremultipliedBitmap(HANDLE hDib)
 		return NULL;
 	}
 
-	LONG lWidth = lpbi->biWidth;
-	LONG lHeight = lpbi->biHeight;
-	if (lHeight < 0)
-		lHeight = -lHeight;
+	LONG lWidth = abs(lpbi->biWidth);
+	LONG lHeight = abs(lpbi->biHeight);
 
 	BITMAPINFO bmi = { 0 };
 	bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
@@ -1061,7 +1060,6 @@ HBITMAP CreatePremultipliedBitmap(HANDLE hDib)
 	bmi.bmiHeader.biPlanes = 1;
 	bmi.bmiHeader.biBitCount = 32;
 	bmi.bmiHeader.biCompression = BI_RGB;
-	bmi.bmiHeader.biSizeImage = 0;
 
 	LPBYTE lpBGRA = NULL;
 	LPBYTE lpDIB = FindDibBits((LPCSTR)lpbi);
@@ -1099,24 +1097,27 @@ HBITMAP CreatePremultipliedBitmap(HANDLE hDib)
 				dwRedMask   = 0x00007C00;
 				dwGreenMask = 0x000003E0;
 				dwBlueMask  = 0x0000001F;
-				dwAlphaMask = 0x00000000;
+				dwAlphaMask = 0x00008000;
 			}
 
-			for (h = 0; h < lHeight; h++)
+			if (dwAlphaMask)
 			{
-				lpSrc = lpDIB + h * dwIncrement;
-				lpDest = lpBGRA + h * lWidth * 4;
-				for (w = 0; w < lWidth; w++)
+				for (h = 0; h < lHeight; h++)
 				{
-					dwColor = MAKELONG(MAKEWORD(lpSrc[0], lpSrc[1]), 0);
-					cAlpha = dwAlphaMask ? GetColorValue(dwColor, dwAlphaMask) : 0xFF;
-					if (cAlpha != 0x00) bHasVisiblePixels = TRUE;
-					if (cAlpha != 0xFF) bHasTransparentPixels = TRUE;
-					*lpDest++ = Mul8Bit(GetColorValue(dwColor, dwBlueMask), cAlpha);
-					*lpDest++ = Mul8Bit(GetColorValue(dwColor, dwGreenMask), cAlpha);
-					*lpDest++ = Mul8Bit(GetColorValue(dwColor, dwRedMask), cAlpha);
-					*lpDest++ = cAlpha;
-					lpSrc += 2;
+					lpSrc = lpDIB + (ULONG_PTR)h * dwIncrement;
+					lpDest = lpBGRA + (ULONG_PTR)h * lWidth * 4;
+					for (w = 0; w < lWidth; w++)
+					{
+						dwColor = MAKELONG(MAKEWORD(lpSrc[0], lpSrc[1]), 0);
+						cAlpha = dwAlphaMask ? GetColorValue(dwColor, dwAlphaMask) : 0xFF;
+						if (cAlpha != 0x00) bHasVisiblePixels = TRUE;
+						if (cAlpha != 0xFF) bHasTransparentPixels = TRUE;
+						*lpDest++ = Mul8Bit(GetColorValue(dwColor, dwBlueMask), cAlpha);
+						*lpDest++ = Mul8Bit(GetColorValue(dwColor, dwGreenMask), cAlpha);
+						*lpDest++ = Mul8Bit(GetColorValue(dwColor, dwRedMask), cAlpha);
+						*lpDest++ = cAlpha;
+						lpSrc += 2;
+					}
 				}
 			}
 		}
@@ -1138,21 +1139,24 @@ HBITMAP CreatePremultipliedBitmap(HANDLE hDib)
 				dwAlphaMask = 0xFF000000;
 			}
 
-			for (h = 0; h < lHeight; h++)
+			if (dwAlphaMask)
 			{
-				lpSrc = lpDIB + h * dwIncrement;
-				lpDest = lpBGRA + h * lWidth * 4;
-				for (w = 0; w < lWidth; w++)
+				for (h = 0; h < lHeight; h++)
 				{
-					dwColor = MAKELONG(MAKEWORD(lpSrc[0], lpSrc[1]), MAKEWORD(lpSrc[2], lpSrc[3]));
-					cAlpha = dwAlphaMask ? GetColorValue(dwColor, dwAlphaMask) : 0xFF;
-					if (cAlpha != 0x00) bHasVisiblePixels = TRUE;
-					if (cAlpha != 0xFF) bHasTransparentPixels = TRUE;
-					*lpDest++ = Mul8Bit(GetColorValue(dwColor, dwBlueMask), cAlpha);
-					*lpDest++ = Mul8Bit(GetColorValue(dwColor, dwGreenMask), cAlpha);
-					*lpDest++ = Mul8Bit(GetColorValue(dwColor, dwRedMask), cAlpha);
-					*lpDest++ = cAlpha;
-					lpSrc += 4;
+					lpSrc = lpDIB + (ULONG_PTR)h * dwIncrement;
+					lpDest = lpBGRA + (ULONG_PTR)h * lWidth * 4;
+					for (w = 0; w < lWidth; w++)
+					{
+						dwColor = MAKELONG(MAKEWORD(lpSrc[0], lpSrc[1]), MAKEWORD(lpSrc[2], lpSrc[3]));
+						cAlpha = dwAlphaMask ? GetColorValue(dwColor, dwAlphaMask) : 0xFF;
+						if (cAlpha != 0x00) bHasVisiblePixels = TRUE;
+						if (cAlpha != 0xFF) bHasTransparentPixels = TRUE;
+						*lpDest++ = Mul8Bit(GetColorValue(dwColor, dwBlueMask), cAlpha);
+						*lpDest++ = Mul8Bit(GetColorValue(dwColor, dwGreenMask), cAlpha);
+						*lpDest++ = Mul8Bit(GetColorValue(dwColor, dwRedMask), cAlpha);
+						*lpDest++ = cAlpha;
+						lpSrc += 4;
+					}
 				}
 			}
 		}
@@ -1199,7 +1203,7 @@ HPALETTE CreateDibPalette(HANDLE hDib)
 	UINT uNumColors = DibNumColors(lpbi);
 	if (uNumColors != 0)
 	{ // Create a palette from the colors of the DIB
-		LPLOGPALETTE lpPal = (LPLOGPALETTE)GlobalAllocPtr(GHND,
+		LPLOGPALETTE lpPal = (LPLOGPALETTE)MyGlobalAllocPtr(GHND,
 			sizeof(LOGPALETTE) + sizeof(PALETTEENTRY) * uNumColors);
 		if (lpPal == NULL)
 		{
@@ -1229,7 +1233,7 @@ HPALETTE CreateDibPalette(HANDLE hDib)
 
 		hPal = CreatePalette(lpPal);
 
-		GlobalFreePtr((LPVOID)lpPal);
+		MyGlobalFreePtr((LPVOID)lpPal);
 	}
 	else
 	{ // Create a halftone palette
@@ -1261,23 +1265,24 @@ UINT PaletteSize(LPCSTR lpbi)
 
 UINT DibNumColors(LPCSTR lpbi)
 {
-	WORD wBPP = 0;
+	WORD  wBitCount = 0;
+	DWORD dwClrUsed = 0;
 
 	if (lpbi == NULL)
 		return 0;
 	else if (IS_OS2PM_DIB(lpbi))
-		wBPP = ((LPBITMAPCOREHEADER)lpbi)->bcBitCount;
+		wBitCount = ((LPBITMAPCOREHEADER)lpbi)->bcBitCount;
 	else
 	{
-		wBPP = ((LPBITMAPINFOHEADER)lpbi)->biBitCount;
-
-		DWORD dwClrUsed = ((LPBITMAPINFOHEADER)lpbi)->biClrUsed;
+		wBitCount = ((LPBITMAPINFOHEADER)lpbi)->biBitCount;
+		dwClrUsed = ((LPBITMAPINFOHEADER)lpbi)->biClrUsed;
+		// Allow up to 4096 palette entries
 		if (dwClrUsed > 0 && dwClrUsed <= (1U << 12U))
 			return dwClrUsed;
 	}
 
-	if (wBPP > 0 && wBPP < 16)
-		return (1U << wBPP);
+	if (wBitCount > 0 && wBitCount < 16)
+		return (1U << wBitCount);
 	else
 		return 0;
 }

@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Archive.cpp - Copyright (c) 2010-2022 by Electron.
+// Archive.cpp - Copyright (c) 2010-2023 by Electron.
 //
 // Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -26,7 +26,6 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Forward declarations of functions included in this code module
 //
-BOOL ReadLine(HANDLE hFile, LPSTR lpszString, SIZE_T cchStringLen);
 SIZE_T GetCollectionString(DWORD dwId, LPSTR lpszCollection, SIZE_T cchStringLen);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -309,7 +308,7 @@ SSIZE_T ReadString(HANDLE hFile, PSTR pszString, SIZE_T cchStringLen, BOOL bIsTe
 		}
 
 		// Allocate memory for the string (1 additional character for the terminating zero)
-		LPVOID lpData = GlobalAllocPtr(GHND, (SIZE_T)dwLen + 1);
+		LPVOID lpData = MyGlobalAllocPtr(GHND, (SIZE_T)dwLen + 1);
 		if (lpData == NULL)
 		{
 			pszString[0] = '\0';
@@ -319,14 +318,14 @@ SSIZE_T ReadString(HANDLE hFile, PSTR pszString, SIZE_T cchStringLen, BOOL bIsTe
 		// Read the string
 		if (!ReadData(hFile, lpData, dwLen))
 		{
-			GlobalFreePtr(lpData);
+			MyGlobalFreePtr(lpData);
 			return -1;
 		}
 
 		// Copy the read string into the return buffer
 		lstrcpynA(pszString, (LPSTR)lpData, (int)cchStringLen);
 
-		GlobalFreePtr(lpData);
+		MyGlobalFreePtr(lpData);
 	}
 
 	return strlen(pszString);

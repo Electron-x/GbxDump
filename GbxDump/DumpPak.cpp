@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// DumpPak.cpp - Copyright (c) 2010-2022 by Electron.
+// DumpPak.cpp - Copyright (c) 2010-2023 by Electron.
 //
 // Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -260,13 +260,13 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 
 	if (dwTxtSize > 0)
 	{
-		lpDataTxt = GlobalAllocPtr(GHND, (SIZE_T)dwTxtSize + 1); // 1 more character for terminating zero
+		lpDataTxt = MyGlobalAllocPtr(GHND, (SIZE_T)dwTxtSize + 1); // 1 more character for terminating zero
 		if (lpDataTxt == NULL)
 			return FALSE;
 
 		if (!ReadData(hFile, lpDataTxt, dwTxtSize))
 		{
-			GlobalFreePtr(lpDataTxt);
+			MyGlobalFreePtr(lpDataTxt);
 			return FALSE;
 		}
 	}
@@ -277,31 +277,31 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 		if (!ReadNat32(hFile, &dwXmlSize))
 		{
 			if (lpDataTxt != NULL)
-				GlobalFreePtr(lpDataTxt);
+				MyGlobalFreePtr(lpDataTxt);
 			return FALSE;
 		}
 		if (dwXmlSize > 0xFFFF) // sanity check
 		{
 			if (lpDataTxt != NULL)
-				GlobalFreePtr(lpDataTxt);
+				MyGlobalFreePtr(lpDataTxt);
 			return FALSE;
 		}
 
 		if (dwXmlSize > 0)
 		{
-			lpDataXml = GlobalAllocPtr(GHND, (SIZE_T)dwXmlSize + 1); // 1 more character for terminating zero
+			lpDataXml = MyGlobalAllocPtr(GHND, (SIZE_T)dwXmlSize + 1); // 1 more character for terminating zero
 			if (lpDataXml == NULL)
 			{
 				if (lpDataTxt != NULL)
-					GlobalFreePtr(lpDataTxt);
+					MyGlobalFreePtr(lpDataTxt);
 				return FALSE;
 			}
 
 			if (!ReadData(hFile, lpDataXml, dwXmlSize))
 			{
-				GlobalFreePtr(lpDataXml);
+				MyGlobalFreePtr(lpDataXml);
 				if (lpDataTxt != NULL)
-					GlobalFreePtr(lpDataTxt);
+					MyGlobalFreePtr(lpDataTxt);
 				return FALSE;
 			}
 		}
@@ -310,9 +310,9 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 		if ((nRet = ReadString(hFile, szRead, _countof(szRead))) < 0)
 		{
 			if (lpDataXml != NULL)
-				GlobalFreePtr(lpDataXml);
+				MyGlobalFreePtr(lpDataXml);
 			if (lpDataTxt != NULL)
-				GlobalFreePtr(lpDataTxt);
+				MyGlobalFreePtr(lpDataTxt);
 			return FALSE;
 		}
 
@@ -328,9 +328,9 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 	if ((nRet = ReadString(hFile, szRead, _countof(szRead))) < 0)
 	{
 		if (lpDataXml != NULL)
-			GlobalFreePtr(lpDataXml);
+			MyGlobalFreePtr(lpDataXml);
 		if (lpDataTxt != NULL)
-			GlobalFreePtr(lpDataTxt);
+			MyGlobalFreePtr(lpDataTxt);
 		return FALSE;
 	}
 
@@ -345,9 +345,9 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 	if ((nRet = ReadString(hFile, szRead, _countof(szRead))) < 0)
 	{
 		if (lpDataXml != NULL)
-			GlobalFreePtr(lpDataXml);
+			MyGlobalFreePtr(lpDataXml);
 		if (lpDataTxt != NULL)
-			GlobalFreePtr(lpDataTxt);
+			MyGlobalFreePtr(lpDataTxt);
 		return FALSE;
 	}
 
@@ -362,9 +362,9 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 	if (!FileSeekCurrent(hFile, 16))
 	{
 		if (lpDataXml != NULL)
-			GlobalFreePtr(lpDataXml);
+			MyGlobalFreePtr(lpDataXml);
 		if (lpDataTxt != NULL)
-			GlobalFreePtr(lpDataTxt);
+			MyGlobalFreePtr(lpDataTxt);
 		return FALSE;
 	}
 
@@ -375,9 +375,9 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 		if (!ReadNat32(hFile, &dwNumIncludedPacks) || dwNumIncludedPacks > 0x10000000)
 		{
 			if (lpDataXml != NULL)
-				GlobalFreePtr(lpDataXml);
+				MyGlobalFreePtr(lpDataXml);
 			if (lpDataTxt != NULL)
-				GlobalFreePtr(lpDataTxt);
+				MyGlobalFreePtr(lpDataTxt);
 			return FALSE;
 		}
 
@@ -390,9 +390,9 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 			if (!DumpIncludedPacksHeaders(hwndCtl, hFile, dwVersion))
 			{
 				if (lpDataXml != NULL)
-					GlobalFreePtr(lpDataXml);
+					MyGlobalFreePtr(lpDataXml);
 				if (lpDataTxt != NULL)
-					GlobalFreePtr(lpDataTxt);
+					MyGlobalFreePtr(lpDataTxt);
 				return FALSE;
 			}
 		}
@@ -409,13 +409,13 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 		ConvertGbxString(lpDataTxt, dwTxtSize, szOutput, _countof(szOutput), TRUE);
 		OutputText(hwndCtl, szOutput);
 
-		GlobalFreePtr(lpDataTxt);
+		MyGlobalFreePtr(lpDataTxt);
 	}
 
 	if (lpDataXml != NULL)
 	{ // Output XML
 		// Allocate memory for Unicode
-		LPVOID pXmlString = GlobalAllocPtr(GHND, 2 * ((SIZE_T)dwXmlSize + 3));
+		LPVOID pXmlString = MyGlobalAllocPtr(GHND, 2 * ((SIZE_T)dwXmlSize + 3));
 		if (pXmlString != NULL)
 		{
 			__try
@@ -433,15 +433,15 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 				else
 				{
 					OutputText(hwndCtl, lpszTemp);
-					GlobalFreePtr((LPVOID)lpszTemp);
+					MyGlobalFreePtr((LPVOID)lpszTemp);
 				}
 			}
 			__except (EXCEPTION_EXECUTE_HANDLER) { ; }
 
-			GlobalFreePtr(pXmlString);
+			MyGlobalFreePtr(pXmlString);
 		}
 
-		GlobalFreePtr(lpDataXml);
+		MyGlobalFreePtr(lpDataXml);
 	}
 
 	if (pCryptFlags->IsHeaderPrivate || pCryptFlags->UseDefaultHeaderKey)
@@ -454,14 +454,14 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 
 BOOL DumpChecksum(HWND hwndCtl, HANDLE hFile, SIZE_T cbLen)
 {
-	LPVOID lpData = GlobalAllocPtr(GHND, cbLen);
+	LPVOID lpData = MyGlobalAllocPtr(GHND, cbLen);
 	if (lpData == NULL)
 		return FALSE;
 
 	// Contents Checksum
 	if (!ReadData(hFile, lpData, cbLen))
 	{
-		GlobalFreePtr(lpData);
+		MyGlobalFreePtr(lpData);
 		return FALSE;
 	}
 
@@ -477,7 +477,7 @@ BOOL DumpChecksum(HWND hwndCtl, HANDLE hFile, SIZE_T cbLen)
 	OutputText(hwndCtl, szOutput);
 	OutputText(hwndCtl, g_szCRLF);
 
-	GlobalFreePtr(lpData);
+	MyGlobalFreePtr(lpData);
 
 	return TRUE;
 }

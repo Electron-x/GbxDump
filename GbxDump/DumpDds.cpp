@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// DumpDds.cpp - Copyright (c) 2010-2022 by Electron.
+// DumpDds.cpp - Copyright (c) 2010-2023 by Electron.
 //
 // Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -782,13 +782,13 @@ BOOL DisplayDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize, BOOL bShowTextureD
 		return FALSE;
 
 	// Read the file
-	LPVOID lpData = GlobalAllocPtr(GHND, dwFileSize);
+	LPVOID lpData = MyGlobalAllocPtr(GHND, dwFileSize);
 	if (lpData == NULL)
 		return FALSE;
 
 	if (!ReadData(hFile, lpData, dwFileSize))
 	{
-		GlobalFreePtr(lpData);
+		MyGlobalFreePtr(lpData);
 		return FALSE;
 	}
 
@@ -839,7 +839,7 @@ BOOL DisplayDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize, BOOL bShowTextureD
 		}
 	}
 
-	GlobalFreePtr(lpData);
+	MyGlobalFreePtr(lpData);
 
 	return TRUE;
 }

@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Misc.h - Copyright (c) 2010-2019 by Electron.
+// Misc.h - Copyright (c) 2010-2023 by Electron.
 //
 // Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -22,6 +22,9 @@ __inline BOOL FileSeekBegin(HANDLE hFile, LONG lDistanceToMove)
 { return (SetFilePointer(hFile, lDistanceToMove, NULL, FILE_BEGIN) != 0xFFFFFFFF); }
 __inline BOOL FileSeekCurrent(HANDLE hFile, LONG lDistanceToMove)
 { return (SetFilePointer(hFile, lDistanceToMove, NULL, FILE_CURRENT) != 0xFFFFFFFF); }
+
+LPVOID MyGlobalAllocPtr(UINT uFlags, SIZE_T dwBytes);
+void MyGlobalFreePtr(LPCVOID pMem);
 
 void OutputText(HWND hwndCtl, LPCTSTR lpszOutput);
 void OutputTextFmt(HWND hwndCtl, LPTSTR lpszOutput, LPCTSTR lpszFormat, ...);

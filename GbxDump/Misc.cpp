@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Misc.cpp - Copyright (c) 2010-2019 by Electron.
+// Misc.cpp - Copyright (c) 2010-2023 by Electron.
 //
 // Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -20,8 +20,26 @@
 #include "archive.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Inserts the passed text at the current cursor position of an edit control.
-// Reduces many relocations to SendMessage.
+// Replacement for GlobalAllocPtr from windowsx.h to avoid warning C28183
+
+LPVOID MyGlobalAllocPtr(UINT uFlags, SIZE_T dwBytes)
+{
+	HGLOBAL handle = GlobalAlloc(uFlags, dwBytes);
+	return ((handle == NULL) ? NULL : GlobalLock(handle));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Replacement for GlobalFreePtr from windowsx.h to avoid warning C6387
+
+void MyGlobalFreePtr(LPCVOID pMem)
+{
+	HGLOBAL handle = GlobalHandle(pMem);
+	if (handle != NULL) { GlobalUnlock(handle); GlobalFree(handle); }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Inserts the passed text at the current cursor position of an edit control
+
 void OutputText(HWND hwndCtl, LPCTSTR lpszOutput)
 {
 	if (hwndCtl != NULL && lpszOutput != NULL)
@@ -29,7 +47,7 @@ void OutputText(HWND hwndCtl, LPCTSTR lpszOutput)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Formats text with wvsprintf and inserts it at the current cursor position of an edit control.
+// Formats text with wvsprintf and inserts it at the current cursor position of an edit control
 
 void OutputTextFmt(HWND hwndCtl, LPTSTR lpszOutput, LPCTSTR lpszFormat, ...)
 {
@@ -46,7 +64,7 @@ void OutputTextFmt(HWND hwndCtl, LPTSTR lpszOutput, LPCTSTR lpszFormat, ...)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Loads an error message from the resources and inserts it with a separator
-// line at the current cursor position of an edit control.
+// line at the current cursor position of an edit control
 
 BOOL OutputTextErr(HWND hwndCtl, UINT uID)
 {
@@ -65,7 +83,7 @@ BOOL OutputTextErr(HWND hwndCtl, UINT uID)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Retrieves the message text for a system-defined error and inserts it
-// with separator lines at the current cursor position of an edit control.
+// with separator lines at the current cursor position of an edit control
 
 BOOL OutputErrorMessage(HWND hwndCtl, DWORD dwError)
 {
@@ -93,7 +111,7 @@ BOOL OutputErrorMessage(HWND hwndCtl, DWORD dwError)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Appends a string to another string with an OR separator. Is used to list flag names.
+// Appends a string to another string with an OR separator. Is used to list flag names
 
 PTCHAR AppendFlagName(LPTSTR lpszOutput, SIZE_T cchLenOutput, LPCTSTR lpszFlagName)
 {
@@ -103,7 +121,7 @@ PTCHAR AppendFlagName(LPTSTR lpszOutput, SIZE_T cchLenOutput, LPCTSTR lpszFlagNa
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Converts any byte value into a string of three digits.
+// Converts any byte value into a string of three digits
 
 BOOL FormatByteSize(DWORD dwSize, LPTSTR lpszString, SIZE_T cchStringLen)
 {
@@ -131,7 +149,7 @@ BOOL FormatByteSize(DWORD dwSize, LPTSTR lpszString, SIZE_T cchStringLen)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Converts a time value into a formatted string.
+// Converts a time value into a formatted string
 
 BOOL FormatTime(DWORD dwTime, LPTSTR lpszTime, SIZE_T cchStringLen, BOOL bFormat)
 {
@@ -167,7 +185,7 @@ BOOL FormatTime(DWORD dwTime, LPTSTR lpszTime, SIZE_T cchStringLen, BOOL bFormat
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Converts a Gbx string to Unicode and removes formatting characters.
+// Converts a Gbx string to Unicode and removes formatting characters
 
 BOOL ConvertGbxString(LPVOID lpData, SIZE_T cbLenData, LPTSTR lpszOutput, SIZE_T cchLenOutput, BOOL bCleanup)
 {
@@ -187,7 +205,7 @@ BOOL ConvertGbxString(LPVOID lpData, SIZE_T cbLenData, LPTSTR lpszOutput, SIZE_T
 	if (bCleanup)
 	{
 		SIZE_T cchLen = _tcslen(lpszOutput);
-		LPTSTR lpszTemp = (LPTSTR)GlobalAllocPtr(GHND, cchLen * sizeof(TCHAR));
+		LPTSTR lpszTemp = (LPTSTR)MyGlobalAllocPtr(GHND, cchLen * sizeof(TCHAR));
 		if (lpszTemp != NULL)
 		{
 			if (CleanupString(lpszOutput, lpszTemp, cchLen))
@@ -196,7 +214,7 @@ BOOL ConvertGbxString(LPVOID lpData, SIZE_T cbLenData, LPTSTR lpszOutput, SIZE_T
 				_tcsncat(lpszOutput, lpszTemp, cchLenOutput-_tcslen(lpszOutput)-3);
 				_tcsncat(lpszOutput, TEXT(")"), cchLenOutput-_tcslen(lpszOutput)-3);
 			}
-			GlobalFreePtr((LPVOID)lpszTemp);
+			MyGlobalFreePtr((LPVOID)lpszTemp);
 		}
 	}
 
@@ -206,7 +224,7 @@ BOOL ConvertGbxString(LPVOID lpData, SIZE_T cbLenData, LPTSTR lpszOutput, SIZE_T
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Removes the Nadeo formatting characters from a string.
+// Removes the Nadeo formatting characters from a string
 
 BOOL CleanupString(LPCTSTR lpszInput, LPTSTR lpszOutput, SIZE_T cchLenOutput)
 {
@@ -232,7 +250,7 @@ BOOL CleanupString(LPCTSTR lpszInput, LPTSTR lpszOutput, SIZE_T cchLenOutput)
 		lpszMem2 = AllocCleanupString(lpszMem1);
 		if (lpszMem2 == NULL)
 		{
-			GlobalFreePtr((LPVOID)lpszMem1);
+			MyGlobalFreePtr((LPVOID)lpszMem1);
 			return FALSE;
 		}
 
@@ -240,8 +258,8 @@ BOOL CleanupString(LPCTSTR lpszInput, LPTSTR lpszOutput, SIZE_T cchLenOutput)
 		lpszMem3 = AllocReplaceString(lpszMem2, TEXT("\a"), TEXT("$"));
 		if (lpszMem3 == NULL)
 		{
-			GlobalFreePtr((LPVOID)lpszMem2);
-			GlobalFreePtr((LPVOID)lpszMem1);
+			MyGlobalFreePtr((LPVOID)lpszMem2);
+			MyGlobalFreePtr((LPVOID)lpszMem1);
 			return FALSE;
 		}
 
@@ -253,11 +271,11 @@ BOOL CleanupString(LPCTSTR lpszInput, LPTSTR lpszOutput, SIZE_T cchLenOutput)
 	}
 
 	if (lpszMem3 != NULL)
-		GlobalFreePtr((LPVOID)lpszMem3);
+		MyGlobalFreePtr((LPVOID)lpszMem3);
 	if (lpszMem2 != NULL)
-		GlobalFreePtr((LPVOID)lpszMem2);
+		MyGlobalFreePtr((LPVOID)lpszMem2);
 	if (lpszMem1 != NULL)
-		GlobalFreePtr((LPVOID)lpszMem1);
+		MyGlobalFreePtr((LPVOID)lpszMem1);
 
 	return bRet;
 }
@@ -265,7 +283,7 @@ BOOL CleanupString(LPCTSTR lpszInput, LPTSTR lpszOutput, SIZE_T cchLenOutput)
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Replaces each occurrence of a search pattern in a string with a different string.
 // After a successful function call, the memory of the returned string must be released
-// using GlobalFreePtr.
+// using MyGlobalFreePtr.
 
 LPTSTR AllocReplaceString(LPCTSTR lpszOriginal, LPCTSTR lpszPattern, LPCTSTR lpszReplacement)
 {
@@ -287,7 +305,7 @@ LPTSTR AllocReplaceString(LPCTSTR lpszOriginal, LPCTSTR lpszPattern, LPCTSTR lps
 
 	// Allocate memory for the new string
 	SIZE_T CONST cchRetLen = cchOriLen + uPatCount * (cchRepLen - cchPatLen);
-	LPTSTR lpszReturn = (LPTSTR)GlobalAllocPtr(GHND, (cchRetLen + 1) * sizeof(TCHAR));
+	LPTSTR lpszReturn = (LPTSTR)MyGlobalAllocPtr(GHND, (cchRetLen + 1) * sizeof(TCHAR));
 	if (lpszReturn != NULL)
 	{
 		// Copy the original string and replace each occurrence of the pattern
@@ -311,14 +329,14 @@ LPTSTR AllocReplaceString(LPCTSTR lpszOriginal, LPCTSTR lpszPattern, LPCTSTR lps
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-// Removes from a string all two- and four-digit Nadeo formatting characters that begin with a $.
+// Removes from a string all two- and four-digit Nadeo formatting characters that begin with a $
 
 LPTSTR AllocCleanupString(LPCTSTR lpszOriginal)
 {
 	if (lpszOriginal == NULL)
 		return NULL;
 
-	LPTSTR lpszReturn = (LPTSTR)GlobalAllocPtr(GHND, (_tcslen(lpszOriginal) + 1) * sizeof(TCHAR));
+	LPTSTR lpszReturn = (LPTSTR)MyGlobalAllocPtr(GHND, (_tcslen(lpszOriginal) + 1) * sizeof(TCHAR));
 	if (lpszReturn != NULL)
 	{
 		LPCTSTR lpszPatLoc;

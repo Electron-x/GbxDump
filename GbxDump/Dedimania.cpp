@@ -127,7 +127,7 @@ BOOL PrintDedimaniaData(HWND hwndCtl, LPCSTR lpszUid, BOOL bIsManiaPlanet, LPBOO
 	*lpbTrackFound = FALSE;
 
 	// Allocate memory for the Dedimania data
-	LPSTR lpszData = (LPSTR)GlobalAllocPtr(GHND, DEDI_MAX_DATASIZE);
+	LPSTR lpszData = (LPSTR)MyGlobalAllocPtr(GHND, DEDI_MAX_DATASIZE);
 	if (lpszData == NULL)
 	{
 		OutputText(hwndCtl, g_szSep1);
@@ -141,14 +141,14 @@ BOOL PrintDedimaniaData(HWND hwndCtl, LPCSTR lpszUid, BOOL bIsManiaPlanet, LPBOO
 		bIsManiaPlanet ? TEXT("MX") : TEXT("TMX"), lpszUid);
 	if (!ReadInternetFile(hwndCtl, szDediUrl, lpszData, DEDI_MAX_DATASIZE))
 	{
-		GlobalFreePtr((LPVOID)lpszData);
+		MyGlobalFreePtr((LPVOID)lpszData);
 		return FALSE;
 	}
 
 	// Have user data been found?
 	if (lpszData[0] == '\0' || strchr(lpszData, ',') == NULL)
 	{
-		GlobalFreePtr((LPVOID)lpszData);
+		MyGlobalFreePtr((LPVOID)lpszData);
 		return TRUE;
 	}
 
@@ -169,7 +169,7 @@ BOOL PrintDedimaniaData(HWND hwndCtl, LPCSTR lpszUid, BOOL bIsManiaPlanet, LPBOO
 	}
 	else
 	{
-		GlobalFreePtr((LPVOID)lpszData);
+		MyGlobalFreePtr((LPVOID)lpszData);
 		return TRUE;
 	}
 
@@ -280,7 +280,7 @@ BOOL PrintDedimaniaData(HWND hwndCtl, LPCSTR lpszUid, BOOL bIsManiaPlanet, LPBOO
 	}
 
 	// Release memory
-	GlobalFreePtr((LPVOID)lpszData);
+	MyGlobalFreePtr((LPVOID)lpszData);
 	return TRUE;
 }
 
@@ -298,12 +298,12 @@ BOOL ConvertDediString(LPVOID lpData, SIZE_T cbLenData, LPTSTR lpszOutput, SIZE_
 	MultiByteToWideChar(uCodePage, 0, (LPCSTR)lpData, -1, lpszOutput, (int)cchLenOutput);
 
 	SIZE_T cchLen = _tcslen(lpszOutput);
-	LPTSTR lpszTemp = (LPTSTR)GlobalAllocPtr(GHND, cchLen * sizeof(TCHAR));
+	LPTSTR lpszTemp = (LPTSTR)MyGlobalAllocPtr(GHND, cchLen * sizeof(TCHAR));
 	if (lpszTemp != NULL)
 	{
 		if (CleanupString(lpszOutput, lpszTemp, cchLen))
 			lstrcpyn(lpszOutput, lpszTemp, (int)cchLenOutput);
-		GlobalFreePtr((LPVOID)lpszTemp);
+		MyGlobalFreePtr((LPVOID)lpszTemp);
 	}
 
 	return TRUE;

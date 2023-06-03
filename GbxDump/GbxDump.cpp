@@ -112,7 +112,7 @@ int APIENTRY _tWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstanc
 	if (lpCmdLine != NULL && lpCmdLine[0] != '\0')
 	{
 		SIZE_T cchCmdLineLen = _tcslen(lpCmdLine);
-		pszCommandLine = (LPTSTR)GlobalAllocPtr(GHND, (cchCmdLineLen + 1) * sizeof(TCHAR));
+		pszCommandLine = (LPTSTR)MyGlobalAllocPtr(GHND, (cchCmdLineLen + 1) * sizeof(TCHAR));
 		if (pszCommandLine != NULL)
 		{
 			lstrcpyn(pszCommandLine, lpCmdLine, (int)cchCmdLineLen + 1);
@@ -159,7 +159,7 @@ int APIENTRY _tWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstanc
 	if (!RegisterClassEx(&wcex))
 	{
 		if (pszCommandLine != NULL)
-			GlobalFreePtr((LPVOID)pszCommandLine);
+			MyGlobalFreePtr((LPVOID)pszCommandLine);
 		return 0;
 	}
 
@@ -211,7 +211,7 @@ int APIENTRY _tWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstanc
 	FreeDib(g_hDibDefault);
 
 	if (pszCommandLine != NULL)
-		GlobalFreePtr((LPVOID)pszCommandLine);
+		MyGlobalFreePtr((LPVOID)pszCommandLine);
 
 	return (int)nResult;
 }
@@ -280,14 +280,13 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 					{
 						int nSrcX = 0;
 						int nSrcY = 0;
-						int nSrcWidth  = ((LPBITMAPINFOHEADER)lpbi)->biWidth;
-						int nSrcHeight = ((LPBITMAPINFOHEADER)lpbi)->biHeight;
+						int nSrcWidth  = abs(((LPBITMAPINFOHEADER)lpbi)->biWidth);
+						int nSrcHeight = abs(((LPBITMAPINFOHEADER)lpbi)->biHeight);
 						if (IS_OS2PM_DIB(lpbi))
 						{
 							nSrcWidth  = ((LPBITMAPCOREHEADER)lpbi)->bcWidth;
 							nSrcHeight = ((LPBITMAPCOREHEADER)lpbi)->bcHeight;
 						}
-						if (nSrcHeight < 0) nSrcHeight = -nSrcHeight;
 						if (lpdis->itemState & ODS_SELECTED)
 						{
 							nSrcX = nSrcWidth  / 20;
@@ -1473,13 +1472,13 @@ BOOL DumpJpeg(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		return FALSE;
 
 	// Read the file
-	LPVOID lpData = GlobalAllocPtr(GHND, dwFileSize);
+	LPVOID lpData = MyGlobalAllocPtr(GHND, dwFileSize);
 	if (lpData == NULL)
 		return FALSE;
 
 	if (!ReadData(hFile, lpData, dwFileSize))
 	{
-		GlobalFreePtr(lpData);
+		MyGlobalFreePtr(lpData);
 		return FALSE;
 	}
 
@@ -1529,7 +1528,7 @@ BOOL DumpJpeg(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		}
 	}
 
-	GlobalFreePtr(lpData);
+	MyGlobalFreePtr(lpData);
 
 	return TRUE;
 }
@@ -1547,13 +1546,13 @@ BOOL DumpWebP(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		return FALSE;
 
 	// Read the file
-	LPVOID lpData = GlobalAllocPtr(GHND, dwFileSize);
+	LPVOID lpData = MyGlobalAllocPtr(GHND, dwFileSize);
 	if (lpData == NULL)
 		return FALSE;
 
 	if (!ReadData(hFile, lpData, dwFileSize))
 	{
-		GlobalFreePtr(lpData);
+		MyGlobalFreePtr(lpData);
 		return FALSE;
 	}
 
@@ -1603,7 +1602,7 @@ BOOL DumpWebP(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		}
 	}
 
-	GlobalFreePtr(lpData);
+	MyGlobalFreePtr(lpData);
 
 	return TRUE;
 }
@@ -1625,13 +1624,13 @@ BOOL DumpHex(HWND hwndCtl, HANDLE hFile, SIZE_T cbLen)
 	if (cbLen > 1024)
 		cbLen = 1024;
 
-	PBYTE pData = (PBYTE)GlobalAllocPtr(GHND, cbLen);
+	PBYTE pData = (PBYTE)MyGlobalAllocPtr(GHND, cbLen);
 	if (pData == NULL)
 		return FALSE;
 
 	if (!FileSeekBegin(hFile, 0) || !ReadData(hFile, pData, cbLen))
 	{
-		GlobalFreePtr((LPVOID)pData);
+		MyGlobalFreePtr((LPVOID)pData);
 		return FALSE;
 	}
 
@@ -1647,7 +1646,7 @@ BOOL DumpHex(HWND hwndCtl, HANDLE hFile, SIZE_T cbLen)
 		{
 			OutputText(hwndCtl, lpszText);
 			OutputText(hwndCtl, g_szSep1);
-			GlobalFreePtr((LPVOID)lpszText);
+			MyGlobalFreePtr((LPVOID)lpszText);
 		}
 	}
 
@@ -1689,7 +1688,7 @@ BOOL DumpHex(HWND hwndCtl, HANDLE hFile, SIZE_T cbLen)
 		OutputText(hwndCtl, szOutput);
 	}
 
-	GlobalFreePtr((LPVOID)pData);
+	MyGlobalFreePtr((LPVOID)pData);
 
 	return TRUE;
 }
@@ -1702,7 +1701,8 @@ int SelectText(HWND hwndCtl)
 	if (hwndCtl == NULL || Edit_GetTextLength(hwndCtl) == 0)
 		return 0;
 
-	INT_PTR iStartChar, iEndChar;
+	INT_PTR iStartChar = 0;
+	INT_PTR iEndChar = 0;
 	SendMessage(hwndCtl, EM_GETSEL, (WPARAM)&iStartChar, (LPARAM)&iEndChar);
 
 	int nSelLen = (int)(iEndChar - iStartChar);
@@ -1777,7 +1777,7 @@ BOOL SetWordWrap(HWND hDlg, BOOL bWordWrap)
 	RetrieveWindowRect(hwndEditOld, &rcProp);
 	HFONT hFont = GetWindowFont(hwndEditOld);
 	int nLen = Edit_GetTextLength(hwndEditOld);
-	LPTSTR pszSaveText = (LPTSTR)GlobalAllocPtr(GHND, ((SIZE_T)nLen + 1) * sizeof(TCHAR));
+	LPTSTR pszSaveText = (LPTSTR)MyGlobalAllocPtr(GHND, ((SIZE_T)nLen + 1) * sizeof(TCHAR));
 	Edit_GetText(hwndEditOld, pszSaveText, nLen+1);
 	DWORD dwSelStart = (DWORD)nLen;
 	DWORD dwSelEnd = (DWORD)nLen;
@@ -1808,7 +1808,7 @@ BOOL SetWordWrap(HWND hDlg, BOOL bWordWrap)
 		hDlg, (HMENU)(UINT_PTR)nID, g_hInstance, NULL);
 	if (hwndEditNew == NULL)
 	{
-		GlobalFreePtr((LPVOID)pszSaveText);
+		MyGlobalFreePtr((LPVOID)pszSaveText);
 		return FALSE;
 	}
 
@@ -1819,7 +1819,7 @@ BOOL SetWordWrap(HWND hDlg, BOOL bWordWrap)
 
 	// Restore all visible styles
 	Edit_SetText(hwndEditNew, pszSaveText);
-	GlobalFreePtr((LPVOID)pszSaveText);
+	MyGlobalFreePtr((LPVOID)pszSaveText);
 
 	if (hFont != NULL)
 		SetWindowFont(hwndEditNew, hFont, FALSE);

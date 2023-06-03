@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// DumpGbx.cpp - Copyright (c) 2010-2022 by Electron.
+// DumpGbx.cpp - Copyright (c) 2010-2023 by Electron.
 //
 // Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -2899,13 +2899,13 @@ BOOL ChallengeThumbnailChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckThumbnail)
 
 		// <Thumbnail.jpg>
 		SIZE_T cbLen = sizeof "<Thumbnail.jpg>" - 1;
-		LPVOID lpData = GlobalAllocPtr(GHND, cbLen + 1); // 1 additional character for terminating zero
+		LPVOID lpData = MyGlobalAllocPtr(GHND, cbLen + 1); // 1 additional character for terminating zero
 		if (lpData == NULL)
 			return FALSE;
 
 		if (!ReadData(hFile, lpData, cbLen))
 		{
-			GlobalFreePtr(lpData);
+			MyGlobalFreePtr(lpData);
 			return FALSE;
 		}
 
@@ -2913,7 +2913,7 @@ BOOL ChallengeThumbnailChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckThumbnail)
 		ConvertGbxString(lpData, cbLen, szOutput, _countof(szOutput));
 		OutputText(hwndCtl, szOutput);
 
-		GlobalFreePtr(lpData);
+		MyGlobalFreePtr(lpData);
 
 		if (dwThumbnailSize > 0)
 		{
@@ -2924,13 +2924,13 @@ BOOL ChallengeThumbnailChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckThumbnail)
 				OutputText(hwndCtl, g_szCRLF);
 			}
 
-			lpData = GlobalAllocPtr(GHND, dwThumbnailSize);
+			lpData = MyGlobalAllocPtr(GHND, dwThumbnailSize);
 			if (lpData == NULL)
 				return FALSE;
 
 			if (!ReadData(hFile, lpData, dwThumbnailSize))
 			{
-				GlobalFreePtr(lpData);
+				MyGlobalFreePtr(lpData);
 				return FALSE;
 			}
 
@@ -2968,18 +2968,18 @@ BOOL ChallengeThumbnailChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckThumbnail)
 				}
 			}
 
-			GlobalFreePtr(lpData);
+			MyGlobalFreePtr(lpData);
 		}
 
 		// </Thumbnail.jpg>
 		cbLen = sizeof "</Thumbnail.jpg>" - 1;
-		lpData = GlobalAllocPtr(GHND, cbLen + 1);
+		lpData = MyGlobalAllocPtr(GHND, cbLen + 1);
 		if (lpData == NULL)
 			return FALSE;
 
 		if (!ReadData(hFile, lpData, cbLen))
 		{
-			GlobalFreePtr(lpData);
+			MyGlobalFreePtr(lpData);
 			return FALSE;
 		}
 
@@ -2987,17 +2987,17 @@ BOOL ChallengeThumbnailChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckThumbnail)
 		ConvertGbxString(lpData, cbLen, szOutput, _countof(szOutput));
 		OutputText(hwndCtl, szOutput);
 
-		GlobalFreePtr(lpData);
+		MyGlobalFreePtr(lpData);
 
 		// <Comments>
 		cbLen = sizeof "<Comments>" - 1;
-		lpData = GlobalAllocPtr(GHND, cbLen + 1);
+		lpData = MyGlobalAllocPtr(GHND, cbLen + 1);
 		if (lpData == NULL)
 			return FALSE;
 
 		if (!ReadData(hFile, lpData, cbLen))
 		{
-			GlobalFreePtr(lpData);
+			MyGlobalFreePtr(lpData);
 			return FALSE;
 		}
 
@@ -3005,7 +3005,7 @@ BOOL ChallengeThumbnailChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckThumbnail)
 		ConvertGbxString(lpData, cbLen, szOutput, _countof(szOutput));
 		OutputText(hwndCtl, szOutput);
 
-		GlobalFreePtr(lpData);
+		MyGlobalFreePtr(lpData);
 
 		// Comments
 		DWORD dwCommentsSize = 0;
@@ -3014,13 +3014,13 @@ BOOL ChallengeThumbnailChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckThumbnail)
 
 		if (dwCommentsSize > 0)
 		{
-			lpData = GlobalAllocPtr(GHND, (SIZE_T)dwCommentsSize + 1);
+			lpData = MyGlobalAllocPtr(GHND, (SIZE_T)dwCommentsSize + 1);
 			if (lpData == NULL)
 				return FALSE;
 
 			if (!ReadData(hFile, lpData, dwCommentsSize))
 			{
-				GlobalFreePtr(lpData);
+				MyGlobalFreePtr(lpData);
 				return FALSE;
 			}
 
@@ -3028,18 +3028,18 @@ BOOL ChallengeThumbnailChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckThumbnail)
 			ConvertGbxString(lpData, dwCommentsSize, szOutput, _countof(szOutput), TRUE);
 			OutputText(hwndCtl, szOutput);
 
-			GlobalFreePtr(lpData);
+			MyGlobalFreePtr(lpData);
 		}
 
 		// </Comments>
 		cbLen = sizeof "</Comments>" - 1;
-		lpData = GlobalAllocPtr(GHND, cbLen + 1);
+		lpData = MyGlobalAllocPtr(GHND, cbLen + 1);
 		if (lpData == NULL)
 			return FALSE;
 
 		if (!ReadData(hFile, lpData, cbLen))
 		{
-			GlobalFreePtr(lpData);
+			MyGlobalFreePtr(lpData);
 			return FALSE;
 		}
 
@@ -3047,7 +3047,7 @@ BOOL ChallengeThumbnailChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckThumbnail)
 		ConvertGbxString(lpData, cbLen, szOutput, _countof(szOutput));
 		OutputText(hwndCtl, szOutput);
 
-		GlobalFreePtr(lpData);
+		MyGlobalFreePtr(lpData);
 	}
 
 	return TRUE;
@@ -3226,18 +3226,18 @@ BOOL ChallengeReplayCommunityChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckCommuni
 		return FALSE;
 
 	// Output Community chunk
-	LPVOID pXmlData = GlobalAllocPtr(GHND, (SIZE_T)dwXmlSize + 1); // 1 additional character for terminating null
+	LPVOID pXmlData = MyGlobalAllocPtr(GHND, (SIZE_T)dwXmlSize + 1); // 1 additional character for terminating null
 	if (pXmlData == NULL)
 		return FALSE;
 
 	if (!ReadData(hFile, pXmlData, dwXmlSize))
 	{
-		GlobalFreePtr(pXmlData);
+		MyGlobalFreePtr(pXmlData);
 		return FALSE;
 	}
 
 	// Allocate memory for Unicode
-	LPVOID pXmlString = GlobalAllocPtr(GHND, 2 * ((SIZE_T)dwXmlSize + 3));
+	LPVOID pXmlString = MyGlobalAllocPtr(GHND, 2 * ((SIZE_T)dwXmlSize + 3));
 	if (pXmlString != NULL)
 	{
 		__try
@@ -3252,15 +3252,15 @@ BOOL ChallengeReplayCommunityChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckCommuni
 			else
 			{
 				OutputText(hwndCtl, lpszTemp);
-				GlobalFreePtr((LPVOID)lpszTemp);
+				MyGlobalFreePtr((LPVOID)lpszTemp);
 			}
 		}
 		__except (EXCEPTION_EXECUTE_HANDLER) { ; }
 
-		GlobalFreePtr(pXmlString);
+		MyGlobalFreePtr(pXmlString);
 	}
 
-	GlobalFreePtr(pXmlData);
+	MyGlobalFreePtr(pXmlData);
 
 	return TRUE;
 }
@@ -3599,14 +3599,14 @@ BOOL CollectorIconChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckIcon)
 			return TRUE;	// no, compressed or corrupted data
 
 		// Allocate memory
-		LPVOID lpData = GlobalAllocPtr(GHND, dwSizeImage);
+		LPVOID lpData = MyGlobalAllocPtr(GHND, dwSizeImage);
 		if (lpData == NULL)
 			return FALSE;
 
 		// Read image data
 		if (!ReadData(hFile, lpData, pckIcon->dwSize - 4))
 		{
-			GlobalFreePtr(lpData);
+			MyGlobalFreePtr(lpData);
 			return FALSE;
 		}
 
@@ -3665,7 +3665,7 @@ BOOL CollectorIconChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckIcon)
 			}
 		}
 
-		GlobalFreePtr(lpData);
+		MyGlobalFreePtr(lpData);
 
 		return TRUE;
 	}
@@ -3694,13 +3694,13 @@ BOOL CollectorIconChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckIcon)
 		return TRUE;
 
 	// Read and display the WebP image
-	LPVOID lpData = GlobalAllocPtr(GHND, dwImageSize);
+	LPVOID lpData = MyGlobalAllocPtr(GHND, dwImageSize);
 	if (lpData == NULL)
 		return FALSE;
 
 	if (!ReadData(hFile, lpData, dwImageSize))
 	{
-		GlobalFreePtr(lpData);
+		MyGlobalFreePtr(lpData);
 		return FALSE;
 	}
 
@@ -3742,7 +3742,7 @@ BOOL CollectorIconChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckIcon)
 		}
 	}
 
-	GlobalFreePtr(lpData);
+	MyGlobalFreePtr(lpData);
 
 	return TRUE;
 }
@@ -4500,14 +4500,14 @@ BOOL ProfileChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckProfile)
 
 	if (dwLen > 0)
 	{
-		LPVOID lpData = GlobalAllocPtr(GHND, (SIZE_T)dwLen + 1);
+		LPVOID lpData = MyGlobalAllocPtr(GHND, (SIZE_T)dwLen + 1);
 		if (lpData == NULL)
 			return FALSE;
 
 		// Online Support Key
 		if (!ReadData(hFile, lpData, dwLen))
 		{
-			GlobalFreePtr(lpData);
+			MyGlobalFreePtr(lpData);
 			return FALSE;
 		}
 
@@ -4543,7 +4543,7 @@ BOOL ProfileChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckProfile)
 		OutputText(hwndCtl, szOutput);
 		OutputText(hwndCtl, g_szCRLF);
 
-		GlobalFreePtr(lpData);
+		MyGlobalFreePtr(lpData);
 	}
 
 	return TRUE;

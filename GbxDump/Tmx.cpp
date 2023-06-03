@@ -195,7 +195,7 @@ BOOL ProcessTmx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 
 	// Allocate memory for the TMX data
 	DWORD dwSize = TMX_MAX_DATASIZE;
-	LPSTR lpszData = (LPSTR)GlobalAllocPtr(GHND, dwSize);
+	LPSTR lpszData = (LPSTR)MyGlobalAllocPtr(GHND, dwSize);
 	if (lpszData == NULL)
 	{
 		OutputText(hwndCtl, g_szSep1);
@@ -209,13 +209,13 @@ BOOL ProcessTmx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 
 	if (!ReadInternetFile(hwndCtl, szTmxUrl, lpszData, dwSize))
 	{
-		GlobalFreePtr((LPVOID)lpszData);
+		MyGlobalFreePtr((LPVOID)lpszData);
 		return FALSE;
 	}
 
 	if (lpszData[0] == '\0' || strchr(lpszData, '\t') == NULL)
 	{ // No valid track data available
-		GlobalFreePtr((LPVOID)lpszData);
+		MyGlobalFreePtr((LPVOID)lpszData);
 		return TRUE;
 	}
 
@@ -310,7 +310,7 @@ BOOL ProcessTmx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 	// Do we have a valid TMX track ID?
 	if (strcmp(szTrackId, "0") == 0)
 	{
-		GlobalFreePtr((LPVOID)lpszData);
+		MyGlobalFreePtr((LPVOID)lpszData);
 		return TRUE;
 	}
 
@@ -319,13 +319,13 @@ BOOL ProcessTmx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 
 	if (!ReadInternetFile(hwndCtl, szTmxUrl, lpszData, dwSize))
 	{
-		GlobalFreePtr((LPVOID)lpszData);
+		MyGlobalFreePtr((LPVOID)lpszData);
 		return FALSE;
 	}
 
 	if (lpszData[0] == '\0' || strchr(lpszData, '\t') == NULL)
 	{ // No valid track data available
-		GlobalFreePtr((LPVOID)lpszData);
+		MyGlobalFreePtr((LPVOID)lpszData);
 		return TRUE;
 	}
 
@@ -357,13 +357,13 @@ BOOL ProcessTmx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 
 	if (!ReadInternetFile(hwndCtl, szTmxUrl, lpszData, dwSize))
 	{
-		GlobalFreePtr((LPVOID)lpszData);
+		MyGlobalFreePtr((LPVOID)lpszData);
 		return FALSE;
 	}
 
 	if (lpszData[0] == '\0' || strchr(lpszData, '\t') == NULL)
 	{ // No valid track data available
-		GlobalFreePtr((LPVOID)lpszData);
+		MyGlobalFreePtr((LPVOID)lpszData);
 		return TRUE;
 	}
 
@@ -427,7 +427,7 @@ BOOL ProcessTmx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 		lpsz = lpszNewLine;
 	}
 
-	GlobalFreePtr((LPVOID)lpszData);
+	MyGlobalFreePtr((LPVOID)lpszData);
 	return TRUE;
 }
 
