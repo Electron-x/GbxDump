@@ -115,8 +115,6 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 
 	DWORD dwDibHeaderSize = *(LPDWORD)lpbi;
 	LPBITMAPV5HEADER lpbih = (LPBITMAPV5HEADER)lpbi;
-	LPBITMAPCOREHEADER lpbch = (LPBITMAPCOREHEADER)lpbi;
-	LPBITMAPINFOHEADER2 lpbih2 = (LPBITMAPINFOHEADER2)lpbi;
 
 	OutputText(hwndCtl, g_szSep1);
 	OutputTextFmt(hwndCtl, szOutput, TEXT("Size:\t\t%u bytes\r\n"), dwDibHeaderSize);
@@ -148,12 +146,14 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 
 	if (dwDibHeaderSize == sizeof(BITMAPCOREHEADER))
 	{ // OS/2 Version 1.x Bitmap
+		LPBITMAPCOREHEADER lpbch = (LPBITMAPCOREHEADER)lpbi;
+
 		OutputTextFmt(hwndCtl, szOutput, TEXT("Width:\t\t%u pixels\r\n"), lpbch->bcWidth);
 		OutputTextFmt(hwndCtl, szOutput, TEXT("Height:\t\t%u pixels\r\n"), lpbch->bcHeight);
 		OutputTextFmt(hwndCtl, szOutput, TEXT("Planes:\t\t%u\r\n"), lpbch->bcPlanes);
 		OutputTextFmt(hwndCtl, szOutput, TEXT("BitCount:\t%u bpp\r\n"), lpbch->bcBitCount);
 		
-		UINT64 ullBitsSize = WIDTHBYTES(lpbch->bcWidth * lpbch->bcPlanes *	lpbch->bcBitCount) * lpbch->bcHeight;
+		UINT64 ullBitsSize = WIDTHBYTES((UINT64)lpbch->bcWidth * lpbch->bcPlanes * lpbch->bcBitCount) * lpbch->bcHeight;
 		if (ullBitsSize == 0 || ullBitsSize > 0x40000000 || lpbch->bcPlanes > 4 || lpbch->bcBitCount > 32)
 			bIsUnsupportedFormat = TRUE;
 	}
@@ -166,7 +166,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		OutputTextFmt(hwndCtl, szOutput, TEXT("BitCount:\t%u bpp\r\n"), lpbih->bV5BitCount);
 
 		bIsUnsupportedFormat = !IsDibSupported(lpbi);
-		INT64 llBitsSize = WIDTHBYTES(lpbih->bV5Width * lpbih->bV5Planes * lpbih->bV5BitCount) * abs(lpbih->bV5Height);
+		INT64 llBitsSize = WIDTHBYTES((INT64)lpbih->bV5Width * lpbih->bV5Planes * lpbih->bV5BitCount) * abs(lpbih->bV5Height);
 		if (llBitsSize <= 0 || llBitsSize > 0x40000000L || lpbih->bV5Planes > 4)
 			bIsUnsupportedFormat = TRUE;
 
@@ -276,6 +276,8 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 	// of zero. However, we only support bitmaps with full header here.
 	if (dwDibHeaderSize == sizeof(BITMAPINFOHEADER2))
 	{ // OS/2 Version 2.0 Bitmap
+		LPBITMAPINFOHEADER2 lpbih2 = (LPBITMAPINFOHEADER2)lpbi;
+
 		OutputText(hwndCtl, TEXT("Units:\t\t"));
 		if (lpbih2->usUnits == BRU_METRIC)
 			OutputText(hwndCtl, TEXT("METRIC"));
@@ -349,7 +351,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		{
 			if (lpbih->bV5Compression == BI_BITFIELDS || lpbih->bV5Compression == BI_ALPHABITFIELDS)
 			{
-				LPDWORD lpdwMasks = (LPDWORD)(lpbi + dwDibHeaderSize);
+				LPDWORD lpdwMasks = (LPDWORD)(lpbi + sizeof(BITMAPINFOHEADER));
 				
 				OutputText(hwndCtl, g_szSep1);
 				OutputTextFmt(hwndCtl, szOutput, TEXT("RedMask:\t%08X\r\n"), lpdwMasks[0]);
@@ -469,8 +471,8 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		{
 			char szPath[MAX_PATH] = { 0 };
 			int nLen = min(min(lpbih->bV5ProfileSize, dwDibSize - lpbih->bV5ProfileData), _countof(szPath));
-			lstrcpynA(szPath, lpbi + lpbih->bV5ProfileData, nLen);
-			OutputTextFmt(hwndCtl, szOutput, TEXT(" (%hs)"), szPath);
+			if (lstrcpynA(szPath, lpbi + lpbih->bV5ProfileData, nLen) != NULL)
+				OutputTextFmt(hwndCtl, szOutput, TEXT(" (%hs)"), szPath);
 		}
 		OutputText(hwndCtl, TEXT("\r\n"));
 
@@ -560,8 +562,7 @@ static void MarkAsUnsupported(HWND hwndCtl)
 		return;
 
 	TCHAR szText[256];
-	if (!LoadString(g_hInstance, g_bGerUI ? IDS_GER_UNSUPPORTED : IDS_ENG_UNSUPPORTED,
-		szText, _countof(szText)))
+	if (!LoadString(g_hInstance, g_bGerUI ? IDS_GER_UNSUPPORTED : IDS_ENG_UNSUPPORTED, szText, _countof(szText)))
 		return;
 
 	SetWindowText(hwndThumb, szText);
