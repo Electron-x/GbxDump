@@ -39,8 +39,10 @@ HBITMAP CreatePremultipliedBitmap(HANDLE hDib);
 BOOL FreeBitmap(HBITMAP hbmpDib);
 
 HPALETTE CreateDibPalette(HANDLE hDib);
-UINT PaletteSize(LPCSTR lpbi);
 UINT DibNumColors(LPCSTR lpbi);
+UINT ColorMasksSize(LPCSTR lpbi);
+UINT PaletteSize(LPCSTR lpbi);
+LPBYTE FindDibPalette(LPCSTR lpbi);
 LPBYTE FindDibBits(LPCSTR lpbi);
 BOOL IsDibVideoCompressed(LPCSTR lpbi);
 

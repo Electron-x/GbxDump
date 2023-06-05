@@ -142,16 +142,12 @@ BOOL SaveBmpFile(LPCTSTR lpszFileName, HANDLE hDib)
 	if (IS_OS2PM_DIB(lpbi))
 	{
 		LPBITMAPCOREHEADER lpbc = (LPBITMAPCOREHEADER)lpbi;
-		dwDIBSize = lpbc->bcSize + DibNumColors((LPCSTR)lpbc);
+		dwDIBSize = lpbc->bcSize + PaletteSize((LPCSTR)lpbc);
 		dwBmBitsSize = WIDTHBYTES(lpbc->bcWidth * lpbc->bcPlanes * lpbc->bcBitCount) * lpbc->bcHeight;
 	}
 	else
 	{
-		dwDIBSize = lpbi->biSize + DibNumColors((LPCSTR)lpbi);
-		if (IS_WIN30_DIB(lpbi) && lpbi->biCompression == BI_BITFIELDS)
-			dwDIBSize += 3 * sizeof(DWORD);
-		else if (IS_WIN30_DIB(lpbi) && lpbi->biCompression == BI_ALPHABITFIELDS)
-			dwDIBSize += 4 * sizeof(DWORD);
+		dwDIBSize = lpbi->biSize + ColorMasksSize((LPCSTR)lpbi) + PaletteSize((LPCSTR)lpbi);
 		if (lpbi->biCompression == BI_RGB || lpbi->biCompression == BI_BITFIELDS ||
 			lpbi->biCompression == BI_ALPHABITFIELDS || lpbi->biCompression == BI_CMYK)
 			dwBmBitsSize = WIDTHBYTES(lpbi->biWidth * lpbi->biPlanes * lpbi->biBitCount) * abs(lpbi->biHeight);
@@ -1195,8 +1191,6 @@ HPALETTE CreateDibPalette(HANDLE hDib)
 
 	HPALETTE hPal = NULL;
 	LPSTR lpbi = (LPSTR)GlobalLock((HGLOBAL)hDib);
-	LPBITMAPINFO lpbmi = (LPBITMAPINFO)lpbi;
-	LPBITMAPCOREINFO lpbmc = (LPBITMAPCOREINFO)lpbi;
 	if (lpbi == NULL)
 		return NULL;
 
@@ -1215,6 +1209,8 @@ HPALETTE CreateDibPalette(HANDLE hDib)
 		lpPal->palNumEntries = (WORD)uNumColors;
 
 		if (IS_OS2PM_DIB(lpbi))
+		{
+			LPBITMAPCOREINFO lpbmc = (LPBITMAPCOREINFO)lpbi;
 			for (UINT i = 0; i < uNumColors; i++)
 			{
 				lpPal->palPalEntry[i].peRed = lpbmc->bmciColors[i].rgbtRed;
@@ -1222,14 +1218,18 @@ HPALETTE CreateDibPalette(HANDLE hDib)
 				lpPal->palPalEntry[i].peBlue = lpbmc->bmciColors[i].rgbtBlue;
 				lpPal->palPalEntry[i].peFlags = 0;
 			}
+		}
 		else
+		{
+			LPRGBQUAD lpRgbQuad = (LPRGBQUAD)FindDibPalette(lpbi);
 			for (UINT i = 0; i < uNumColors; i++)
 			{
-				lpPal->palPalEntry[i].peRed = lpbmi->bmiColors[i].rgbRed;
-				lpPal->palPalEntry[i].peGreen = lpbmi->bmiColors[i].rgbGreen;
-				lpPal->palPalEntry[i].peBlue = lpbmi->bmiColors[i].rgbBlue;
+				lpPal->palPalEntry[i].peRed = lpRgbQuad[i].rgbRed;
+				lpPal->palPalEntry[i].peGreen = lpRgbQuad[i].rgbGreen;
+				lpPal->palPalEntry[i].peBlue = lpRgbQuad[i].rgbBlue;
 				lpPal->palPalEntry[i].peFlags = 0;
 			}
+		}
 
 		hPal = CreatePalette(lpPal);
 
@@ -1248,29 +1248,17 @@ HPALETTE CreateDibPalette(HANDLE hDib)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Gets the size required to store the DIB's palette
-
-UINT PaletteSize(LPCSTR lpbi)
-{
-	if (lpbi == NULL)
-		return 0;
-	else if (IS_OS2PM_DIB(lpbi))
-		return DibNumColors(lpbi) * sizeof(RGBTRIPLE);
-	else
-		return DibNumColors(lpbi) * sizeof(RGBQUAD);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////
-// Calculates the number of colors in the DIB's color table
+// Calculates the number of colors in the DIBs color table
 
 UINT DibNumColors(LPCSTR lpbi)
 {
+	if (lpbi == NULL)
+		return 0;
+
 	WORD  wBitCount = 0;
 	DWORD dwClrUsed = 0;
 
-	if (lpbi == NULL)
-		return 0;
-	else if (IS_OS2PM_DIB(lpbi))
+	if (IS_OS2PM_DIB(lpbi))
 		wBitCount = ((LPBITMAPCOREHEADER)lpbi)->bcBitCount;
 	else
 	{
@@ -1288,6 +1276,46 @@ UINT DibNumColors(LPCSTR lpbi)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
+// Gets the size of the optional color masks of a DIBv3
+
+UINT ColorMasksSize(LPCSTR lpbi)
+{
+	if (lpbi == NULL || !IS_WIN30_DIB(lpbi) ||
+		(((LPBITMAPINFOHEADER)lpbi)->biBitCount != 16 &&
+		((LPBITMAPINFOHEADER)lpbi)->biBitCount != 32))
+		return 0;
+
+	if (((LPBITMAPINFOHEADER)lpbi)->biCompression == BI_BITFIELDS)
+		return 3 * sizeof(DWORD);
+	else if (((LPBITMAPINFOHEADER)lpbi)->biCompression == BI_ALPHABITFIELDS)
+		return 4 * sizeof(DWORD);
+
+	return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Gets the size required to store the DIBs palette
+
+UINT PaletteSize(LPCSTR lpbi)
+{
+	if (lpbi == NULL)
+		return 0;
+
+	return DibNumColors(lpbi) * (IS_OS2PM_DIB(lpbi) ? sizeof(RGBTRIPLE) : sizeof(RGBQUAD));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Returns a pointer to the DIBs color table 
+
+LPBYTE FindDibPalette(LPCSTR lpbi)
+{
+	if (lpbi == NULL)
+		return NULL;
+
+	return (LPBYTE)lpbi + *(LPDWORD)lpbi + ColorMasksSize(lpbi);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
 // Returns a pointer to the pixel bits of a packed DIB
 
 LPBYTE FindDibBits(LPCSTR lpbi)
@@ -1295,19 +1323,7 @@ LPBYTE FindDibBits(LPCSTR lpbi)
 	if (lpbi == NULL)
 		return NULL;
 
-	LPBYTE pBits = (LPBYTE)lpbi + *(LPDWORD)lpbi + PaletteSize(lpbi);
-
-	if (IS_WIN30_DIB(lpbi) &&
-		(((LPBITMAPINFOHEADER)lpbi)->biBitCount == 16 ||
-		((LPBITMAPINFOHEADER)lpbi)->biBitCount == 32))
-	{
-		if (((LPBITMAPINFOHEADER)lpbi)->biCompression == BI_BITFIELDS)
-			pBits += 3 * sizeof(DWORD);
-		else if (((LPBITMAPINFOHEADER)lpbi)->biCompression == BI_ALPHABITFIELDS)
-			pBits += 4 * sizeof(DWORD);
-	}
-
-	return pBits;
+	return (LPBYTE)lpbi + *(LPDWORD)lpbi + ColorMasksSize(lpbi) + PaletteSize(lpbi);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1315,7 +1331,7 @@ LPBYTE FindDibBits(LPCSTR lpbi)
 
 BOOL IsDibVideoCompressed(LPCSTR lpbi)
 {
-	if (lpbi == NULL || *(LPDWORD)lpbi != sizeof(BITMAPINFOHEADER))
+	if (lpbi == NULL || !IS_WIN30_DIB(lpbi))
 		return FALSE;
 
 	DWORD dwCompression = ((LPBITMAPINFOHEADER)lpbi)->biCompression;
