@@ -50,7 +50,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		return FALSE;
 
 	if (bfh.bfType == BFT_BITMAPARRAY)
-	{ // OS/2 bitmap array
+	{ // OS/2 bit-map array
 		LPBITMAPARRAYFILEHEADER lpbafh = (LPBITMAPARRAYFILEHEADER)&bfh;
 
 		OutputText(hwndCtl, g_szSep1);
@@ -77,7 +77,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 			return FALSE;
 
 		if (bfh.bfType != BFT_BMAP)
-		{
+		{ // No support for icons and pointers
 			MarkAsUnsupported(hwndCtl);
 			return TRUE;
 		}
@@ -134,6 +134,8 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		dwDibHeaderSize != sizeof(BITMAPV4HEADER) &&
 		dwDibHeaderSize != sizeof(BITMAPV5HEADER))
 	{
+		// Can be a EXBMINFOHEADER DIB with biSize > 40
+		// or a BITMAPINFOHEADER2 DIB with cbFix < 64
 		GlobalUnlock(hDib);
 		GlobalFree(hDib);
 		MarkAsUnsupported(hwndCtl);
@@ -145,7 +147,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 	BOOL bIsUnsupportedFormat = FALSE;
 
 	if (dwDibHeaderSize == sizeof(BITMAPCOREHEADER))
-	{ // OS/2 Version 1.x Bitmap
+	{ // OS/2 Version 1.1 Bit-map (DIBv2)
 		LPBITMAPCOREHEADER lpbch = (LPBITMAPCOREHEADER)lpbi;
 
 		OutputTextFmt(hwndCtl, szOutput, TEXT("Width:\t\t%u pixels\r\n"), lpbch->bcWidth);
@@ -153,19 +155,23 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		OutputTextFmt(hwndCtl, szOutput, TEXT("Planes:\t\t%u\r\n"), lpbch->bcPlanes);
 		OutputTextFmt(hwndCtl, szOutput, TEXT("BitCount:\t%u bpp\r\n"), lpbch->bcBitCount);
 		
+		// Perform some sanity checks
 		UINT64 ullBitsSize = WIDTHBYTES((UINT64)lpbch->bcWidth * lpbch->bcPlanes * lpbch->bcBitCount) * lpbch->bcHeight;
 		if (ullBitsSize == 0 || ullBitsSize > 0x40000000 || lpbch->bcPlanes > 4 || lpbch->bcBitCount > 32)
 			bIsUnsupportedFormat = TRUE;
 	}
 
 	if (dwDibHeaderSize >= sizeof(BITMAPINFOHEADER))
-	{ // Windows Version 3.0 Bitmap
+	{ // Windows Version 3.0 Bitmap (DIBv3)
 		OutputTextFmt(hwndCtl, szOutput, TEXT("Width:\t\t%d pixels\r\n"), lpbih->bV5Width);
 		OutputTextFmt(hwndCtl, szOutput, TEXT("Height:\t\t%d pixels\r\n"), lpbih->bV5Height);
 		OutputTextFmt(hwndCtl, szOutput, TEXT("Planes:\t\t%u\r\n"), lpbih->bV5Planes);
 		OutputTextFmt(hwndCtl, szOutput, TEXT("BitCount:\t%u bpp\r\n"), lpbih->bV5BitCount);
 
+		// Use the QUERYDIBSUPPORT escape function to determine whether GDI
+		// can display this DIB. The Escape does not support OS/2-style DIBs.
 		bIsUnsupportedFormat = !IsDibSupported(lpbi);
+		// Perform some additional sanity checks
 		INT64 llBitsSize = WIDTHBYTES((INT64)lpbih->bV5Width * lpbih->bV5Planes * lpbih->bV5BitCount) * abs(lpbih->bV5Height);
 		if (llBitsSize <= 0 || llBitsSize > 0x40000000L || lpbih->bV5Planes > 4)
 			bIsUnsupportedFormat = TRUE;
@@ -203,7 +209,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 				isprint((dwCompression >> 16) & 0xff) &&
 				isprint((dwCompression >> 24) & 0xff))
 			{ // biCompression contains a FourCC code
-				// Not supported by GDI, but may be rendered by VfW/DrawDib
+				// Not supported by GDI, but may be rendered by VfW DrawDibDraw
 				bIsUnsupportedFormat = FALSE;
 				OutputTextFmt(hwndCtl, szOutput, TEXT("%hc%hc%hc%hc"),
 					(char)(dwCompression & 0xff),
@@ -275,7 +281,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 	// 64 bytes down to 16 bytes. Omitted fields are assumed to have a value
 	// of zero. However, we only support bitmaps with full header here.
 	if (dwDibHeaderSize == sizeof(BITMAPINFOHEADER2))
-	{ // OS/2 Version 2.0 Bitmap
+	{ // OS/2 Version 2.0 Bit-map
 		LPBITMAPINFOHEADER2 lpbih2 = (LPBITMAPINFOHEADER2)lpbi;
 
 		OutputText(hwndCtl, TEXT("Units:\t\t"));
@@ -346,7 +352,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 	}
 
 	if (dwDibHeaderSize == sizeof(BITMAPINFOHEADER))
-	{ // Windows Version 3.0 Bitmap
+	{ // Windows version 3.0 bitmaps can contain color masks after the header
 		if (lpbih->bV5BitCount == 16 || lpbih->bV5BitCount == 32)
 		{
 			if (lpbih->bV5Compression == BI_BITFIELDS || lpbih->bV5Compression == BI_ALPHABITFIELDS)
@@ -365,19 +371,19 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 	}
 
 	if (dwDibHeaderSize >= sizeof(BITMAPV2INFOHEADER))
-	{ // Adobe Photoshop
+	{ // Adobe Photoshop extension
 		OutputTextFmt(hwndCtl, szOutput, TEXT("RedMask:\t%08X\r\n"), lpbih->bV5RedMask);
 		OutputTextFmt(hwndCtl, szOutput, TEXT("GreenMask:\t%08X\r\n"), lpbih->bV5GreenMask);
 		OutputTextFmt(hwndCtl, szOutput, TEXT("BlueMask:\t%08X\r\n"), lpbih->bV5BlueMask);
 	}
 
 	if (dwDibHeaderSize >= sizeof(BITMAPV3INFOHEADER))
-	{ // Adobe Photoshop
+	{ // Adobe Photoshop extension
 		OutputTextFmt(hwndCtl, szOutput, TEXT("AlphaMask:\t%08X\r\n"), lpbih->bV5AlphaMask);
 	}
 
 	if (dwDibHeaderSize >= sizeof(BITMAPV4HEADER))
-	{ // Win32 Version 4.0 Bitmap
+	{ // Win32 Version 4.0 Bitmap (DIBv4, ICM 1.0)
 		DWORD dwCSType = lpbih->bV5CSType;
 		OutputText(hwndCtl, TEXT("CSType:\t\t"));
 		if (isprint(dwCSType & 0xff) &&
@@ -441,7 +447,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 	}
 
 	if (dwDibHeaderSize >= sizeof(BITMAPV5HEADER))
-	{ // Win32 Version 5.0 Bitmap
+	{ // Win32 Version 5.0 Bitmap (DIBv5, ICM 2.0)
 		DWORD dwIntent = lpbih->bV5Intent;
 		OutputText(hwndCtl, TEXT("Intent:\t\t"));
 		switch (dwIntent)
@@ -479,7 +485,47 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		OutputTextFmt(hwndCtl, szOutput, TEXT("Reserved:\t%u\r\n"), lpbih->bV5Reserved);
 	}
 
-	// Check for a gap between header/color table and pixel array
+	// Output the color table entries
+	UINT uNumColors = min(DibNumColors(lpbi), 4096);
+	if (uNumColors > 0)
+	{
+		OutputText(hwndCtl, g_szSep1);
+		int nWidth = uNumColors >= 100 ? 3 : (uNumColors >= 10 ? 2 : 1);
+		
+		if (IS_OS2PM_DIB(lpbi))
+		{
+			_sntprintf(szOutput, _countof(szOutput), TEXT("%*c|  R|  G|  B|\r\n"), nWidth, '#');
+			OutputText(hwndCtl, szOutput);
+			
+			LPBITMAPCOREINFO lpbmc = (LPBITMAPCOREINFO)lpbi;
+			for (UINT i = 0; i < uNumColors; i++)
+			{
+				_sntprintf(szOutput, _countof(szOutput), TEXT("%*u|%3u|%3u|%3u|\r\n"), nWidth, i + 1,
+					lpbmc->bmciColors[i].rgbtRed,
+					lpbmc->bmciColors[i].rgbtGreen,
+					lpbmc->bmciColors[i].rgbtBlue);
+				OutputText(hwndCtl, szOutput);
+			}
+		}
+		else
+		{
+			_sntprintf(szOutput, _countof(szOutput), TEXT("%*c|  X|  R|  G|  B|\r\n"), nWidth, '#');
+			OutputText(hwndCtl, szOutput);
+			
+			LPRGBQUAD lpRgbQuad = (LPRGBQUAD)FindDibPalette(lpbi);
+			for (UINT i = 0; i < uNumColors; i++)
+			{
+				_sntprintf(szOutput, _countof(szOutput), TEXT("%*u|%3u|%3u|%3u|%3u|\r\n"), nWidth, i + 1,
+					lpRgbQuad[i].rgbReserved,
+					lpRgbQuad[i].rgbRed,
+					lpRgbQuad[i].rgbGreen,
+					lpRgbQuad[i].rgbBlue);
+				OutputText(hwndCtl, szOutput);
+			}
+		}
+	}
+
+	// Check for a gap between header/color table and pixel bits
 	DWORD dwOffBits = dwFileHeaderSize + (DWORD)(FindDibBits(lpbi) - (LPBYTE)lpbi);
 	if (bfh.bfOffBits > dwOffBits)
 	{
@@ -503,14 +549,18 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 	if (g_hDibThumb != NULL)
 		FreeDib(g_hDibThumb);
 
+	// Save the DIB without further changes for display using
+	// StretchDIBits or DrawDibDraw
 	g_hDibThumb = hDib;
+	// Check the DIB for transparent pixels and create an additional
+	// pre-multiplied bitmap for the AlphaBlend function if needed
 	g_hBitmapThumb = CreatePremultipliedBitmap(hDib);
 
 	HWND hwndThumb = GetDlgItem(GetParent(hwndCtl), IDC_THUMB);
 	if (hwndThumb == NULL)
 		return TRUE;
 
-	// View the thumbnail immediately
+	// Display the DIB immediately
 	if (InvalidateRect(hwndThumb, NULL, FALSE))
 		UpdateWindow(hwndThumb);
 
