@@ -42,7 +42,7 @@ HPALETTE CreateDibPalette(HANDLE hDib);
 UINT DibNumColors(LPCSTR lpbi);
 UINT ColorMasksSize(LPCSTR lpbi);
 UINT PaletteSize(LPCSTR lpbi);
-LPBYTE FindDibPalette(LPCSTR lpbi);
+LPRGBQUAD FindDibPalette(LPCSTR lpbi);
 LPBYTE FindDibBits(LPCSTR lpbi);
 BOOL IsDibVideoCompressed(LPCSTR lpbi);
 

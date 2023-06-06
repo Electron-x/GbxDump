@@ -1163,7 +1163,7 @@ HBITMAP CreatePremultipliedBitmap(HANDLE hDib)
 
 	if (!bHasVisiblePixels || !bHasTransparentPixels)
 	{
-		FreeBitmap(hbmpDib);
+		DeleteObject(hbmpDib);
 		return NULL;
 	}
 
@@ -1221,12 +1221,12 @@ HPALETTE CreateDibPalette(HANDLE hDib)
 		}
 		else
 		{
-			LPRGBQUAD lpRgbQuad = (LPRGBQUAD)FindDibPalette(lpbi);
+			LPRGBQUAD lprgbqColors = FindDibPalette(lpbi);
 			for (UINT i = 0; i < uNumColors; i++)
 			{
-				lpPal->palPalEntry[i].peRed = lpRgbQuad[i].rgbRed;
-				lpPal->palPalEntry[i].peGreen = lpRgbQuad[i].rgbGreen;
-				lpPal->palPalEntry[i].peBlue = lpRgbQuad[i].rgbBlue;
+				lpPal->palPalEntry[i].peRed = lprgbqColors[i].rgbRed;
+				lpPal->palPalEntry[i].peGreen = lprgbqColors[i].rgbGreen;
+				lpPal->palPalEntry[i].peBlue = lprgbqColors[i].rgbBlue;
 				lpPal->palPalEntry[i].peFlags = 0;
 			}
 		}
@@ -1307,12 +1307,12 @@ UINT PaletteSize(LPCSTR lpbi)
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Returns a pointer to the DIBs color table 
 
-LPBYTE FindDibPalette(LPCSTR lpbi)
+LPRGBQUAD FindDibPalette(LPCSTR lpbi)
 {
 	if (lpbi == NULL)
 		return NULL;
 
-	return (LPBYTE)lpbi + *(LPDWORD)lpbi + ColorMasksSize(lpbi);
+	return (LPRGBQUAD)((LPBYTE)lpbi + *(LPDWORD)lpbi + ColorMasksSize(lpbi));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
