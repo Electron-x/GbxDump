@@ -352,7 +352,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 	}
 
 	if (dwDibHeaderSize == sizeof(BITMAPINFOHEADER))
-	{ // Windows version 3.0 bitmaps can contain color masks after the header
+	{ // Windows Version 3.0 Bitmap (Windows NT extension)
 		if (lpbih->bV5BitCount == 16 || lpbih->bV5BitCount == 32)
 		{
 			if (lpbih->bV5Compression == BI_BITFIELDS || lpbih->bV5Compression == BI_ALPHABITFIELDS)
@@ -490,36 +490,52 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 	if (uNumColors > 0)
 	{
 		OutputText(hwndCtl, g_szSep1);
-		int nWidth = uNumColors >= 100 ? 3 : (uNumColors >= 10 ? 2 : 1);
-		
+		int nWidthDec = uNumColors > 1000 ? 4 : (uNumColors > 100 ? 3 : (uNumColors > 10 ? 2 : 1));
+		int nWidthHex = uNumColors > 0x100 ? 3 : (uNumColors > 0x10 ? 2 : 1);
+
 		if (IS_OS2PM_DIB(lpbi))
 		{
-			_sntprintf(szOutput, _countof(szOutput), TEXT("%*c|  R|  G|  B|\r\n"), nWidth, '#');
+			_sntprintf(szOutput, _countof(szOutput),
+				TEXT("%*c|   B   G   R |%-*c| B  G  R  |\r\n"), nWidthDec, 'I', nWidthHex, 'I');
 			OutputText(hwndCtl, szOutput);
-			
+
 			LPBITMAPCOREINFO lpbmc = (LPBITMAPCOREINFO)lpbi;
 			for (UINT i = 0; i < uNumColors; i++)
 			{
-				_sntprintf(szOutput, _countof(szOutput), TEXT("%*u|%3u|%3u|%3u|\r\n"), nWidth, i + 1,
-					lpbmc->bmciColors[i].rgbtRed,
+				_sntprintf(szOutput, _countof(szOutput),
+					TEXT("%*u| %3u %3u %3u |%0*X| %02X %02X %02X |\r\n"),
+					nWidthDec, i,
+					lpbmc->bmciColors[i].rgbtBlue,
 					lpbmc->bmciColors[i].rgbtGreen,
-					lpbmc->bmciColors[i].rgbtBlue);
+					lpbmc->bmciColors[i].rgbtRed,
+					nWidthHex, i,
+					lpbmc->bmciColors[i].rgbtBlue,
+					lpbmc->bmciColors[i].rgbtGreen,
+					lpbmc->bmciColors[i].rgbtRed);
 				OutputText(hwndCtl, szOutput);
 			}
 		}
 		else
 		{
-			_sntprintf(szOutput, _countof(szOutput), TEXT("%*c|  X|  R|  G|  B|\r\n"), nWidth, '#');
+			_sntprintf(szOutput, _countof(szOutput),
+				TEXT("%*c|   B   G   R   X |%-*c| B  G  R  X  |\r\n"), nWidthDec, 'I', nWidthHex, 'I');
 			OutputText(hwndCtl, szOutput);
-			
-			LPRGBQUAD lpRgbQuad = (LPRGBQUAD)FindDibPalette(lpbi);
+
+			LPRGBQUAD lprgbqColors = FindDibPalette(lpbi);
 			for (UINT i = 0; i < uNumColors; i++)
 			{
-				_sntprintf(szOutput, _countof(szOutput), TEXT("%*u|%3u|%3u|%3u|%3u|\r\n"), nWidth, i + 1,
-					lpRgbQuad[i].rgbReserved,
-					lpRgbQuad[i].rgbRed,
-					lpRgbQuad[i].rgbGreen,
-					lpRgbQuad[i].rgbBlue);
+				_sntprintf(szOutput, _countof(szOutput),
+					TEXT("%*u| %3u %3u %3u %3u |%0*X| %02X %02X %02X %02X |\r\n"),
+					nWidthDec, i,
+					lprgbqColors[i].rgbBlue,
+					lprgbqColors[i].rgbGreen,
+					lprgbqColors[i].rgbRed,
+					lprgbqColors[i].rgbReserved,
+					nWidthHex, i,
+					lprgbqColors[i].rgbBlue,
+					lprgbqColors[i].rgbGreen,
+					lprgbqColors[i].rgbRed,
+					lprgbqColors[i].rgbReserved);
 				OutputText(hwndCtl, szOutput);
 			}
 		}
