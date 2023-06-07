@@ -468,18 +468,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		OutputText(hwndCtl, TEXT("\r\n"));
 
 		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("ProfileData:\t%u bytes\r\n"), lpbih->bV5ProfileData);
-
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("ProfileSize:\t%u bytes"), lpbih->bV5ProfileSize);
-		if (lpbih->bV5ProfileData != 0 && lpbih->bV5ProfileSize != 0 &&
-			lpbih->bV5CSType == PROFILE_LINKED && dwDibSize > lpbih->bV5ProfileData)
-		{
-			char szPath[MAX_PATH] = { 0 };
-			int nLen = min(min(lpbih->bV5ProfileSize, dwDibSize - lpbih->bV5ProfileData), _countof(szPath));
-			if (MyStrNCpyA(szPath, lpbi + lpbih->bV5ProfileData, nLen) != NULL)
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT(" (%hs)"), szPath);
-		}
-		OutputText(hwndCtl, TEXT("\r\n"));
-
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("ProfileSize:\t%u bytes\r\n"), lpbih->bV5ProfileSize);
 		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Reserved:\t%u\r\n"), lpbih->bV5Reserved);
 	}
 
@@ -531,6 +520,72 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 					lprgbqColors[i].rgbGreen,
 					lprgbqColors[i].rgbRed,
 					lprgbqColors[i].rgbReserved);
+			}
+		}
+	}
+
+	// Output the profile data
+	if (dwDibHeaderSize >= sizeof(BITMAPV5HEADER) && dwDibSize > lpbih->bV5ProfileData &&
+		lpbih->bV5ProfileData != 0 && lpbih->bV5ProfileSize != 0)
+	{
+		if (lpbih->bV5CSType == PROFILE_LINKED)
+		{
+			char szPath[MAX_PATH];
+			int nLen = min(min(lpbih->bV5ProfileSize, dwDibSize - lpbih->bV5ProfileData), _countof(szPath));
+
+			if (MyStrNCpyA(szPath, lpbi + lpbih->bV5ProfileData, nLen) != NULL)
+			{
+				OutputText(hwndCtl, g_szSep1);
+				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%hs\r\n"), szPath);
+			}
+		}
+		else if (lpbih->bV5CSType == PROFILE_EMBEDDED)
+		{
+			const int COLUMNS = 16;
+			const int FORMAT_LEN = 256;
+
+			SIZE_T i, j, c;
+			SIZE_T cbLen = min(min(lpbih->bV5ProfileSize, dwDibSize - lpbih->bV5ProfileData), 0x10000);
+			PBYTE pData = (PBYTE)(lpbi + lpbih->bV5ProfileData);
+			PBYTE pByte = pData;
+			TCHAR szFormat[FORMAT_LEN];
+
+			OutputText(hwndCtl, g_szSep1);
+
+			for (i = 0; i < cbLen; i += COLUMNS)
+			{
+				c = ((cbLen - i) > COLUMNS) ? COLUMNS : cbLen - i;
+
+				// Address
+				_sntprintf(szOutput, _countof(szOutput), TEXT("%04IX| "), i);
+
+				// Hex dump
+				for (j = c, pByte = pData + i; j--; pByte++)
+				{
+					_sntprintf(szFormat, _countof(szFormat), TEXT("%02X "), *pByte);
+					szFormat[FORMAT_LEN - 1] = TEXT('\0');
+					_tcsncat(szOutput, szFormat, _countof(szOutput) - _tcslen(szOutput) - 4);
+				}
+
+				for (j = COLUMNS - c; j--; )
+					_tcsncat(szOutput, TEXT("   "), _countof(szOutput) - _tcslen(szOutput) - 4);
+
+				_tcsncat(szOutput, TEXT("|"), _countof(szOutput) - _tcslen(szOutput) - 4);
+
+				// ASCII dump
+				for (j = c, pByte = pData + i; j--; pByte++)
+				{
+					_sntprintf(szFormat, _countof(szFormat), TEXT("%hc"), isprint(*pByte) ? *pByte : '.');
+					szFormat[FORMAT_LEN - 1] = TEXT('\0');
+					_tcsncat(szOutput, szFormat, _countof(szOutput) - _tcslen(szOutput) - 4);
+				}
+
+				for (j = COLUMNS - c; j--; )
+					_tcsncat(szOutput, TEXT(" "), _countof(szOutput) - _tcslen(szOutput) - 4);
+
+				_tcsncat(szOutput, TEXT("|\r\n"), _countof(szOutput) - _tcslen(szOutput) - 1);
+
+				OutputText(hwndCtl, szOutput);
 			}
 		}
 	}
