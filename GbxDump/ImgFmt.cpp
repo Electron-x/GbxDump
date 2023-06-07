@@ -821,11 +821,11 @@ HANDLE WebpToDib(LPVOID lpWebpData, DWORD dwLenData, BOOL bFlipImage, BOOL bShow
 		if (hwndCtl != NULL)
 		{
 			TCHAR szOutput[OUTPUT_LEN];
-			OutputTextFmt(hwndCtl, szOutput, TEXT("Width:\t\t%d pixels\r\n"), nWidth);
-			OutputTextFmt(hwndCtl, szOutput, TEXT("Height:\t\t%d pixels\r\n"), nHeight);
-			OutputTextFmt(hwndCtl, szOutput, TEXT("Has Alpha:\t%s\r\n"),
+			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Width:\t\t%d pixels\r\n"), nWidth);
+			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Height:\t\t%d pixels\r\n"), nHeight);
+			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Has Alpha:\t%s\r\n"),
 				features.has_alpha ? TEXT("True") : TEXT("False"));
-			OutputTextFmt(hwndCtl, szOutput, TEXT("Has Animation:\t%s\r\n"),
+			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Has Animation:\t%s\r\n"),
 				features.has_animation ? TEXT("True") : TEXT("False"));
 			OutputText(hwndCtl, TEXT("Format:\t\t"));
 			switch (features.format)
@@ -840,7 +840,7 @@ HANDLE WebpToDib(LPVOID lpWebpData, DWORD dwLenData, BOOL bFlipImage, BOOL bShow
 					OutputText(hwndCtl, TEXT("Lossless"));
 					break;
 				default:
-					OutputTextFmt(hwndCtl, szOutput, TEXT("%d"), features.format);
+					OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%d"), features.format);
 			}
 			OutputText(hwndCtl, TEXT("\r\n"));
 		}
@@ -935,11 +935,11 @@ HANDLE DdsToDib(LPVOID lpDdsData, DWORD dwLenData, BOOL bFlipImage, BOOL bShowTe
 			BYTE achFourCC[4];
 			TCHAR szOutput[OUTPUT_LEN];
 			memcpy(achFourCC, &tex_desc.m_fmt_fourcc, 4);
-			OutputTextFmt(hwndCtl, szOutput, TEXT("Faces:\t\t%u\r\n"), tex_desc.m_faces);
-			OutputTextFmt(hwndCtl, szOutput, TEXT("Width:\t\t%u pixels\r\n"), tex_desc.m_width);
-			OutputTextFmt(hwndCtl, szOutput, TEXT("Height:\t\t%u pixels\r\n"), tex_desc.m_height);
-			OutputTextFmt(hwndCtl, szOutput, TEXT("Levels:\t\t%u\r\n"), tex_desc.m_levels);
-			OutputTextFmt(hwndCtl, szOutput, TEXT("Format:\t\t%hc%hc%hc%hc\r\n"),
+			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Faces:\t\t%u\r\n"), tex_desc.m_faces);
+			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Width:\t\t%u pixels\r\n"), tex_desc.m_width);
+			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Height:\t\t%u pixels\r\n"), tex_desc.m_height);
+			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Levels:\t\t%u\r\n"), tex_desc.m_levels);
+			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Format:\t\t%hc%hc%hc%hc\r\n"),
 				achFourCC[0], achFourCC[1], achFourCC[2], achFourCC[3]);
 		}
 	}

@@ -93,7 +93,7 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 		return FALSE;
 
 	OutputText(hwndCtl, g_szSep1);
-	OutputTextFmt(hwndCtl, szOutput, TEXT("Pack Version:\t%d"), dwVersion);
+	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Pack Version:\t%d"), dwVersion);
 	if (dwVersion > 18) OutputText(hwndCtl, g_szAsterisk);
 	OutputText(hwndCtl, g_szCRLF);
 
@@ -112,7 +112,7 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 	if (!ReadNat32(hFile, &dwCryptFlags))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, TEXT("Decrypt Flags:\t%08X"), dwCryptFlags);
+	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Decrypt Flags:\t%08X"), dwCryptFlags);
 
 	PHEADERFLAGSUNCRYPT pCryptFlags = (PHEADERFLAGSUNCRYPT)&dwCryptFlags;
 
@@ -153,7 +153,7 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 			return FALSE;
 
 		OutputText(hwndCtl, TEXT("Header Size:\t"));
-		OutputTextFmt(hwndCtl, szOutput, TEXT("%08X"), dwHeaderMaxSize);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%08X"), dwHeaderMaxSize);
 
 		if (FormatByteSize(dwHeaderMaxSize, szOutput, _countof(szOutput)))
 		{
@@ -249,7 +249,7 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 		return FALSE;
 
 	if ((ftDate.dwLowDateTime != 0 || ftDate.dwHighDateTime != 0) && FileTimeToSystemTime(&ftDate, &stDate))
-		OutputTextFmt(hwndCtl, szOutput, TEXT("Creation Date:\t%02u-%02u-%02u %02u:%02u:%02u\r\n"),
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Creation Date:\t%02u-%02u-%02u %02u:%02u:%02u\r\n"),
 			stDate.wYear, stDate.wMonth, stDate.wDay, stDate.wHour, stDate.wMinute, stDate.wSecond);
 
 	// Comment
@@ -382,7 +382,7 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 		}
 
 		OutputText(hwndCtl, g_szSep1);
-		OutputTextFmt(hwndCtl, szOutput, TEXT("Included Packs:\t%d\r\n"), dwNumIncludedPacks);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Included Packs:\t%d\r\n"), dwNumIncludedPacks);
 
 		while (dwNumIncludedPacks--)
 		{
@@ -499,7 +499,7 @@ BOOL DumpAuthorInfo(HWND hwndCtl, HANDLE hFile)
 	if (dwAuthorVer > 0)
 #endif
 	{ // Display only if changed
-		OutputTextFmt(hwndCtl, szOutput, TEXT("Author Version:\t%d"), dwAuthorVer);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Author Version:\t%d"), dwAuthorVer);
 		if (dwAuthorVer > 0) OutputText(hwndCtl, g_szAsterisk);
 		OutputText(hwndCtl, g_szCRLF);
 	}
@@ -598,7 +598,7 @@ BOOL DumpIncludedPacksHeaders(HWND hwndCtl, HANDLE hFile, DWORD dwVersion)
 		return FALSE;
 
 	if ((ftDate.dwLowDateTime != 0 || ftDate.dwHighDateTime != 0) && FileTimeToSystemTime(&ftDate, &stDate))
-		OutputTextFmt(hwndCtl, szOutput, TEXT("Creation Date:\t%02u-%02u-%02u %02u:%02u:%02u\r\n"),
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Creation Date:\t%02u-%02u-%02u %02u:%02u:%02u\r\n"),
 			stDate.wYear, stDate.wMonth, stDate.wDay, stDate.wHour, stDate.wMinute, stDate.wSecond);
 
 	// Package Name
@@ -619,7 +619,7 @@ BOOL DumpIncludedPacksHeaders(HWND hwndCtl, HANDLE hFile, DWORD dwVersion)
 		if (!ReadNat32(hFile, &dwIncludeDepth))
 			return FALSE;
 
-		OutputTextFmt(hwndCtl, szOutput, TEXT("Include Depth:\t%d\r\n"), dwIncludeDepth);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Include Depth:\t%d\r\n"), dwIncludeDepth);
 	}
 
 	return TRUE;
@@ -644,7 +644,7 @@ BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderM
 	if (!ReadNat32(hFile, &dwGbxHeadersStart))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, TEXT("Headers Start:\t%d\r\n"), dwGbxHeadersStart);
+	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Headers Start:\t%d\r\n"), dwGbxHeadersStart);
 
 	// Data Start
 	DWORD dwDataStart = dwHeaderMaxSize;
@@ -655,7 +655,7 @@ BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderM
 			return FALSE;
 	}
 
-	OutputTextFmt(hwndCtl, szOutput, TEXT("Data Start:\t%d\r\n"), dwDataStart);
+	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Data Start:\t%d\r\n"), dwDataStart);
 
 	if (dwVersion >= 2)
 	{
@@ -664,14 +664,14 @@ BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderM
 		if (!ReadNat32(hFile, &dwGbxHeadersSize))
 			return FALSE;
 
-		OutputTextFmt(hwndCtl, szOutput, TEXT("Headers Size:\t%d\r\n"), dwGbxHeadersSize);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Headers Size:\t%d\r\n"), dwGbxHeadersSize);
 
 		// Gbx Headers Compressed Size
 		DWORD dwGbxHeadersComprSize = 0;
 		if (!ReadNat32(hFile, &dwGbxHeadersComprSize))
 			return FALSE;
 
-		OutputTextFmt(hwndCtl, szOutput, TEXT("Hdr Compr Size:\t%d\r\n"), dwGbxHeadersComprSize);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Hdr Compr Size:\t%d\r\n"), dwGbxHeadersComprSize);
 	}
 
 	if (dwVersion >= 14)
@@ -688,7 +688,7 @@ BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderM
 		if (!ReadNat32(hFile, &dwFileSize))
 			return FALSE;
 
-		OutputTextFmt(hwndCtl, szOutput, TEXT("File Size:\t%d\r\n"), dwFileSize);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("File Size:\t%d\r\n"), dwFileSize);
 	}
 
 	if (dwVersion >= 3)
@@ -710,7 +710,7 @@ BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderM
 	if (!ReadNat32(hFile, &dwFlags))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, TEXT("Flags:\t\t%08X\r\n"), dwFlags);
+	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Flags:\t\t%08X\r\n"), dwFlags);
 
 	// Num Folders
 	DWORD dwNumFolders = 0;
@@ -718,7 +718,7 @@ BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderM
 		return FALSE;
 
 	OutputText(hwndCtl, g_szSep0);
-	OutputTextFmt(hwndCtl, szOutput, TEXT("Num Folders:\t%d\r\n"), dwNumFolders);
+	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Num Folders:\t%d\r\n"), dwNumFolders);
 	OutputText(hwndCtl, g_szSep0);
 
 	while (dwNumFolders--)
@@ -728,7 +728,7 @@ BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderM
 		if (!ReadNat32(hFile, &dwFolderIndex))
 			return FALSE;
 
-		OutputTextFmt(hwndCtl, szOutput, TEXT("Folder Index:\t%d\r\n"), dwFolderIndex);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Folder Index:\t%d\r\n"), dwFolderIndex);
 
 		// Folder Name
 		if ((nRet = ReadString(hFile, szRead, _countof(szRead))) < 0)
@@ -748,7 +748,7 @@ BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderM
 		return FALSE;
 
 	OutputText(hwndCtl, g_szSep0);
-	OutputTextFmt(hwndCtl, szOutput, TEXT("Num Files:\t%d\r\n"), dwNumFiles);
+	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Num Files:\t%d\r\n"), dwNumFiles);
 
 	while (dwNumFiles--)
 	{
@@ -759,7 +759,7 @@ BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderM
 		if (!ReadNat32(hFile, &dwFolderIndex))
 			return FALSE;
 
-		OutputTextFmt(hwndCtl, szOutput, TEXT("Folder Index:\t%d\r\n"), dwFolderIndex);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Folder Index:\t%d\r\n"), dwFolderIndex);
 
 		// File name
 		if ((nRet = ReadString(hFile, szRead, _countof(szRead))) < 0)
@@ -778,35 +778,35 @@ BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderM
 			return FALSE;
 
 		if (dwUnknown != UNASSIGNED) // Show only if set
-			OutputTextFmt(hwndCtl, szOutput, TEXT("Unknown:\t%d\r\n"), dwUnknown);
+			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Unknown:\t%d\r\n"), dwUnknown);
 
 		// Uncompressed Size
 		DWORD dwUncompressedSize = 0;
 		if (!ReadNat32(hFile, &dwUncompressedSize))
 			return FALSE;
 
-		OutputTextFmt(hwndCtl, szOutput, TEXT("Uncompr Size:\t%d\r\n"), dwUncompressedSize);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Uncompr Size:\t%d\r\n"), dwUncompressedSize);
 
 		// Compressed Size
 		DWORD dwCompressedSize = 0;
 		if (!ReadNat32(hFile, &dwCompressedSize))
 			return FALSE;
 
-		OutputTextFmt(hwndCtl, szOutput, TEXT("Compr Size:\t%d\r\n"), dwCompressedSize);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Compr Size:\t%d\r\n"), dwCompressedSize);
 
 		// Offset
 		DWORD dwOffset = 0;
 		if (!ReadNat32(hFile, &dwOffset))
 			return FALSE;
 
-		OutputTextFmt(hwndCtl, szOutput, TEXT("Offset:\t\t%d\r\n"), dwOffset);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Offset:\t\t%d\r\n"), dwOffset);
 
 		// Class ID
 		DWORD dwClassId = 0;
 		if (!ReadMask(hFile, &dwClassId))
 			return FALSE;
 
-		OutputTextFmt(hwndCtl, szOutput, TEXT("Class ID:\t%08X"), dwClassId);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Class ID:\t%08X"), dwClassId);
 		switch (dwClassId)
 		{
 			case CLSID_FILETEXT_TM:
@@ -849,7 +849,7 @@ BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderM
 			if (!ReadNat32(hFile, &dwSize))
 				return FALSE;
 
-			OutputTextFmt(hwndCtl, szOutput, TEXT("Size:\t\t%d\r\n"), dwSize);
+			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Size:\t\t%d\r\n"), dwSize);
 		}
 
 		if (dwVersion >= 14)
@@ -864,7 +864,7 @@ BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderM
 		if (!ReadNat64(hFile, &ullFlags))
 			return FALSE;
 
-		OutputTextFmt(hwndCtl, szOutput, TEXT("Flags:\t\t%08X%08X"), ullFlags.HighPart, ullFlags.LowPart);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Flags:\t\t%08X%08X"), ullFlags.HighPart, ullFlags.LowPart);
 
 		PFILEDESCFLAGS pFileFlags = (PFILEDESCFLAGS)&ullFlags;
 

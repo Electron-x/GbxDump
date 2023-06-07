@@ -35,7 +35,7 @@ LPWSTR MyStrNCpyW(LPWSTR lpString1, LPCWSTR lpString2, int iMaxLength);
 #endif
 
 void OutputText(HWND hwndCtl, LPCTSTR lpszOutput);
-void OutputTextFmt(HWND hwndCtl, LPTSTR lpszOutput, LPCTSTR lpszFormat, ...);
+void OutputTextFmt(HWND hwndCtl, LPTSTR lpszOutput, SIZE_T cchLenOutput, LPCTSTR lpszFormat, ...);
 BOOL OutputTextErr(HWND hwndCtl, UINT uID);
 BOOL OutputErrorMessage(HWND hwndCtl, DWORD dwError);
 

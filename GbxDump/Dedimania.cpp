@@ -102,12 +102,7 @@ BOOL GetDedimaniaData(HWND hwndCtl, LPCSTR lpszUid, LPCSTR lpszEnvi)
 
 	if (bSuccess && !bTrackFound)
 	{ // Track not found
-		TCHAR szText[MAX_PATH];
-		if (LoadString(g_hInstance, g_bGerUI ? IDP_GER_ERR_TRACK : IDP_ENG_ERR_TRACK, szText, _countof(szText)) > 0)
-		{
-			OutputText(hwndCtl, g_szSep1);
-			OutputText(hwndCtl, szText);
-		}
+		OutputTextErr(hwndCtl, g_bGerUI ? IDP_GER_ERR_TRACK : IDP_ENG_ERR_TRACK);
 	}
 
 	OutputText(hwndCtl, g_szSep2);
@@ -207,7 +202,7 @@ BOOL PrintDedimaniaData(HWND hwndCtl, LPCSTR lpszUid, BOOL bIsManiaPlanet, LPBOO
 			{
 				case 1: // Time (ms)
 					{
-						OutputTextFmt(hwndCtl, szOutput, TEXT("%02u. "), uRecords);
+						OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%02u. "), uRecords);
 						int nTime = atoi(token);
 						if (nTime < 3600000)
 						{
@@ -215,7 +210,8 @@ BOOL PrintDedimaniaData(HWND hwndCtl, LPCSTR lpszUid, BOOL bIsManiaPlanet, LPBOO
 							int nSecond   = (nTime % 60000 / 1000);
 							int nMilliSec = (nTime % 60000 % 1000);
 
-							OutputTextFmt(hwndCtl, szOutput, TEXT("%d:%02d.%003d, "), nMinute, nSecond, nMilliSec);
+							OutputTextFmt(hwndCtl, szOutput, _countof(szOutput),
+								TEXT("%d:%02d.%003d, "), nMinute, nSecond, nMilliSec);
 						}
 						else
 						{
@@ -224,7 +220,8 @@ BOOL PrintDedimaniaData(HWND hwndCtl, LPCSTR lpszUid, BOOL bIsManiaPlanet, LPBOO
 							int nSecond   = (nTime % 3600000 % 60000 / 1000);
 							int nMilliSec = (nTime % 3600000 % 60000 % 1000);
 
-							OutputTextFmt(hwndCtl, szOutput, TEXT("%d:%02d:%02d.%003d, "), nHour, nMinute, nSecond, nMilliSec);
+							OutputTextFmt(hwndCtl, szOutput, _countof(szOutput),
+								TEXT("%d:%02d:%02d.%003d, "), nHour, nMinute, nSecond, nMilliSec);
 						}
 					}
 					break;

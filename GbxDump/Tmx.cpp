@@ -142,12 +142,7 @@ BOOL GetTmxData(HWND hwndCtl, LPCSTR lpszUid, LPCSTR lpszEnvi)
 
 	if (bSuccess && !bTrackFound)
 	{ // Map not found
-		TCHAR szText[MAX_PATH];
-		if (LoadString(g_hInstance, g_bGerUI ? IDP_GER_ERR_TRACK : IDP_ENG_ERR_TRACK, szText, _countof(szText)) > 0)
-		{
-			OutputText(hwndCtl, g_szSep1);
-			OutputText(hwndCtl, szText);
-		}
+		OutputTextErr(hwndCtl, g_bGerUI ? IDP_GER_ERR_TRACK : IDP_ENG_ERR_TRACK);
 	}
 
 	OutputText(hwndCtl, g_szSep2);
@@ -245,7 +240,7 @@ BOOL ProcessTmx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 		{
 			case 1:
 				MyStrNCpyA(szTrackId, token, _countof(szTrackId));
-				OutputTextFmt(hwndCtl, szOutput, TEXT("Track ID:\t%hs\r\n"), token);
+				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Track ID:\t%hs\r\n"), token);
 				break;
 			case 2:
 				OutputText(hwndCtl, TEXT("Name:\t\t"));
@@ -261,47 +256,47 @@ BOOL ProcessTmx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 				break;
 			case 5:
 				MyStrNCpyA(szVersion, token, _countof(szVersion));
-				OutputTextFmt(hwndCtl, szOutput, TEXT("Uploaded:\t%hs\r\n"), token);
+				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Uploaded:\t%hs\r\n"), token);
 				break;
 			case 6:
 				MyStrNCpyA(szVersion, token, _countof(szVersion));
-				OutputTextFmt(hwndCtl, szOutput, TEXT("Updated:\t%hs\r\n"), token);
+				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Updated:\t%hs\r\n"), token);
 				break;
 			case 7:
-				OutputTextFmt(hwndCtl, szOutput, TEXT("Visible:\t%hs\r\n"), token);
+				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Visible:\t%hs\r\n"), token);
 				break;
 			case 8:
-				OutputTextFmt(hwndCtl, szOutput, TEXT("Type:\t\t%hs\r\n"), token);
+				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Type:\t\t%hs\r\n"), token);
 				if (strcmp(token, "Stunts") == 0)
 					bIsStunts = TRUE;
 				break;
 			case 9:
-				OutputTextFmt(hwndCtl, szOutput, TEXT("Environment:\t%hs\r\n"), token);
+				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Environment:\t%hs\r\n"), token);
 				break;
 			case 10:
-				OutputTextFmt(hwndCtl, szOutput, TEXT("Mood:\t\t%hs\r\n"), token);
+				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Mood:\t\t%hs\r\n"), token);
 				break;
 			case 11:
-				OutputTextFmt(hwndCtl, szOutput, TEXT("Style:\t\t%hs\r\n"), token);
+				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Style:\t\t%hs\r\n"), token);
 				break;
 			case 12:
-				OutputTextFmt(hwndCtl, szOutput, TEXT("Routes:\t\t%hs\r\n"), token);
+				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Routes:\t\t%hs\r\n"), token);
 				break;
 			case 13:
-				OutputTextFmt(hwndCtl, szOutput, TEXT("Length:\t\t%hs\r\n"), token);
+				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Length:\t\t%hs\r\n"), token);
 				break;
 			case 14:
-				OutputTextFmt(hwndCtl, szOutput, TEXT("Difficulty:\t%hs\r\n"), token);
+				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Difficulty:\t%hs\r\n"), token);
 				break;
 			case 15:
 				OutputText(hwndCtl, TEXT("LB Rating:\t"));
 				if (strcmp(token, "0") == 0)
 					OutputText(hwndCtl, TEXT("Classic!\r\n"));
 				else
-					OutputTextFmt(hwndCtl, szOutput, TEXT("%hs\r\n"), token);
+					OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%hs\r\n"), token);
 				break;
 			case 16:
-				OutputTextFmt(hwndCtl, szOutput, TEXT("Game:\t\t%hs\r\n"), token);
+				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Game:\t\t%hs\r\n"), token);
 				break;
 		}
 		token = strtok(NULL, "\t");
@@ -343,10 +338,10 @@ BOOL ProcessTmx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 		switch (i)
 		{
 			case 13:
-				OutputTextFmt(hwndCtl, szOutput, TEXT("Awards:\t\t%hs\r\n"), token);
+				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Awards:\t\t%hs\r\n"), token);
 				break;
 			case 14:
-				OutputTextFmt(hwndCtl, szOutput, TEXT("Comments:\t%hs\r\n"), token);
+				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Comments:\t%hs\r\n"), token);
 				break;
 		}
 		token = strtok(NULL, "\t");
@@ -397,7 +392,7 @@ BOOL ProcessTmx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 			switch (i)
 			{
 				case 2:
-					OutputTextFmt(hwndCtl, szOutput, TEXT("%02u. "), uRecords);
+					OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%02u. "), uRecords);
 					break;
 				case 3:
 					MultiByteToWideChar(uCodePage, 0, token, -1, szOutput, _countof(szOutput)-1);
@@ -408,7 +403,7 @@ BOOL ProcessTmx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 					{
 						int nTime = atoi(token);
 						if (bIsStunts)
-							OutputTextFmt(hwndCtl, szOutput, TEXT("(%d)"), nTime);
+							OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("(%d)"), nTime);
 						else
 						{
 							FormatTimeT(nTime, szOutput, _countof(szOutput));
@@ -645,7 +640,7 @@ HRESULT ParseAndPrintXml(HWND hwndCtl, HGLOBAL hXml, PINT pnTrackId)
 					*pnTrackId = _wtoi(pwszValue);
 
 				wcsncat(wszElement, L":", _countof(wszElement) - wcslen(wszElement) - 1);
-				OutputTextFmt(hwndCtl, wszOutput, L"%-23s %s\r\n", wszElement, pwszValue);
+				OutputTextFmt(hwndCtl, wszOutput, _countof(wszOutput), L"%-23s %s\r\n", wszElement, pwszValue);
 			}
 			else if (arrayType == XmlArrayType_TrackObject)
 			{
@@ -673,7 +668,7 @@ HRESULT ParseAndPrintXml(HWND hwndCtl, HGLOBAL hXml, PINT pnTrackId)
 			else if (arrayType == XmlArrayType_Item)
 			{
 				wcsncat(wszElement, L":", _countof(wszElement) - wcslen(wszElement) - 1);
-				OutputTextFmt(hwndCtl, wszOutput, L"%-15s %s\r\n", wszElement, pwszValue);
+				OutputTextFmt(hwndCtl, wszOutput, _countof(wszOutput), L"%-15s %s\r\n", wszElement, pwszValue);
 			}
 
 			break;
@@ -688,20 +683,20 @@ HRESULT ParseAndPrintXml(HWND hwndCtl, HGLOBAL hXml, PINT pnTrackId)
 				arrayType = XmlArrayType_None;
 			else if (_wcsicmp(pwszElement, L"TrackObject") == 0)
 			{
-				OutputTextFmt(hwndCtl, wszOutput, L"%02d. %s (%s",
+				OutputTextFmt(hwndCtl, wszOutput, _countof(wszOutput), L"%02d. %s (%s",
 					++nObjectNumber, wszObjectPath, wszObjectAuthor);
 				if (wcsncmp(wszUsername, wszObjectAuthor, wcslen(wszUsername)) != 0)
-					OutputTextFmt(hwndCtl, wszOutput, L"/%s", wszUsername);
+					OutputTextFmt(hwndCtl, wszOutput, _countof(wszOutput), L"/%s", wszUsername);
 				OutputText(hwndCtl, L")\r\n");
 				arrayType = XmlArrayType_None;
 			}
 			else if (_wcsicmp(pwszElement, L"Replay") == 0)
 			{
 				FormatTimeW(nReplayTime, wszReplayTime, _countof(wszReplayTime));
-				OutputTextFmt(hwndCtl, wszOutput, L"%02d. %s (%s)",
+				OutputTextFmt(hwndCtl, wszOutput, _countof(wszOutput), L"%02d. %s (%s)",
 					nReplayPos, wszUsername, wszReplayTime);
 				if (wcsncmp(wszStuntScore, L"0", wcslen(wszStuntScore)) != 0)
-					OutputTextFmt(hwndCtl, wszOutput, L" %s pt.", wszStuntScore);
+					OutputTextFmt(hwndCtl, wszOutput, _countof(wszOutput), L" %s pt.", wszStuntScore);
 				OutputText(hwndCtl, L"\r\n");
 				arrayType = XmlArrayType_None;
 			}

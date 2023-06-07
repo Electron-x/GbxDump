@@ -54,11 +54,12 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		LPBITMAPARRAYFILEHEADER lpbafh = (LPBITMAPARRAYFILEHEADER)&bfh;
 
 		OutputText(hwndCtl, g_szSep1);
-		OutputTextFmt(hwndCtl, szOutput, TEXT("Type:\t\t%hc%hc\r\n"), LOBYTE(lpbafh->usType), HIBYTE(lpbafh->usType));
-		OutputTextFmt(hwndCtl, szOutput, TEXT("Size:\t\t%u bytes\r\n"), lpbafh->cbSize);
-		OutputTextFmt(hwndCtl, szOutput, TEXT("OffNext:\t%u bytes\r\n"), lpbafh->offNext);
-		OutputTextFmt(hwndCtl, szOutput, TEXT("CxDisplay:\t%u\r\n"), lpbafh->cxDisplay);
-		OutputTextFmt(hwndCtl, szOutput, TEXT("CyDisplay:\t%u\r\n"), lpbafh->cyDisplay);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Type:\t\t%hc%hc\r\n"),
+			LOBYTE(lpbafh->usType), HIBYTE(lpbafh->usType));
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Size:\t\t%u bytes\r\n"), lpbafh->cbSize);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("OffNext:\t%u bytes\r\n"), lpbafh->offNext);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("CxDisplay:\t%u\r\n"), lpbafh->cxDisplay);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("CyDisplay:\t%u\r\n"), lpbafh->cyDisplay);
 
 		// Proceed only if the array contains only one bitmap
 		if (lpbafh->offNext != 0)
@@ -84,11 +85,12 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 	}
 
 	OutputText(hwndCtl, g_szSep1);
-	OutputTextFmt(hwndCtl, szOutput, TEXT("Type:\t\t%hc%hc\r\n"), LOBYTE(bfh.bfType), HIBYTE(bfh.bfType));
-	OutputTextFmt(hwndCtl, szOutput, TEXT("Size:\t\t%u bytes\r\n"), bfh.bfSize);
-	OutputTextFmt(hwndCtl, szOutput, TEXT("Reserved1:\t%u\r\n"), bfh.bfReserved1);
-	OutputTextFmt(hwndCtl, szOutput, TEXT("Reserved2:\t%u\r\n"), bfh.bfReserved2);
-	OutputTextFmt(hwndCtl, szOutput, TEXT("OffBits:\t%u bytes\r\n"), bfh.bfOffBits);
+	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Type:\t\t%hc%hc\r\n"),
+		LOBYTE(bfh.bfType), HIBYTE(bfh.bfType));
+	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Size:\t\t%u bytes\r\n"), bfh.bfSize);
+	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Reserved1:\t%u\r\n"), bfh.bfReserved1);
+	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Reserved2:\t%u\r\n"), bfh.bfReserved2);
+	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("OffBits:\t%u bytes\r\n"), bfh.bfOffBits);
 
 	DWORD dwDibSize = dwFileSize - dwFileHeaderSize;
 	if (dwDibSize < sizeof(BITMAPCOREHEADER))
@@ -117,7 +119,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 	LPBITMAPV5HEADER lpbih = (LPBITMAPV5HEADER)lpbi;
 
 	OutputText(hwndCtl, g_szSep1);
-	OutputTextFmt(hwndCtl, szOutput, TEXT("Size:\t\t%u bytes\r\n"), dwDibHeaderSize);
+	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Size:\t\t%u bytes\r\n"), dwDibHeaderSize);
 
 	if (dwDibHeaderSize > dwDibSize)
 	{
@@ -150,10 +152,10 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 	{ // OS/2 Version 1.1 Bit-map (DIBv2)
 		LPBITMAPCOREHEADER lpbch = (LPBITMAPCOREHEADER)lpbi;
 
-		OutputTextFmt(hwndCtl, szOutput, TEXT("Width:\t\t%u pixels\r\n"), lpbch->bcWidth);
-		OutputTextFmt(hwndCtl, szOutput, TEXT("Height:\t\t%u pixels\r\n"), lpbch->bcHeight);
-		OutputTextFmt(hwndCtl, szOutput, TEXT("Planes:\t\t%u\r\n"), lpbch->bcPlanes);
-		OutputTextFmt(hwndCtl, szOutput, TEXT("BitCount:\t%u bpp\r\n"), lpbch->bcBitCount);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Width:\t\t%u pixels\r\n"), lpbch->bcWidth);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Height:\t\t%u pixels\r\n"), lpbch->bcHeight);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Planes:\t\t%u\r\n"), lpbch->bcPlanes);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("BitCount:\t%u bpp\r\n"), lpbch->bcBitCount);
 		
 		// Perform some sanity checks
 		UINT64 ullBitsSize = WIDTHBYTES((UINT64)lpbch->bcWidth * lpbch->bcPlanes * lpbch->bcBitCount) * lpbch->bcHeight;
@@ -163,10 +165,10 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 
 	if (dwDibHeaderSize >= sizeof(BITMAPINFOHEADER))
 	{ // Windows Version 3.0 Bitmap (DIBv3)
-		OutputTextFmt(hwndCtl, szOutput, TEXT("Width:\t\t%d pixels\r\n"), lpbih->bV5Width);
-		OutputTextFmt(hwndCtl, szOutput, TEXT("Height:\t\t%d pixels\r\n"), lpbih->bV5Height);
-		OutputTextFmt(hwndCtl, szOutput, TEXT("Planes:\t\t%u\r\n"), lpbih->bV5Planes);
-		OutputTextFmt(hwndCtl, szOutput, TEXT("BitCount:\t%u bpp\r\n"), lpbih->bV5BitCount);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Width:\t\t%d pixels\r\n"), lpbih->bV5Width);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Height:\t\t%d pixels\r\n"), lpbih->bV5Height);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Planes:\t\t%u\r\n"), lpbih->bV5Planes);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("BitCount:\t%u bpp\r\n"), lpbih->bV5BitCount);
 
 		// Use the QUERYDIBSUPPORT escape function to determine whether GDI
 		// can display this DIB. The Escape does not support OS/2-style DIBs.
@@ -199,7 +201,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 					OutputText(hwndCtl, TEXT("RLE24"));
 					break;
 				default:
-					OutputTextFmt(hwndCtl, szOutput, TEXT("%u"), dwCompression);
+					OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%u"), dwCompression);
 			}
 		}
 		else
@@ -211,7 +213,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 			{ // biCompression contains a FourCC code
 				// Not supported by GDI, but may be rendered by VfW DrawDibDraw
 				bIsUnsupportedFormat = FALSE;
-				OutputTextFmt(hwndCtl, szOutput, TEXT("%hc%hc%hc%hc"),
+				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%hc%hc%hc%hc"),
 					(char)(dwCompression & 0xff),
 					(char)((dwCompression >>  8) & 0xff),
 					(char)((dwCompression >> 16) & 0xff),
@@ -255,26 +257,28 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 						OutputText(hwndCtl, TEXT("CMYKRLE4"));
 						break;
 					default:
-						OutputTextFmt(hwndCtl, szOutput, TEXT("%u"), dwCompression);
+						OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%u"), dwCompression);
 				}
 			}
 		}
 		OutputText(hwndCtl, TEXT("\r\n"));
 
-		OutputTextFmt(hwndCtl, szOutput, TEXT("SizeImage:\t%u bytes\r\n"), lpbih->bV5SizeImage);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("SizeImage:\t%u bytes\r\n"), lpbih->bV5SizeImage);
 
-		OutputTextFmt(hwndCtl, szOutput, TEXT("XPelsPerMeter:\t%d"), lpbih->bV5XPelsPerMeter);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("XPelsPerMeter:\t%d"), lpbih->bV5XPelsPerMeter);
 		if (lpbih->bV5XPelsPerMeter > 0)
-			OutputTextFmt(hwndCtl, szOutput, TEXT(" (%d dpi)"), MulDiv(lpbih->bV5XPelsPerMeter, 127, 5000));
+			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT(" (%d dpi)"),
+				MulDiv(lpbih->bV5XPelsPerMeter, 127, 5000));
 		OutputText(hwndCtl, TEXT("\r\n"));
 			
-		OutputTextFmt(hwndCtl, szOutput, TEXT("YPelsPerMeter:\t%d"), lpbih->bV5YPelsPerMeter);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("YPelsPerMeter:\t%d"), lpbih->bV5YPelsPerMeter);
 		if (lpbih->bV5YPelsPerMeter > 0)
-			OutputTextFmt(hwndCtl, szOutput, TEXT(" (%d dpi)"), MulDiv(lpbih->bV5YPelsPerMeter, 127, 5000));
+			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT(" (%d dpi)"),
+				MulDiv(lpbih->bV5YPelsPerMeter, 127, 5000));
 		OutputText(hwndCtl, TEXT("\r\n"));
 			
-		OutputTextFmt(hwndCtl, szOutput, TEXT("ClrUsed:\t%u\r\n"), lpbih->bV5ClrUsed);
-		OutputTextFmt(hwndCtl, szOutput, TEXT("ClrImportant:\t%u\r\n"), lpbih->bV5ClrImportant);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("ClrUsed:\t%u\r\n"), lpbih->bV5ClrUsed);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("ClrImportant:\t%u\r\n"), lpbih->bV5ClrImportant);
 	}
 
 	// The size of the OS/2 2.0 header can be reduced from its full size of
@@ -288,16 +292,16 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		if (lpbih2->usUnits == BRU_METRIC)
 			OutputText(hwndCtl, TEXT("METRIC"));
 		else
-			OutputTextFmt(hwndCtl, szOutput, TEXT("%u"), lpbih2->usUnits);
+			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%u"), lpbih2->usUnits);
 		OutputText(hwndCtl, TEXT("\r\n"));
 
-		OutputTextFmt(hwndCtl, szOutput, TEXT("Reserved:\t%u\r\n"), lpbih2->usReserved);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Reserved:\t%u\r\n"), lpbih2->usReserved);
 
 		OutputText(hwndCtl, TEXT("Recording:\t"));
 		if (lpbih2->usRecording == BRA_BOTTOMUP)
 			OutputText(hwndCtl, TEXT("BOTTOMUP"));
 		else
-			OutputTextFmt(hwndCtl, szOutput, TEXT("%u"), lpbih2->usRecording);
+			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%u"), lpbih2->usRecording);
 		OutputText(hwndCtl, TEXT("\r\n"));
 
 		USHORT usRendering = lpbih2->usRendering;
@@ -317,18 +321,18 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 				OutputText(hwndCtl, TEXT("SUPERCIRCLE"));
 				break;
 			default:
-				OutputTextFmt(hwndCtl, szOutput, TEXT("%u"), usRendering);
+				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%u"), usRendering);
 		}
 		OutputText(hwndCtl, TEXT("\r\n"));
 
-		OutputTextFmt(hwndCtl, szOutput, TEXT("Size1:\t\t%u"), lpbih2->cSize1);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Size1:\t\t%u"), lpbih2->cSize1);
 		if (usRendering == BRH_ERRORDIFFUSION && lpbih2->cSize1 <= 100)
 			OutputText(hwndCtl, TEXT("%"));
 		else if (usRendering == BRH_PANDA || usRendering == BRH_SUPERCIRCLE)
 			OutputText(hwndCtl, TEXT(" pels"));
 		OutputText(hwndCtl, TEXT("\r\n"));
 
-		OutputTextFmt(hwndCtl, szOutput, TEXT("Size2:\t\t%u"), lpbih2->cSize2);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Size2:\t\t%u"), lpbih2->cSize2);
 		if (usRendering == BRH_PANDA || usRendering == BRH_SUPERCIRCLE)
 			OutputText(hwndCtl, TEXT(" pels"));
 		OutputText(hwndCtl, TEXT("\r\n"));
@@ -339,10 +343,10 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		else if (lpbih2->ulColorEncoding == BCE_PALETTE)
 			OutputText(hwndCtl, TEXT("PALETTE"));
 		else
-			OutputTextFmt(hwndCtl, szOutput, TEXT("%u"), lpbih2->ulColorEncoding);
+			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%u"), lpbih2->ulColorEncoding);
 		OutputText(hwndCtl, TEXT("\r\n"));
 
-		OutputTextFmt(hwndCtl, szOutput, TEXT("Identifier:\t%u\r\n"), lpbih2->ulIdentifier);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Identifier:\t%u\r\n"), lpbih2->ulIdentifier);
 
 		// OS/2 2.0 bitmaps are not supported by Windows
 		GlobalUnlock(hDib);
@@ -360,26 +364,26 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 				LPDWORD lpdwMasks = (LPDWORD)(lpbi + sizeof(BITMAPINFOHEADER));
 				
 				OutputText(hwndCtl, g_szSep1);
-				OutputTextFmt(hwndCtl, szOutput, TEXT("RedMask:\t%08X\r\n"), lpdwMasks[0]);
-				OutputTextFmt(hwndCtl, szOutput, TEXT("GreenMask:\t%08X\r\n"), lpdwMasks[1]);
-				OutputTextFmt(hwndCtl, szOutput, TEXT("BlueMask:\t%08X\r\n"), lpdwMasks[2]);
+				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("RedMask:\t%08X\r\n"), lpdwMasks[0]);
+				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("GreenMask:\t%08X\r\n"), lpdwMasks[1]);
+				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("BlueMask:\t%08X\r\n"), lpdwMasks[2]);
 
 				if (lpbih->bV5Compression == BI_ALPHABITFIELDS)
-					OutputTextFmt(hwndCtl, szOutput, TEXT("AlphaMask:\t%08X\r\n"), lpdwMasks[3]);
+					OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("AlphaMask:\t%08X\r\n"), lpdwMasks[3]);
 			}
 		}
 	}
 
 	if (dwDibHeaderSize >= sizeof(BITMAPV2INFOHEADER))
 	{ // Adobe Photoshop extension
-		OutputTextFmt(hwndCtl, szOutput, TEXT("RedMask:\t%08X\r\n"), lpbih->bV5RedMask);
-		OutputTextFmt(hwndCtl, szOutput, TEXT("GreenMask:\t%08X\r\n"), lpbih->bV5GreenMask);
-		OutputTextFmt(hwndCtl, szOutput, TEXT("BlueMask:\t%08X\r\n"), lpbih->bV5BlueMask);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("RedMask:\t%08X\r\n"), lpbih->bV5RedMask);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("GreenMask:\t%08X\r\n"), lpbih->bV5GreenMask);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("BlueMask:\t%08X\r\n"), lpbih->bV5BlueMask);
 	}
 
 	if (dwDibHeaderSize >= sizeof(BITMAPV3INFOHEADER))
 	{ // Adobe Photoshop extension
-		OutputTextFmt(hwndCtl, szOutput, TEXT("AlphaMask:\t%08X\r\n"), lpbih->bV5AlphaMask);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("AlphaMask:\t%08X\r\n"), lpbih->bV5AlphaMask);
 	}
 
 	if (dwDibHeaderSize >= sizeof(BITMAPV4HEADER))
@@ -391,7 +395,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 			isprint((dwCSType >> 16) & 0xff) &&
 			isprint((dwCSType >> 24) & 0xff))
 		{
-			OutputTextFmt(hwndCtl, szOutput, TEXT("%hc%hc%hc%hc"),
+			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%hc%hc%hc%hc"),
 				(char)((dwCSType >> 24) & 0xff),
 				(char)((dwCSType >> 16) & 0xff),
 				(char)((dwCSType >>  8) & 0xff),
@@ -411,39 +415,33 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 					OutputText(hwndCtl, TEXT("DEVICE_CMYK"));
 					break;
 				default:
-					OutputTextFmt(hwndCtl, szOutput, TEXT("%u"), dwCSType);
+					OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%u"), dwCSType);
 			}
 		}
 		OutputText(hwndCtl, TEXT("\r\n"));
 
-		_sntprintf(szOutput, _countof(szOutput),
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput),
 			TEXT("CIEXYZRed:\t%.4f, %.4f, %.4f\r\n"),
 			(double)lpbih->bV5Endpoints.ciexyzRed.ciexyzX / 0x40000000,
 			(double)lpbih->bV5Endpoints.ciexyzRed.ciexyzY / 0x40000000,
 			(double)lpbih->bV5Endpoints.ciexyzRed.ciexyzZ / 0x40000000);
-		OutputText(hwndCtl, szOutput);
-		_sntprintf(szOutput, _countof(szOutput),
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput),
 			TEXT("CIEXYZGreen:\t%.4f, %.4f, %.4f\r\n"),
 			(double)lpbih->bV5Endpoints.ciexyzGreen.ciexyzX / 0x40000000,
 			(double)lpbih->bV5Endpoints.ciexyzGreen.ciexyzY / 0x40000000,
 			(double)lpbih->bV5Endpoints.ciexyzGreen.ciexyzZ / 0x40000000);
-		OutputText(hwndCtl, szOutput);
-		_sntprintf(szOutput, _countof(szOutput),
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput),
 			TEXT("CIEXYZBlue:\t%.4f, %.4f, %.4f\r\n"),
 			(double)lpbih->bV5Endpoints.ciexyzBlue.ciexyzX / 0x40000000,
 			(double)lpbih->bV5Endpoints.ciexyzBlue.ciexyzY / 0x40000000,
 			(double)lpbih->bV5Endpoints.ciexyzBlue.ciexyzZ / 0x40000000);
-		OutputText(hwndCtl, szOutput);
 
-		_sntprintf(szOutput, _countof(szOutput), TEXT("GammaRed:\t%g\r\n"),
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("GammaRed:\t%g\r\n"),
 			(double)lpbih->bV5GammaRed / 0x10000);
-		OutputText(hwndCtl, szOutput);
-		_sntprintf(szOutput, _countof(szOutput), TEXT("GammaGreen:\t%g\r\n"),
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("GammaGreen:\t%g\r\n"),
 			(double)lpbih->bV5GammaGreen / 0x10000);
-		OutputText(hwndCtl, szOutput);
-		_sntprintf(szOutput, _countof(szOutput), TEXT("GammaBlue:\t%g\r\n"),
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("GammaBlue:\t%g\r\n"),
 			(double)lpbih->bV5GammaBlue / 0x10000);
-		OutputText(hwndCtl, szOutput);
 	}
 
 	if (dwDibHeaderSize >= sizeof(BITMAPV5HEADER))
@@ -465,24 +463,24 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 				OutputText(hwndCtl, TEXT("GM_ABS_COLORIMETRIC (Absolute Colorimetric)"));
 				break;
 			default:
-				OutputTextFmt(hwndCtl, szOutput, TEXT("%u"), dwIntent);
+				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%u"), dwIntent);
 		}
 		OutputText(hwndCtl, TEXT("\r\n"));
 
-		OutputTextFmt(hwndCtl, szOutput, TEXT("ProfileData:\t%u bytes\r\n"), lpbih->bV5ProfileData);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("ProfileData:\t%u bytes\r\n"), lpbih->bV5ProfileData);
 
-		OutputTextFmt(hwndCtl, szOutput, TEXT("ProfileSize:\t%u bytes"), lpbih->bV5ProfileSize);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("ProfileSize:\t%u bytes"), lpbih->bV5ProfileSize);
 		if (lpbih->bV5ProfileData != 0 && lpbih->bV5ProfileSize != 0 &&
 			lpbih->bV5CSType == PROFILE_LINKED && dwDibSize > lpbih->bV5ProfileData)
 		{
 			char szPath[MAX_PATH] = { 0 };
 			int nLen = min(min(lpbih->bV5ProfileSize, dwDibSize - lpbih->bV5ProfileData), _countof(szPath));
 			if (MyStrNCpyA(szPath, lpbi + lpbih->bV5ProfileData, nLen) != NULL)
-				OutputTextFmt(hwndCtl, szOutput, TEXT(" (%hs)"), szPath);
+				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT(" (%hs)"), szPath);
 		}
 		OutputText(hwndCtl, TEXT("\r\n"));
 
-		OutputTextFmt(hwndCtl, szOutput, TEXT("Reserved:\t%u\r\n"), lpbih->bV5Reserved);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Reserved:\t%u\r\n"), lpbih->bV5Reserved);
 	}
 
 	// Output the color table entries
@@ -495,14 +493,13 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 
 		if (IS_OS2PM_DIB(lpbi))
 		{
-			_sntprintf(szOutput, _countof(szOutput),
+			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput),
 				TEXT("%*c|   B   G   R |%-*c| B  G  R  |\r\n"), nWidthDec, 'I', nWidthHex, 'I');
-			OutputText(hwndCtl, szOutput);
 
 			LPBITMAPCOREINFO lpbmc = (LPBITMAPCOREINFO)lpbi;
 			for (UINT i = 0; i < uNumColors; i++)
 			{
-				_sntprintf(szOutput, _countof(szOutput),
+				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput),
 					TEXT("%*u| %3u %3u %3u |%0*X| %02X %02X %02X |\r\n"),
 					nWidthDec, i,
 					lpbmc->bmciColors[i].rgbtBlue,
@@ -512,19 +509,17 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 					lpbmc->bmciColors[i].rgbtBlue,
 					lpbmc->bmciColors[i].rgbtGreen,
 					lpbmc->bmciColors[i].rgbtRed);
-				OutputText(hwndCtl, szOutput);
 			}
 		}
 		else
 		{
-			_sntprintf(szOutput, _countof(szOutput),
+			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput),
 				TEXT("%*c|   B   G   R   X |%-*c| B  G  R  X  |\r\n"), nWidthDec, 'I', nWidthHex, 'I');
-			OutputText(hwndCtl, szOutput);
 
 			LPRGBQUAD lprgbqColors = FindDibPalette(lpbi);
 			for (UINT i = 0; i < uNumColors; i++)
 			{
-				_sntprintf(szOutput, _countof(szOutput),
+				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput),
 					TEXT("%*u| %3u %3u %3u %3u |%0*X| %02X %02X %02X %02X |\r\n"),
 					nWidthDec, i,
 					lprgbqColors[i].rgbBlue,
@@ -536,7 +531,6 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 					lprgbqColors[i].rgbGreen,
 					lprgbqColors[i].rgbRed,
 					lprgbqColors[i].rgbReserved);
-				OutputText(hwndCtl, szOutput);
 			}
 		}
 	}

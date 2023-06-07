@@ -63,15 +63,16 @@ void OutputText(HWND hwndCtl, LPCTSTR lpszOutput)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Formats text with wvsprintf and inserts it at the current cursor position of an edit control
+// Formats text with _vsntprintf and inserts it at the current cursor position of an edit control
 
-void OutputTextFmt(HWND hwndCtl, LPTSTR lpszOutput, LPCTSTR lpszFormat, ...)
+void OutputTextFmt(HWND hwndCtl, LPTSTR lpszOutput, SIZE_T cchLenOutput, LPCTSTR lpszFormat, ...)
 {
-	if (hwndCtl != NULL && lpszOutput != NULL && lpszFormat != NULL)
+	if (hwndCtl != NULL && lpszOutput != NULL && lpszFormat != NULL && cchLenOutput > 0)
 	{
 		va_list arglist;
 		va_start(arglist, lpszFormat);
-		wvsprintf(lpszOutput, lpszFormat, arglist);
+		_vsntprintf(lpszOutput, cchLenOutput - 1, lpszFormat, arglist);
+		lpszOutput[cchLenOutput - 1] = TEXT('\0');
 		va_end(arglist);
 
 		Edit_ReplaceSel(hwndCtl, lpszOutput);

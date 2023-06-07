@@ -1316,7 +1316,7 @@ BOOL DumpFile(HWND hwndCtl, LPCTSTR lpszFileName, LPSTR lpszUid, LPSTR lpszEnvi)
 
 	// Output file name
 	LPCTSTR lpsz = _tcsrchr(lpszFileName, TEXT('\\'));
-	OutputTextFmt(hwndCtl, szOutput, TEXT("File Name:\t%s\r\n"),
+	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("File Name:\t%s\r\n"),
 		lpsz != NULL && *(lpsz + 1) != TEXT('\0') ? lpsz + 1 : lpszFileName);
 
 	// Obtain attribute information about the file
@@ -1444,7 +1444,7 @@ BOOL DumpMux(HWND hwndCtl, HANDLE hFile)
 	if (!ReadNat8(hFile, &cVersion))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, TEXT("Version:\t%d"), (char)cVersion);
+	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Version:\t%d"), (char)cVersion);
 	if (cVersion > 1) OutputText(hwndCtl, TEXT("*"));
 	OutputText(hwndCtl, TEXT("\r\n"));
 
@@ -1453,7 +1453,7 @@ BOOL DumpMux(HWND hwndCtl, HANDLE hFile)
 	if (!ReadNat32(hFile, &dwSalt))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, TEXT("Salt:\t\t%08X\r\n"), dwSalt);
+	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Salt:\t\t%08X\r\n"), dwSalt);
 
 	return TRUE;
 }
