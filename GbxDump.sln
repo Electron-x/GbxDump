@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.572
+# Visual Studio Version 17
+VisualStudioVersion = 17.6.33723.286
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GbxDump", "GbxDump\GbxDump.vcxproj", "{82C3901E-B3C0-414A-850C-A7460A86A759}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -18,6 +18,10 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{465DEF76-1A7C-4C11-85E6-DF7BFBB0A5D1}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		GbxDump\GbxDump.exe.manifest = GbxDump\GbxDump.exe.manifest
+		GbxDump\GbxDump64.exe.manifest = GbxDump\GbxDump64.exe.manifest
+		Licence.txt = Licence.txt
+		Readme.md = Readme.md
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "crnlib", "crunch\crnlib\crnlib.vcxproj", "{CF2E70E8-7133-4D96-92C7-68BB406C0664}"
