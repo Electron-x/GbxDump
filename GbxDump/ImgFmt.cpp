@@ -26,6 +26,7 @@
 #include "imgfmt.h"
 #include "dumpbmp.h"
 #include "..\libjpeg\jpeglib.h"
+#include "..\libjpeg\iccprofile.h"
 #include "..\libwebp\src\webp\decode.h"
 #include "..\crunch\inc\crnlib.h"
 #include "..\crunch\crnlib\crn_miniz.h"
@@ -137,7 +138,6 @@ BOOL SaveBmpFile(LPCTSTR lpszFileName, HANDLE hDib)
 	DWORD dwDIBSize = 0;
 	DWORD dwOffBits = 0;
 	DWORD dwBmBitsSize = 0;
-	DWORD dwFileSize = 0;
 
 	if (IS_OS2PM_DIB(lpbi))
 	{
@@ -155,13 +155,24 @@ BOOL SaveBmpFile(LPCTSTR lpszFileName, HANDLE hDib)
 			dwBmBitsSize = lpbi->biSizeImage;
 	}
 
-	dwOffBits = sizeof(BITMAPFILEHEADER) + dwDIBSize;
+	dwOffBits = dwDIBSize + sizeof(BITMAPFILEHEADER);
 	dwDIBSize += dwBmBitsSize;
-	dwFileSize = dwOffBits + dwBmBitsSize;
+
+	if (IS_WIN50_DIB(lpbi))
+	{
+		LPBITMAPV5HEADER lpbiv5 = (LPBITMAPV5HEADER)lpbi;
+		if (lpbiv5->bV5ProfileData != 0 && lpbiv5->bV5ProfileSize != 0 &&
+			(lpbiv5->bV5CSType == PROFILE_LINKED || lpbiv5->bV5CSType == PROFILE_EMBEDDED))
+		{
+			if (lpbiv5->bV5ProfileData > dwDIBSize)
+				dwDIBSize += lpbiv5->bV5ProfileData - dwDIBSize;
+			dwDIBSize += lpbiv5->bV5ProfileSize;
+		}
+	}
 
 	BITMAPFILEHEADER bmfHdr = { 0 };
-	bmfHdr.bfType = 0x4d42;
-	bmfHdr.bfSize = dwFileSize;
+	bmfHdr.bfType = BFT_BMAP;
+	bmfHdr.bfSize = dwDIBSize + sizeof(BITMAPFILEHEADER);
 	bmfHdr.bfReserved1 = 0;
 	bmfHdr.bfReserved2 = 0;
 	bmfHdr.bfOffBits = dwOffBits;
@@ -442,6 +453,7 @@ typedef struct _JPEG_DECOMPRESS
 	DWORD           dwYPelsPerMeter;     // Vertical Resolution
 	DWORD           dwIncrement;         // Size of a picture row
 	DWORD           dwSize;              // Size of the image
+	LPBYTE          lpProfileData;       // Pointer to ICC profile data
 	INT             nTraceLevel;         // Max. message level that will be displayed
 } JPEG_DECOMPRESS, *LPJPEG_DECOMPRESS;
 
@@ -466,6 +478,7 @@ HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData, BOOL bFlipImage, INT nTrace
 	// Initialize the JPEG decompression object
 	JPEG_DECOMPRESS JpegDecompress;
 	j_decompress_ptr pjInfo = &JpegDecompress.jInfo;
+	JpegDecompress.lpProfileData = NULL;
 	JpegDecompress.nTraceLevel = nTraceLevel;
 	set_error_manager((j_common_ptr)pjInfo, &JpegDecompress.jError);
 
@@ -479,11 +492,18 @@ HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData, BOOL bFlipImage, INT nTrace
 	jpeg_create_decompress(pjInfo);
 	JpegDecompress.bNeedDestroy = TRUE;
 
+	// Prepare for reading an ICC profile
+	setup_read_icc_profile(pjInfo);
+
 	// Determine data source
 	jpeg_mem_src(pjInfo, (LPBYTE)lpJpegData, dwLenData);
 
 	// Determine image information
 	jpeg_read_header(pjInfo, TRUE);
+
+	// Read an existing ICC profile
+	UINT uProfileLen = 0;
+	BOOL bHasProfile = read_icc_profile(pjInfo, &JpegDecompress.lpProfileData, &uProfileLen);
 
 	// Image resolution
 	JpegDecompress.dwXPelsPerMeter = 0;
@@ -560,8 +580,8 @@ HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData, BOOL bFlipImage, INT nTrace
 	JpegDecompress.dwSize = JpegDecompress.dwIncrement * JpegDecompress.uHeight;
 
 	// Create a Windows Bitmap
-	hDib = GlobalAlloc(GHND, sizeof(BITMAPINFOHEADER) +
-		JpegDecompress.uWinColors * sizeof(RGBQUAD) + JpegDecompress.dwSize);
+	hDib = GlobalAlloc(GHND, (bHasProfile ? sizeof(BITMAPV5HEADER) : sizeof(BITMAPINFOHEADER)) +
+		JpegDecompress.uWinColors * sizeof(RGBQUAD) + JpegDecompress.dwSize + uProfileLen);
 	if (hDib == NULL)
 	{
 		cleanup_jpeg_to_dib(&JpegDecompress, hDib);
@@ -571,13 +591,14 @@ HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData, BOOL bFlipImage, INT nTrace
 	// Fill bitmap information block
 	LPBITMAPINFO lpBMI = (LPBITMAPINFO)GlobalLock(hDib);
 	LPBITMAPINFOHEADER lpBI = (LPBITMAPINFOHEADER)lpBMI;
+	LPBITMAPV5HEADER lpBIV5 = (LPBITMAPV5HEADER)lpBMI;
 	if (lpBI == NULL)
 	{
 		cleanup_jpeg_to_dib(&JpegDecompress, hDib);
 		return NULL;
 	}
 
-	lpBI->biSize          = sizeof(BITMAPINFOHEADER);
+	lpBI->biSize          = bHasProfile ? sizeof(BITMAPV5HEADER) : sizeof(BITMAPINFOHEADER);
 	lpBI->biWidth         = JpegDecompress.uWidth;
 	lpBI->biHeight        = JpegDecompress.uHeight;
 	lpBI->biPlanes        = 1;
@@ -651,7 +672,7 @@ HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData, BOOL bFlipImage, INT nTrace
 	}
 
 	// Determine pointer to start of image data
-	LPBYTE lpDIB = (LPBYTE)&(lpBMI->bmiColors[lpBI->biClrUsed]);
+	LPBYTE lpDIB = FindDibBits((LPCSTR)lpBI);
 	LPBYTE lpBits = NULL;     // Pointer to a DIB image row
 	JSAMPROW lpScanlines[1];  // Pointer to a scanline
 	JDIMENSION uScanline;     // Row index
@@ -665,12 +686,23 @@ HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData, BOOL bFlipImage, INT nTrace
 		jpeg_read_scanlines(pjInfo, lpScanlines, 1);  // Decompress one line
 	}
 
+	if (bHasProfile)
+	{
+		lpBIV5->bV5CSType = PROFILE_EMBEDDED;
+		lpBIV5->bV5Intent = LCS_GM_IMAGES;
+		lpBIV5->bV5ProfileSize = uProfileLen;
+		lpBIV5->bV5ProfileData = (DWORD)(lpDIB - (LPBYTE)lpBI) + JpegDecompress.dwSize;
+
+		// Embed the ICC profile into the DIB
+		CopyMemory(lpDIB + JpegDecompress.dwSize, JpegDecompress.lpProfileData, uProfileLen);
+	}
+
 	// Finish decompression
 	GlobalUnlock(hDib);
 	jpeg_finish_decompress(pjInfo);
 
-	// Free the JPEG decompression object
-	jpeg_destroy_decompress(pjInfo);
+	// Free all requested memory, but keep the DIB we just created
+	cleanup_jpeg_to_dib(&JpegDecompress, NULL);
 	JpegDecompress.bNeedDestroy = FALSE;
 
 	// Return the DIB handle
@@ -682,10 +714,19 @@ HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData, BOOL bFlipImage, INT nTrace
 // cleanup_jpeg_to_dib: Performs housekeeping
 void cleanup_jpeg_to_dib(LPJPEG_DECOMPRESS lpJpegDecompress, HANDLE hDib)
 {
-	// Destroy the JPEG decompress object
-	if (lpJpegDecompress)
+	if (lpJpegDecompress != NULL)
+	{
+		// Release the ICC profile data
+		if (lpJpegDecompress->lpProfileData != NULL)
+		{
+			free(lpJpegDecompress->lpProfileData);
+			lpJpegDecompress->lpProfileData = NULL;
+		}
+
+		// Destroy the JPEG decompress object
 		if (lpJpegDecompress->bNeedDestroy)
 			jpeg_destroy_decompress(&lpJpegDecompress->jInfo);
+	}
 
 	// Release the DIB
 	if (hDib != NULL)
