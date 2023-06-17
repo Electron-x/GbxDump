@@ -376,11 +376,17 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 						}
 						else
 						{
+							// For performance reasons, enable ICM only if the DIB contains color space data
+							if ((IS_WIN40_DIB(lpbi) || IS_WIN50_DIB(lpbi)) &&
+								(((LPBITMAPV4HEADER)lpbi)->bV4CSType == LCS_CALIBRATED_RGB ||
+								((LPBITMAPV5HEADER)lpbi)->bV5CSType == PROFILE_EMBEDDED))
+								SetICMMode(hdc, ICM_ON);
+
 							int nBltModeOld = SetStretchBltMode(hdc, HALFTONE);
 							
 							int nRet = StretchDIBits(hdc, rc.left, rc.top, cx, cy, nSrcX, nSrcY, nSrcWidth, nSrcHeight,
 								FindDibBits(lpbi), (LPBITMAPINFO)lpbi, DIB_RGB_COLORS, SRCCOPY);
-							
+
 							if (nRet == 0 || nRet == GDI_ERROR)
 							{
 								bFailed = TRUE;
@@ -396,7 +402,7 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 											(LPBITMAPINFOHEADER)lpbi, FindDibBits(lpbi), nSrcX, nSrcY, nSrcWidth, nSrcHeight, 0);
 								}
 							}
-							
+
 							if (nBltModeOld != 0)
 								SetStretchBltMode(hdc, nBltModeOld);
 						}
@@ -409,7 +415,7 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 					if (hPal != NULL)
 						DeletePalette(hPal);
 				}
-				
+
 				if (bFailed)
 				{ // Draw a 45-degree crosshatch
 					HBRUSH hbr = CreateHatchBrush(HS_DIAGCROSS, RGB(0, 0, 0));
@@ -840,17 +846,13 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 						if (hNewDIB == NULL)
 							return FALSE;
 
-						register LPBYTE lpSrc  = (LPBYTE)GlobalLock((HGLOBAL)hDib);
-						register LPBYTE lpDest = (LPBYTE)GlobalLock((HGLOBAL)hNewDIB);
+						LPBYTE lpSrc  = (LPBYTE)GlobalLock((HGLOBAL)hDib);
+						LPBYTE lpDest = (LPBYTE)GlobalLock((HGLOBAL)hNewDIB);
 
-						__try
-						{
-							while (cbLen--)
-								*lpDest++ = *lpSrc++;
-						}
-						__except (EXCEPTION_EXECUTE_HANDLER) { cbLen = 0; }
+						__try { CopyMemory(lpDest, lpSrc, cbLen); }
+						__except (EXCEPTION_EXECUTE_HANDLER) { ; }
 
-						BOOL bIsDIBV5 = *(LPDWORD)lpSrc == sizeof(BITMAPV5HEADER);
+						BOOL bIsDIBV5 = (IS_WIN40_DIB(lpSrc) || IS_WIN50_DIB(lpSrc));
 
 						GlobalUnlock((HGLOBAL)hDib);
 						GlobalUnlock((HGLOBAL)hNewDIB);
