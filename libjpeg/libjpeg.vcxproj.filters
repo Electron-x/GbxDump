@@ -96,6 +96,15 @@
     <ClCompile Include="jutils.c">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="iccprofile.c">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="jcapimin.c">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="jcmarker.c">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="jconfig.h">
@@ -123,6 +132,9 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="jversion.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="iccprofile.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

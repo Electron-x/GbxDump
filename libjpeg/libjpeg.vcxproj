@@ -152,7 +152,10 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="iccprofile.c" />
     <ClCompile Include="jaricom.c" />
+    <ClCompile Include="jcapimin.c" />
+    <ClCompile Include="jcmarker.c" />
     <ClCompile Include="jcomapi.c" />
     <ClCompile Include="jdapimin.c" />
     <ClCompile Include="jdapistd.c" />
@@ -181,6 +184,7 @@
     <ClCompile Include="jutils.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="iccprofile.h" />
     <ClInclude Include="jconfig.h" />
     <ClInclude Include="jdct.h" />
     <ClInclude Include="jerror.h" />
