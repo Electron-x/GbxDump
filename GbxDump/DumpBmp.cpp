@@ -531,12 +531,16 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		if (lpbih->bV5CSType == PROFILE_LINKED)
 		{
 			char szPath[MAX_PATH];
-			int nLen = min(min(lpbih->bV5ProfileSize, dwDibSize - lpbih->bV5ProfileData), _countof(szPath));
+			int nLen = min(min(lpbih->bV5ProfileSize + 1, dwDibSize - lpbih->bV5ProfileData + 1), _countof(szPath));
 
+			ZeroMemory(szPath, sizeof(szPath));
 			if (MyStrNCpyA(szPath, lpbi + lpbih->bV5ProfileData, nLen) != NULL)
 			{
+				MultiByteToWideChar(CP_ACP, 0, szPath, -1, szOutput, _countof(szOutput) - 1);
+				
 				OutputText(hwndCtl, g_szSep1);
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%hs\r\n"), szPath);
+				OutputText(hwndCtl, szOutput);
+				OutputText(hwndCtl, TEXT("\r\n"));
 			}
 		}
 		else if (lpbih->bV5CSType == PROFILE_EMBEDDED)
