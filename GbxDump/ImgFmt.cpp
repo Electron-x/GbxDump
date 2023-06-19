@@ -43,7 +43,7 @@ BYTE GetColorValue(DWORD dwPixel, DWORD dwMask);
 BOOL GetFileName(HWND hDlg, LPTSTR lpszFileName, SIZE_T cchStringLen, LPDWORD lpdwFilterIndex, BOOL bSave)
 {
 	// Filter String
-	TCHAR szFilter[512];
+	TCHAR szFilter[1024];
 	szFilter[0] = TEXT('\0');
 	if (bSave)
 		LoadString(g_hInstance, g_bGerUI ? IDS_GER_FILTER_PNG : IDS_ENG_FILTER_PNG, szFilter, _countof(szFilter));
@@ -131,32 +131,13 @@ BOOL SaveBmpFile(LPCTSTR lpszFileName, HANDLE hDib)
 	if (hDib == NULL || lpszFileName == NULL)
 		return FALSE;
 
-	LPBITMAPINFOHEADER lpbi = (LPBITMAPINFOHEADER)GlobalLock(hDib);
+	LPCSTR lpbi = (LPCSTR)GlobalLock(hDib);
 	if (lpbi == NULL)
 		return FALSE;
 
-	DWORD dwDIBSize = 0;
-	DWORD dwOffBits = 0;
-	DWORD dwBmBitsSize = 0;
-
-	if (IS_OS2PM_DIB(lpbi))
-	{
-		LPBITMAPCOREHEADER lpbc = (LPBITMAPCOREHEADER)lpbi;
-		dwDIBSize = lpbc->bcSize + PaletteSize((LPCSTR)lpbc);
-		dwBmBitsSize = WIDTHBYTES(lpbc->bcWidth * lpbc->bcPlanes * lpbc->bcBitCount) * lpbc->bcHeight;
-	}
-	else
-	{
-		dwDIBSize = lpbi->biSize + ColorMasksSize((LPCSTR)lpbi) + PaletteSize((LPCSTR)lpbi);
-		if (lpbi->biCompression == BI_RGB || lpbi->biCompression == BI_BITFIELDS ||
-			lpbi->biCompression == BI_ALPHABITFIELDS || lpbi->biCompression == BI_CMYK)
-			dwBmBitsSize = WIDTHBYTES(lpbi->biWidth * lpbi->biPlanes * lpbi->biBitCount) * abs(lpbi->biHeight);
-		else
-			dwBmBitsSize = lpbi->biSizeImage;
-	}
-
-	dwOffBits = dwDIBSize + sizeof(BITMAPFILEHEADER);
-	dwDIBSize += dwBmBitsSize;
+	DWORD dwOffBits = DibBitsOffset(lpbi);
+	DWORD dwBitsSize = DibImageSize(lpbi);
+	DWORD dwDibSize = dwOffBits + dwBitsSize;
 
 	if (IS_WIN50_DIB(lpbi))
 	{
@@ -164,18 +145,16 @@ BOOL SaveBmpFile(LPCTSTR lpszFileName, HANDLE hDib)
 		if (lpbiv5->bV5ProfileData != 0 && lpbiv5->bV5ProfileSize != 0 &&
 			(lpbiv5->bV5CSType == PROFILE_LINKED || lpbiv5->bV5CSType == PROFILE_EMBEDDED))
 		{
-			if (lpbiv5->bV5ProfileData > dwDIBSize)
-				dwDIBSize += lpbiv5->bV5ProfileData - dwDIBSize;
-			dwDIBSize += lpbiv5->bV5ProfileSize;
+			if (lpbiv5->bV5ProfileData > dwDibSize)
+				dwDibSize += lpbiv5->bV5ProfileData - dwDibSize;
+			dwDibSize += lpbiv5->bV5ProfileSize;
 		}
 	}
 
 	BITMAPFILEHEADER bmfHdr = { 0 };
 	bmfHdr.bfType = BFT_BMAP;
-	bmfHdr.bfSize = dwDIBSize + sizeof(BITMAPFILEHEADER);
-	bmfHdr.bfReserved1 = 0;
-	bmfHdr.bfReserved2 = 0;
-	bmfHdr.bfOffBits = dwOffBits;
+	bmfHdr.bfSize = dwDibSize + sizeof(BITMAPFILEHEADER);
+	bmfHdr.bfOffBits = dwOffBits + sizeof(BITMAPFILEHEADER);
 
 	HANDLE hFile = CreateFile(lpszFileName, GENERIC_READ | GENERIC_WRITE, 0, NULL,
 		CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
@@ -185,7 +164,7 @@ BOOL SaveBmpFile(LPCTSTR lpszFileName, HANDLE hDib)
 		return FALSE;
 	}
 
-	DWORD dwWrite;
+	DWORD dwWrite = 0;
 	if (!WriteFile(hFile, &bmfHdr, sizeof(BITMAPFILEHEADER), &dwWrite, NULL) ||
 		dwWrite != sizeof(BITMAPFILEHEADER))
 	{
@@ -195,7 +174,7 @@ BOOL SaveBmpFile(LPCTSTR lpszFileName, HANDLE hDib)
 		return FALSE;
 	}
 
-	if (!WriteFile(hFile, (LPVOID)lpbi, dwDIBSize, &dwWrite, NULL) || dwWrite != dwDIBSize)
+	if (!WriteFile(hFile, (LPVOID)lpbi, dwDibSize, &dwWrite, NULL) || dwWrite != dwDibSize)
 	{
 		GlobalUnlock(hDib);
 		CloseHandle(hFile);
@@ -243,10 +222,10 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDib)
 	BOOL bIsCMYK = lpbi->biSize >= sizeof(BITMAPV4HEADER) &&
 		((LPBITMAPV4HEADER)lpbi)->bV4CSType == LCS_DEVICE_CMYK;
 
-	// CMYK DIBs are converted to RGB
+	// CMYK DIBs must be converted to RGB
 	INT nNumChannels = bIsCMYK ? 3 : lpbi->biBitCount >> 3;
 
-	// 16-bit bitmaps are saved with 3 channels (or 4 incl. alpha channel)
+	// 16-bit bitmaps are saved with 3 channels (or 4, if there is an alpha channel)
 	LONG lSizeImage = lHeight * lWidth * (lpbi->biBitCount == 16 ? 4 : nNumChannels);
 	if (lSizeImage == 0)
 	{
@@ -840,7 +819,7 @@ void my_emit_message(j_common_ptr pjInfo, int nMessageLevel)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// WebpToDib: Decodes a WebP image into a DIB using libwebp
+// WebpToDib: Decodes a WebP image into a DIB using libwebpdecoder
 
 HANDLE WebpToDib(LPVOID lpWebpData, DWORD dwLenData, BOOL bFlipImage, BOOL bShowFeatures)
 {
@@ -1346,6 +1325,39 @@ UINT PaletteSize(LPCSTR lpbi)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
+// Gets the size of the DIBs bitmap bits
+
+UINT DibImageSize(LPCSTR lpbi)
+{
+	if (lpbi == NULL)
+		return 0;
+
+	if (IS_OS2PM_DIB(lpbi))
+	{
+		LPBITMAPCOREHEADER lpbc = (LPBITMAPCOREHEADER)lpbi;
+		return WIDTHBYTES(lpbc->bcWidth * lpbc->bcPlanes * lpbc->bcBitCount) * lpbc->bcHeight;
+	}
+
+	LPBITMAPINFOHEADER lpbih = (LPBITMAPINFOHEADER)lpbi;
+	if (lpbih->biCompression == BI_RGB || lpbih->biCompression == BI_BITFIELDS ||
+		lpbih->biCompression == BI_ALPHABITFIELDS || lpbih->biCompression == BI_CMYK)
+		return WIDTHBYTES(abs(lpbih->biWidth) * lpbih->biPlanes * lpbih->biBitCount) * abs(lpbih->biHeight);
+
+	return lpbih->biSizeImage;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Gets the offset from the beginning of the DIB to the bitmap bits
+
+UINT DibBitsOffset(LPCSTR lpbi)
+{
+	if (lpbi == NULL)
+		return 0;
+
+	return *(LPDWORD)lpbi + ColorMasksSize(lpbi) + PaletteSize(lpbi);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
 // Returns a pointer to the DIBs color table 
 
 LPRGBQUAD FindDibPalette(LPCSTR lpbi)
@@ -1365,6 +1377,19 @@ LPBYTE FindDibBits(LPCSTR lpbi)
 		return NULL;
 
 	return (LPBYTE)lpbi + *(LPDWORD)lpbi + ColorMasksSize(lpbi) + PaletteSize(lpbi);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Checks if the DIBv5 has a linked or embedded ICC profile
+
+BOOL DibHasColorProfile(LPCSTR lpbi)
+{
+	if (lpbi == NULL || !IS_WIN50_DIB(lpbi))
+		return FALSE;
+
+	LPBITMAPV5HEADER lpbiv5 = (LPBITMAPV5HEADER)lpbi;
+	return (lpbiv5->bV5ProfileData != 0 && lpbiv5->bV5ProfileSize != 0 &&
+		(lpbiv5->bV5CSType == PROFILE_LINKED || lpbiv5->bV5CSType == PROFILE_EMBEDDED));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
