@@ -834,6 +834,7 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 
 				case IDC_THUMB_COPY:
 					{ // Copy the current thumbnail DIB to the clipboard
+						HGLOBAL hNewDib = NULL;
 						HANDLE hDib = g_hDibThumb ? g_hDibThumb : g_hDibDefault;
 						if (hDib == NULL)
 							return FALSE;
@@ -842,24 +843,66 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 						if (cbLen == 0)
 							return FALSE;
 
-						HGLOBAL hNewDIB = GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE, cbLen);
-						if (hNewDIB == NULL)
-							return FALSE;
+						LPBYTE lpSrc = (LPBYTE)GlobalLock((HGLOBAL)hDib);
+						BOOL bUseDIBV5 = (IS_WIN40_DIB(lpSrc) || IS_WIN50_DIB(lpSrc));
 
-						LPBYTE lpSrc  = (LPBYTE)GlobalLock((HGLOBAL)hDib);
-						LPBYTE lpDest = (LPBYTE)GlobalLock((HGLOBAL)hNewDIB);
+						if (DibHasColorProfile((LPCSTR)lpSrc))
+						{ // The ICC profile data of a DIBv5 in memory must follow the color table
+							LPBITMAPV5HEADER lpbiv5 = (LPBITMAPV5HEADER)lpSrc;
+							DWORD dwInfoSize = lpbiv5->bV5Size + PaletteSize((LPCSTR)lpSrc);
+							DWORD dwProfileSize = lpbiv5->bV5ProfileSize;
+							SIZE_T cbImageSize = DibImageSize((LPCSTR)lpSrc);
+							SIZE_T cbDibSize = cbImageSize + dwInfoSize + dwProfileSize;
 
-						__try { CopyMemory(lpDest, lpSrc, cbLen); }
-						__except (EXCEPTION_EXECUTE_HANDLER) { ; }
+							if (cbDibSize > cbLen)
+							{
+								GlobalUnlock((HGLOBAL)hDib);
+								return FALSE;
+							}
 
-						BOOL bIsDIBV5 = (IS_WIN40_DIB(lpSrc) || IS_WIN50_DIB(lpSrc));
+							hNewDib = GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE, cbDibSize);
+							if (hNewDib == NULL)
+							{
+								GlobalUnlock((HGLOBAL)hDib);
+								return FALSE;
+							}
+
+							LPBYTE lpDest = (LPBYTE)GlobalLock((HGLOBAL)hNewDib);
+
+							__try
+							{
+								CopyMemory(lpDest, lpSrc, dwInfoSize);
+								CopyMemory(lpDest + dwInfoSize, lpSrc + lpbiv5->bV5ProfileData, dwProfileSize);
+								CopyMemory(lpDest + dwInfoSize + dwProfileSize, FindDibBits((LPCSTR)lpSrc), cbImageSize);
+								// Update the header with the new position of the profile data
+								((LPBITMAPV5HEADER)lpDest)->bV5ProfileData = dwInfoSize;
+							}
+							__except (EXCEPTION_EXECUTE_HANDLER) { ; }
+
+							GlobalUnlock((HGLOBAL)hNewDib);
+						}
+						else
+						{ // Create a copy of the packed DIB
+							hNewDib = GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE, cbLen);
+							if (hNewDib == NULL)
+							{
+								GlobalUnlock((HGLOBAL)hDib);
+								return FALSE;
+							}
+
+							LPBYTE lpDest = (LPBYTE)GlobalLock((HGLOBAL)hNewDib);
+
+							__try { CopyMemory(lpDest, lpSrc, cbLen); }
+							__except (EXCEPTION_EXECUTE_HANDLER) { ; }
+
+							GlobalUnlock((HGLOBAL)hNewDib);
+						}
 
 						GlobalUnlock((HGLOBAL)hDib);
-						GlobalUnlock((HGLOBAL)hNewDIB);
 
 						if (!OpenClipboard(hDlg))
 						{
-							GlobalFree((HGLOBAL)hNewDIB);
+							GlobalFree((HGLOBAL)hNewDib);
 							return FALSE;
 						}
 
@@ -868,12 +911,12 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 						{
 							CloseClipboard();
 							SetCursor(hOldCursor);
-							GlobalFree((HGLOBAL)hNewDIB);
+							GlobalFree((HGLOBAL)hNewDib);
 							return FALSE;
 						}
 
-						if (SetClipboardData(bIsDIBV5 ? CF_DIBV5 : CF_DIB, (HANDLE)hNewDIB) == NULL)
-							GlobalFree((HGLOBAL)hNewDIB);
+						if (SetClipboardData(bUseDIBV5 ? CF_DIBV5 : CF_DIB, (HANDLE)hNewDib) == NULL)
+							GlobalFree((HGLOBAL)hNewDib);
 
 						CloseClipboard();
 						SetCursor(hOldCursor);
