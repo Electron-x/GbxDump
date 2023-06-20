@@ -524,15 +524,46 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		}
 	}
 
-	// Output the profile data
-	if (dwDibHeaderSize >= sizeof(BITMAPV5HEADER) && dwDibSize > lpbih->bV5ProfileData &&
-		lpbih->bV5ProfileData != 0 && lpbih->bV5ProfileSize != 0)
+	// Check for a gap between color table and bitmap bits
+	DWORD dwOffBits = dwFileHeaderSize + dwDibHeaderSize + ColorMasksSize(lpbi) + PaletteSize(lpbi);
+	if (bfh.bfOffBits > dwOffBits)
 	{
+		DWORD dwGap = bfh.bfOffBits - dwOffBits;
+
+		// HACK: Declare the gap as (additional) color table entries to get a packed DIB
+		if (dwDibHeaderSize >= sizeof(BITMAPINFOHEADER))
+			lpbih->bV5ClrUsed += dwGap / sizeof(RGBQUAD);
+
+		OutputText(hwndCtl, g_szSep1);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Gap to pixels:\t%u bytes\r\n"), dwGap);
+	}
+	else if (bfh.bfOffBits != 0 && dwOffBits > bfh.bfOffBits)
+	{ // Color table overlaps bitmap bits
+		DWORD dwNumEntries = (dwOffBits - bfh.bfOffBits) / (DWORD)sizeof(RGBQUAD);
+
+		// If possible, adjust the number of color table entries
+		if (dwDibHeaderSize >= sizeof(BITMAPINFOHEADER) && lpbih->bV5ClrUsed > dwNumEntries)
+			lpbih->bV5ClrUsed -= dwNumEntries;
+	}
+
+	// Output the profile data
+	if (DibHasColorProfile(lpbi) && dwDibSize > lpbih->bV5ProfileData)
+	{
+		// First check for a gap between bitmap bits and profile data
+		DWORD dwProfileData = DibBitsOffset(lpbi) + DibImageSize(lpbi);
+		if (lpbih->bV5ProfileData > dwProfileData)
+		{
+			OutputText(hwndCtl, g_szSep1);
+			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Gap to profile:\t%u bytes\r\n"),
+				lpbih->bV5ProfileData - dwProfileData);
+		}
+
 		if (lpbih->bV5CSType == PROFILE_LINKED)
 		{
 			char szPath[MAX_PATH];
 			int nLen = min(min(lpbih->bV5ProfileSize + 1, dwDibSize - lpbih->bV5ProfileData + 1), _countof(szPath));
 
+			// Output the file name of the ICC profile
 			ZeroMemory(szPath, sizeof(szPath));
 			if (MyStrNCpyA(szPath, lpbi + lpbih->bV5ProfileData, nLen) != NULL)
 			{
@@ -556,6 +587,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 
 			OutputText(hwndCtl, g_szSep1);
 
+			// Output a hex dump of the ICC profile
 			for (i = 0; i < cbLen; i += COLUMNS)
 			{
 				c = ((cbLen - i) > COLUMNS) ? COLUMNS : cbLen - i;
@@ -592,16 +624,6 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 				OutputText(hwndCtl, szOutput);
 			}
 		}
-	}
-
-	// Check for a gap between header/color table and pixel bits
-	DWORD dwOffBits = dwFileHeaderSize + (DWORD)(FindDibBits(lpbi) - (LPBYTE)lpbi);
-	if (bfh.bfOffBits > dwOffBits)
-	{
-		DWORD dwGap = bfh.bfOffBits - dwOffBits;
-		// HACK: Declare the gap as (additional) color table entries to get a packed DIB
-		if (dwGap > 0 && dwDibHeaderSize >= sizeof(BITMAPINFOHEADER))
-			lpbih->bV5ClrUsed += dwGap / sizeof(RGBQUAD);
 	}
 
 	GlobalUnlock(hDib);
