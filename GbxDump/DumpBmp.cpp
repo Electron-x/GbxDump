@@ -50,7 +50,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		return FALSE;
 
 	if (bfh.bfType == BFT_BITMAPARRAY)
-	{ // OS/2 bit-map array
+	{ // OS/2 Bit-map Array
 		LPBITMAPARRAYFILEHEADER lpbafh = (LPBITMAPARRAYFILEHEADER)&bfh;
 
 		OutputText(hwndCtl, g_szSep1);
@@ -356,7 +356,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 	}
 
 	if (dwDibHeaderSize == sizeof(BITMAPINFOHEADER))
-	{ // Windows Version 3.0 Bitmap (Windows NT extension)
+	{ // Windows Version 3.0 Bitmap with Windows NT extension
 		if (lpbih->bV5BitCount == 16 || lpbih->bV5BitCount == 32)
 		{
 			if (lpbih->bV5Compression == BI_BITFIELDS || lpbih->bV5Compression == BI_ALPHABITFIELDS)
@@ -368,6 +368,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("GreenMask:\t%08X\r\n"), lpdwMasks[1]);
 				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("BlueMask:\t%08X\r\n"), lpdwMasks[2]);
 
+				// Windows CE extension
 				if (lpbih->bV5Compression == BI_ALPHABITFIELDS)
 					OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("AlphaMask:\t%08X\r\n"), lpdwMasks[3]);
 			}
@@ -594,6 +595,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 
 				// Address
 				_sntprintf(szOutput, _countof(szOutput), TEXT("%04IX| "), i);
+				szOutput[OUTPUT_LEN - 1] = TEXT('\0');
 
 				// Hex dump
 				for (j = c, pByte = pData + i; j--; pByte++)

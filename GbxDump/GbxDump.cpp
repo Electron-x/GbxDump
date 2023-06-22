@@ -146,7 +146,6 @@ int APIENTRY _tWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstanc
 	wcex.cbSize        = sizeof(wcex);
 	wcex.style         = CS_DBLCLKS;
 	wcex.lpfnWndProc   = DefDlgProc;
-	wcex.cbClsExtra    = 0;
 	wcex.cbWndExtra    = DLGWINDOWEXTRA;
 	wcex.hInstance     = g_hInstance;
 	wcex.hIcon         = LoadIcon(g_hInstance, MAKEINTRESOURCE(IDI_GBXDUMP));
@@ -1083,7 +1082,6 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 				mbp.lpszCaption = g_szTitle;
 				mbp.dwStyle = MB_OK | MB_USERICON;
 				mbp.lpszIcon = MAKEINTRESOURCE(IDI_GBXDUMP);
-				mbp.dwContextHelpId = 0;
 				mbp.lpfnMsgBoxCallback = NULL;
 				mbp.dwLanguageId = MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL);
 
@@ -1096,25 +1094,27 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 
 		case WM_SETTINGCHANGE:
 		case WM_THEMECHANGED:
-			if (message == WM_SETTINGCHANGE &&
-				lParam != NULL && _tcscmp((LPCTSTR)lParam, TEXT("ImmersiveColorSet")) != 0)
-				return FALSE;
-
-			// Perform a logical XOR for an arbitrary type (!a != !b)
-			if (!g_bUseDarkMode != !(ShouldAppsUseDarkMode() && !IsHighContrast()))
 			{
-				g_bUseDarkMode = !g_bUseDarkMode;
-					
-				UseImmersiveDarkMode(hDlg, g_bUseDarkMode);
-				AllowDarkModeForWindow(hDlg, g_bUseDarkMode);
-					
-				if (s_hwndSizeBox != NULL)
-				{	// For safety's sake, hide the size box in undocumented dark mode
-					BOOL bIsVisible = IsWindowVisible(s_hwndSizeBox);
-					if (g_bUseDarkMode && bIsVisible)
-						ShowWindow(s_hwndSizeBox, SW_HIDE);
-					else if (!IsMaximized(hDlg) && !bIsVisible)
-						ShowWindow(s_hwndSizeBox, SW_SHOW);
+				if (message == WM_SETTINGCHANGE &&
+					lParam != NULL && _tcscmp((LPCTSTR)lParam, TEXT("ImmersiveColorSet")) != 0)
+					return FALSE;
+
+				BOOL bShouldUseDarkMode = (ShouldAppsUseDarkMode() && !IsHighContrast());
+				if ((g_bUseDarkMode && !bShouldUseDarkMode) || (!g_bUseDarkMode && bShouldUseDarkMode))
+				{
+					g_bUseDarkMode = !g_bUseDarkMode;
+
+					UseImmersiveDarkMode(hDlg, g_bUseDarkMode);
+					AllowDarkModeForWindow(hDlg, g_bUseDarkMode);
+
+					if (s_hwndSizeBox != NULL)
+					{	// For safety's sake, hide the size box in undocumented dark mode
+						BOOL bIsVisible = IsWindowVisible(s_hwndSizeBox);
+						if (g_bUseDarkMode && bIsVisible)
+							ShowWindow(s_hwndSizeBox, SW_HIDE);
+						else if (!IsMaximized(hDlg) && !bIsVisible)
+							ShowWindow(s_hwndSizeBox, SW_SHOW);
+					}
 				}
 			}
 			return FALSE;
@@ -1656,11 +1656,11 @@ BOOL DumpWebP(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Displays a hex dump of the first 1024 bytes of a file
 
-#define COLUMNS 16
-#define FORMAT_LEN 256
-
 BOOL DumpHex(HWND hwndCtl, HANDLE hFile, SIZE_T cbLen)
 {
+	const int COLUMNS = 16;
+	const int FORMAT_LEN = 256;
+
 	TCHAR szFormat[FORMAT_LEN];
 	TCHAR szOutput[OUTPUT_LEN];
 
@@ -1704,6 +1704,7 @@ BOOL DumpHex(HWND hwndCtl, HANDLE hFile, SIZE_T cbLen)
 
 		// Address
 		_sntprintf(szOutput, _countof(szOutput), TEXT("%04IX| "), i);
+		szOutput[OUTPUT_LEN - 1] = TEXT('\0');
 
 		// Hex dump
 		for (j = c, pByte = pData + i; j--; pByte++)
@@ -1762,7 +1763,7 @@ int SelectText(HWND hwndCtl)
 	if (nLineLen > 1024)
 		nLineLen = 1024;
 
-	TCHAR szLine[1024];
+	TCHAR szLine[1024] = {0};
 	nLineLen = Edit_GetLine(hwndCtl, iLine, szLine, nLineLen);
 	szLine[nLineLen] = TEXT('\0');
 
@@ -1913,7 +1914,7 @@ HFONT CreateScaledFont(HDC hDC, LPCRECT lpRect, LPCTSTR lpszText)
 
 	// Define the maximum size of the rectangle in the center
 	// of the thumbnail in which the text must be positioned
-	SIZE sizeTextMax;
+	SIZE sizeTextMax = {0};
 	sizeTextMax.cx = ((lpRect->right - lpRect->left)) * 3 / 4;
 	sizeTextMax.cy = ((lpRect->bottom - lpRect->top)) / 6;
 
