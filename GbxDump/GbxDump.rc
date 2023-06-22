@@ -170,7 +170,7 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_GER_FILTER_GBX      "GameBox, NadeoPak (*.Gbx;*.pak)|*.gbx;*.pak|Maps (*.Map.Gbx;*.Challenge.Gbx)|*.map.gbx;*.challenge.gbx|Replays (*.Replay.Gbx)|*.replay.gbx|Pakete (*.Pack.Gbx;*.pak)|*.pack.gbx;*.pak|Items (*.Item.gbx)|*.item.gbx|Objekte (*.ObjectInfo.gbx)|*.objectinfo.gbx|Blöcke (*.Block.Gbx;*.Macroblock.Gbx)|*.block.gbx;*.macroblock.gbx|DirectDraw Surface (*.dds)|*.dds|Windows Bitmap (*.bmp)|*.bmp|JPEG File Interchange Format (*.jpg;*.jpeg)|*.jpg;*.jpeg|WebP (*.webp)|*.webp|Alle Dateien (*.*)|*.*||"
+    IDS_GER_FILTER_GBX      "GameBox, NadeoPak (*.Gbx;*.pak)|*.gbx;*.pak|Maps (*.Map.Gbx;*.Challenge.Gbx)|*.map.gbx;*.challenge.gbx|Replays (*.Replay.Gbx)|*.replay.gbx|Pakete (*.Pack.Gbx;*.pak)|*.pack.gbx;*.pak|Items (*.Item.gbx)|*.item.gbx|Objekte (*.ObjectInfo.gbx)|*.objectinfo.gbx|Blöcke (*.Block.Gbx;*.Macroblock.Gbx)|*.block.gbx;*.macroblock.gbx|DirectDraw Surface (*.dds)|*.dds|Windows Bitmap (*.bmp)|*.bmp|JPEG (*.jpg;*.jpeg)|*.jpg;*.jpeg|WebP (*.webp)|*.webp|Alle Dateien (*.*)|*.*||"
     IDS_GER_FILTER_PNG      "Portable Network Graphics (*.png)|*.png||"
     IDP_GER_ERR_READ        "Fehler beim Lesen der GameBox-Daten.\r\n"
     IDP_GER_ERR_MAGIC       "Dateisignatur nicht gefunden. Dies ist keine gültige GameBox-Datei.\r\n"
@@ -261,7 +261,7 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_ENG_FILTER_GBX      "GameBox, NadeoPak (*.Gbx;*.pak)|*.gbx;*.pak|Maps (*.Map.Gbx;*.Challenge.Gbx)|*.map.gbx;*.challenge.gbx|Replays (*.Replay.Gbx)|*.replay.gbx|Packs (*.Pack.Gbx;*.pak)|*.pack.gbx;*.pak|Items (*.Item.gbx)|*.item.gbx|Objects (*.ObjectInfo.gbx)|*.objectinfo.gbx|Blocks (*.Block.Gbx;*.Macroblock.Gbx)|*.block.gbx;*.macroblock.gbx|DirectDraw Surface (*.dds)|*.dds|Windows Bitmap (*.bmp)|*.bmp|JPEG File Interchange Format (*.jpg;*.jpeg)|*.jpg;*.jpeg|WebP (*.webp)|*.webp|All Files (*.*)|*.*||"
+    IDS_ENG_FILTER_GBX      "GameBox, NadeoPak (*.Gbx;*.pak)|*.gbx;*.pak|Maps (*.Map.Gbx;*.Challenge.Gbx)|*.map.gbx;*.challenge.gbx|Replays (*.Replay.Gbx)|*.replay.gbx|Packs (*.Pack.Gbx;*.pak)|*.pack.gbx;*.pak|Items (*.Item.gbx)|*.item.gbx|Objects (*.ObjectInfo.gbx)|*.objectinfo.gbx|Blocks (*.Block.Gbx;*.Macroblock.Gbx)|*.block.gbx;*.macroblock.gbx|DirectDraw Surface (*.dds)|*.dds|Windows Bitmap (*.bmp)|*.bmp|JPEG (*.jpg;*.jpeg)|*.jpg;*.jpeg|WebP (*.webp)|*.webp|All Files (*.*)|*.*||"
     IDS_ENG_FILTER_PNG      "Portable Network Graphics (*.png)|*.png||"
     IDP_ENG_ERR_READ        "Error while reading the GameBox data.\r\n"
     IDP_ENG_ERR_MAGIC       "File signature not found. This is not a valid GameBox file.\r\n"
