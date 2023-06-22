@@ -43,8 +43,7 @@ BYTE GetColorValue(DWORD dwPixel, DWORD dwMask);
 BOOL GetFileName(HWND hDlg, LPTSTR lpszFileName, SIZE_T cchStringLen, LPDWORD lpdwFilterIndex, BOOL bSave)
 {
 	// Filter String
-	TCHAR szFilter[1024];
-	szFilter[0] = TEXT('\0');
+	TCHAR szFilter[1024] = {0};
 	if (bSave)
 		LoadString(g_hInstance, g_bGerUI ? IDS_GER_FILTER_PNG : IDS_ENG_FILTER_PNG, szFilter, _countof(szFilter));
 	else
@@ -54,7 +53,7 @@ BOOL GetFileName(HWND hDlg, LPTSTR lpszFileName, SIZE_T cchStringLen, LPDWORD lp
 		*psz++ = TEXT('\0');
 
 	// Initial Directory
-	TCHAR szInitialDir[MAX_PATH];
+	TCHAR szInitialDir[MAX_PATH] = {0};
 	TCHAR* pszInitialDir = szInitialDir;
 	if (lpszFileName != NULL && lpszFileName[0] != TEXT('\0'))
 	{
@@ -84,7 +83,7 @@ BOOL GetFileName(HWND hDlg, LPTSTR lpszFileName, SIZE_T cchStringLen, LPDWORD lp
 	else
 		szFile[0] = TEXT('\0');
 
-	OPENFILENAME of = { 0 };
+	OPENFILENAME of = {0};
 	of.lStructSize     = sizeof(OPENFILENAME);
 	of.hwndOwner       = hDlg;
 	of.Flags           = OFN_HIDEREADONLY | OFN_PATHMUSTEXIST;
@@ -151,7 +150,7 @@ BOOL SaveBmpFile(LPCTSTR lpszFileName, HANDLE hDib)
 		}
 	}
 
-	BITMAPFILEHEADER bmfHdr = { 0 };
+	BITMAPFILEHEADER bmfHdr = {0};
 	bmfHdr.bfType = BFT_BMAP;
 	bmfHdr.bfSize = dwDibSize + sizeof(BITMAPFILEHEADER);
 	bmfHdr.bfOffBits = dwOffBits + sizeof(BITMAPFILEHEADER);
@@ -455,7 +454,7 @@ HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData, BOOL bFlipImage, INT nTrace
 	HANDLE hDib = NULL;  // Handle of the DIB
 
 	// Initialize the JPEG decompression object
-	JPEG_DECOMPRESS JpegDecompress;
+	JPEG_DECOMPRESS JpegDecompress = {0};
 	j_decompress_ptr pjInfo = &JpegDecompress.jInfo;
 	JpegDecompress.lpProfileData = NULL;
 	JpegDecompress.nTraceLevel = nTraceLevel;
@@ -583,11 +582,9 @@ HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData, BOOL bFlipImage, INT nTrace
 	lpBI->biPlanes        = 1;
 	lpBI->biBitCount      = (WORD)JpegDecompress.uBPP;
 	lpBI->biCompression   = BI_RGB;
-	lpBI->biSizeImage     = 0;
 	lpBI->biXPelsPerMeter = JpegDecompress.dwXPelsPerMeter;
 	lpBI->biYPelsPerMeter = JpegDecompress.dwYPelsPerMeter;
 	lpBI->biClrUsed       = JpegDecompress.uWinColors;
-	lpBI->biClrImportant  = 0;
 
 	// Create palette
 	if (JpegDecompress.uBPP == 8)
@@ -652,9 +649,9 @@ HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData, BOOL bFlipImage, INT nTrace
 
 	// Determine pointer to start of image data
 	LPBYTE lpDIB = FindDibBits((LPCSTR)lpBI);
-	LPBYTE lpBits = NULL;     // Pointer to a DIB image row
-	JSAMPROW lpScanlines[1];  // Pointer to a scanline
-	JDIMENSION uScanline;     // Row index
+	LPBYTE lpBits = NULL;           // Pointer to a DIB image row
+	JSAMPROW lpScanlines[1] = {0};  // Pointer to a scanline
+	JDIMENSION uScanline = 0;       // Row index
 
 	// Copy image rows (scanlines)
 	while (pjInfo->output_scanline < pjInfo->output_height)
@@ -819,7 +816,7 @@ void my_emit_message(j_common_ptr pjInfo, int nMessageLevel)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// WebpToDib: Decodes a WebP image into a DIB using libwebpdecoder
+// WebpToDib: Decodes a WebP image into a DIB using libwebpdecoder (no support for ICC profiles)
 
 HANDLE WebpToDib(LPVOID lpWebpData, DWORD dwLenData, BOOL bFlipImage, BOOL bShowFeatures)
 {
@@ -904,11 +901,6 @@ HANDLE WebpToDib(LPVOID lpWebpData, DWORD dwLenData, BOOL bFlipImage, BOOL bShow
 	lpbi->biPlanes = 1;
 	lpbi->biBitCount = nNumChannels * 8;
 	lpbi->biCompression = BI_RGB;
-	lpbi->biSizeImage = 0;
-	lpbi->biXPelsPerMeter = 0;
-	lpbi->biYPelsPerMeter = 0;
-	lpbi->biClrUsed = 0;
-	lpbi->biClrImportant = 0;
 
 	int nSrcPtr = 0;
 	LPBYTE lpSrc = lpBits;
@@ -994,11 +986,6 @@ HANDLE DdsToDib(LPVOID lpDdsData, DWORD dwLenData, BOOL bFlipImage, BOOL bShowTe
 	lpbi->biPlanes = 1;
 	lpbi->biBitCount = 32;
 	lpbi->biCompression = BI_RGB;
-	lpbi->biSizeImage = 0;
-	lpbi->biXPelsPerMeter = 0;
-	lpbi->biYPelsPerMeter = 0;
-	lpbi->biClrUsed = 0;
-	lpbi->biClrImportant = 0;
 
 	crn_uint32 uSrcPtr = 0;
 	crn_uint32 uDestPtr = 0;
@@ -1069,7 +1056,7 @@ HBITMAP CreatePremultipliedBitmap(HANDLE hDib)
 	LONG lWidth = abs(lpbi->biWidth);
 	LONG lHeight = abs(lpbi->biHeight);
 
-	BITMAPINFO bmi = { 0 };
+	BITMAPINFO bmi = {0};
 	bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
 	bmi.bmiHeader.biWidth = lpbi->biWidth;
 	bmi.bmiHeader.biHeight = lpbi->biHeight;
@@ -1339,11 +1326,11 @@ UINT DibImageSize(LPCSTR lpbi)
 	}
 
 	LPBITMAPINFOHEADER lpbih = (LPBITMAPINFOHEADER)lpbi;
-	if (lpbih->biCompression == BI_RGB || lpbih->biCompression == BI_BITFIELDS ||
-		lpbih->biCompression == BI_ALPHABITFIELDS || lpbih->biCompression == BI_CMYK)
-		return WIDTHBYTES(abs(lpbih->biWidth) * lpbih->biPlanes * lpbih->biBitCount) * abs(lpbih->biHeight);
 
-	return lpbih->biSizeImage;
+	if (lpbih->biSizeImage != 0)
+		return lpbih->biSizeImage;
+
+	return WIDTHBYTES(abs(lpbih->biWidth) * lpbih->biPlanes * lpbih->biBitCount) * abs(lpbih->biHeight);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
