@@ -288,6 +288,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 	{ // OS/2 Version 2.0 Bit-map
 		LPBITMAPINFOHEADER2 lpbih2 = (LPBITMAPINFOHEADER2)lpbi;
 
+		// Extensions to BITMAPINFOHEADER
 		OutputText(hwndCtl, TEXT("Units:\t\t"));
 		if (lpbih2->usUnits == BRU_METRIC)
 			OutputText(hwndCtl, TEXT("METRIC"));
@@ -348,11 +349,42 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 
 		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Identifier:\t%u\r\n"), lpbih2->ulIdentifier);
 
-		// OS/2 2.0 bitmaps are not supported by Windows
+		if (lpbih->bV5Compression != BCA_UNCOMP)
+		{
+			GlobalUnlock(hDib);
+			GlobalFree(hDib);
+			MarkAsUnsupported(hwndCtl);
+			return TRUE;
+		}
+
+		// Downsize an uncompressed OS/2 2.0 bitmap to a DIBv3
+		MoveMemory(lpbi + sizeof(BITMAPINFOHEADER), lpbi + dwDibHeaderSize, dwDibSize - dwDibHeaderSize);
+
+		DWORD dwDiff = dwDibHeaderSize - sizeof(BITMAPINFOHEADER);
+		dwDibSize -= dwDiff;
+		dwDibHeaderSize -= dwDiff;
+		lpbih->bV5Size = dwDibHeaderSize;
+		if (bfh.bfOffBits != 0 && bfh.bfOffBits > dwDiff)
+			bfh.bfOffBits -= dwDiff;
+
 		GlobalUnlock(hDib);
-		GlobalFree(hDib);
-		MarkAsUnsupported(hwndCtl);
-		return TRUE;
+		HANDLE hTemp = GlobalReAlloc(hDib, dwDibSize, GHND);
+		if (hTemp == NULL)
+		{
+			GlobalFree(hDib);
+			return FALSE;
+		}
+
+		hDib = hTemp;
+		lpbi = (LPSTR)GlobalLock(hDib);
+		lpbih = (LPBITMAPV5HEADER)lpbi;
+		if (lpbi == NULL)
+		{
+			GlobalFree(hDib);
+			return FALSE;
+		}
+
+		bIsUnsupportedFormat = FALSE;
 	}
 
 	if (dwDibHeaderSize == sizeof(BITMAPINFOHEADER))
@@ -506,7 +538,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput),
 				TEXT("%*c|   B   G   R   X |%-*c| B  G  R  X  |\r\n"), nWidthDec, 'I', nWidthHex, 'I');
 
-			LPRGBQUAD lprgbqColors = FindDibPalette(lpbi);
+			LPRGBQUAD lprgbqColors = (LPRGBQUAD)FindDibPalette(lpbi);
 			for (UINT i = 0; i < uNumColors; i++)
 			{
 				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput),
@@ -531,7 +563,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 	{
 		DWORD dwGap = bfh.bfOffBits - dwOffBits;
 
-		// HACK: Declare the gap as (additional) color table entries to get a packed DIB
+		// Declare the gap as (additional) color table entries to get a packed DIB
 		if (dwDibHeaderSize >= sizeof(BITMAPINFOHEADER))
 			lpbih->bV5ClrUsed += dwGap / sizeof(RGBQUAD);
 
@@ -540,11 +572,41 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 	}
 	else if (bfh.bfOffBits != 0 && dwOffBits > bfh.bfOffBits)
 	{ // Color table overlaps bitmap bits
-		DWORD dwNumEntries = (dwOffBits - bfh.bfOffBits) / (DWORD)sizeof(RGBQUAD);
+		DWORD dwOverlap = dwOffBits - bfh.bfOffBits;
 
-		// If possible, adjust the number of color table entries
-		if (dwDibHeaderSize >= sizeof(BITMAPINFOHEADER) && lpbih->bV5ClrUsed > dwNumEntries)
-			lpbih->bV5ClrUsed -= dwNumEntries;
+		if (dwDibHeaderSize >= sizeof(BITMAPINFOHEADER))
+		{ // Adjust the number of color table entries
+			DWORD dwNumEntries = DibNumColors(lpbi);
+			DWORD dwAddEntries = dwOverlap / sizeof(RGBQUAD);
+
+			if (dwNumEntries > dwAddEntries)
+				lpbih->bV5ClrUsed = dwNumEntries - dwAddEntries;
+		}
+		else
+		{ // Add the missing color table entries to the DIB
+			GlobalUnlock(hDib);
+
+			dwDibSize += dwOverlap;
+			HANDLE hTemp = GlobalReAlloc(hDib, dwDibSize, GHND);
+			if (hTemp == NULL)
+			{
+				GlobalFree(hDib);
+				return FALSE;
+			}
+
+			hDib = hTemp;
+			lpbi = (LPSTR)GlobalLock(hDib);
+			lpbih = (LPBITMAPV5HEADER)lpbi;
+			if (lpbi == NULL)
+			{
+				GlobalFree(hDib);
+				return FALSE;
+			}
+
+			MoveMemory(lpbi + dwOffBits, lpbi + bfh.bfOffBits, dwDibSize - dwOffBits);
+			ZeroMemory(lpbi + bfh.bfOffBits, dwOverlap);
+			bfh.bfOffBits = dwOffBits;
+		}
 	}
 
 	// Output the profile data
