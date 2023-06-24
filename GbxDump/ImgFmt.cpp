@@ -188,8 +188,8 @@ BOOL SaveBmpFile(LPCTSTR lpszFileName, HANDLE hDib)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Saves a DIB as a PNG file using miniz. Supports only
-// 8-bit grayscale, 16-bit, 24-bit and 32-bit color images.
+// Saves a DIB as a PNG file using miniz. Supports only 8-bit grayscale,
+// 16-bit, 24-bit and 32-bit color images. There is no support for ICC profiles.
 
 BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDib)
 {
@@ -1189,6 +1189,187 @@ BOOL FreeBitmap(HBITMAP hbmpDib)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
+// Creates a memory object from a given DIB, which can be placed on the clipboard
+
+HANDLE CreateClipboardDib(HANDLE hDib, UINT *puFormat)
+{
+	if (hDib == NULL)
+		return NULL;
+
+	SIZE_T cbLen = GlobalSize((HGLOBAL)hDib);
+	if (cbLen == 0)
+		return NULL;
+
+	LPBYTE lpSrc = (LPBYTE)GlobalLock((HGLOBAL)hDib);
+	if (lpSrc == NULL)
+		return NULL;
+	
+	HGLOBAL hNewDib = NULL;
+	DWORD dwSrcHeaderSize = *(LPDWORD)lpSrc;
+
+	if (dwSrcHeaderSize == sizeof(BITMAPCOREHEADER))
+	{
+		// Create a new DIBv3 from a DIBv2
+		LPBITMAPCOREINFO lpbmci = (LPBITMAPCOREINFO)lpSrc;
+		UINT uColors = DibNumColors((LPCSTR)lpbmci);
+		UINT uImageSize = DibImageSize((LPCSTR)lpbmci);
+
+		hNewDib = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT | GMEM_DDESHARE,
+			sizeof(BITMAPINFOHEADER) + uColors * sizeof(RGBQUAD) + uImageSize);
+		if (hNewDib == NULL)
+		{
+			GlobalUnlock((HGLOBAL)hDib);
+			return NULL;
+		}
+
+		LPBYTE lpDest = (LPBYTE)GlobalLock(hNewDib);
+		if (lpDest == NULL)
+		{
+			GlobalFree(hNewDib);
+			GlobalUnlock((HGLOBAL)hDib);
+			return NULL;
+		}
+
+		LPBITMAPINFO lpbmi = (LPBITMAPINFO)lpDest;
+		lpbmi->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+		lpbmi->bmiHeader.biWidth = lpbmci->bmciHeader.bcWidth;
+		lpbmi->bmiHeader.biHeight = lpbmci->bmciHeader.bcHeight;
+		lpbmi->bmiHeader.biPlanes = lpbmci->bmciHeader.bcPlanes;
+		lpbmi->bmiHeader.biBitCount = lpbmci->bmciHeader.bcBitCount;
+		lpbmi->bmiHeader.biSizeImage = uImageSize;
+		lpbmi->bmiHeader.biClrUsed = uColors;
+
+		__try
+		{
+			if (uColors > 0)
+			{
+				RGBQUAD rgbQuad = {0};
+				for (UINT u = 0; u < uColors; u++)
+				{
+					rgbQuad.rgbRed = lpbmci->bmciColors[u].rgbtRed;
+					rgbQuad.rgbGreen = lpbmci->bmciColors[u].rgbtGreen;
+					rgbQuad.rgbBlue = lpbmci->bmciColors[u].rgbtBlue;
+					rgbQuad.rgbReserved = 0;
+					lpbmi->bmiColors[u] = rgbQuad;
+				}
+			}
+
+			CopyMemory(FindDibBits((LPCSTR)lpDest), FindDibBits((LPCSTR)lpSrc), uImageSize);
+		}
+		__except (EXCEPTION_EXECUTE_HANDLER) { ; }
+
+		GlobalUnlock(hNewDib);
+	}
+	else if (dwSrcHeaderSize == 52 || dwSrcHeaderSize == 56 || dwSrcHeaderSize == sizeof(BITMAPV4HEADER))
+	{
+		// Create a new DIBv5 from an extended DIBv3 or from a DIBv4
+		hNewDib = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT | GMEM_DDESHARE,
+			cbLen + sizeof(BITMAPV5HEADER) - dwSrcHeaderSize);
+		if (hNewDib == NULL)
+		{
+			GlobalUnlock((HGLOBAL)hDib);
+			return NULL;
+		}
+
+		LPBYTE lpDest = (LPBYTE)GlobalLock(hNewDib);
+		if (lpDest == NULL)
+		{
+			GlobalFree(hNewDib);
+			GlobalUnlock((HGLOBAL)hDib);
+			return NULL;
+		}
+
+		__try
+		{
+			CopyMemory(lpDest, lpSrc, dwSrcHeaderSize);
+			CopyMemory(lpDest + sizeof(BITMAPV5HEADER), lpSrc + dwSrcHeaderSize, cbLen - dwSrcHeaderSize);
+
+			// Update the v5 header with the new header size
+			((LPBITMAPV5HEADER)lpDest)->bV5Size = sizeof(BITMAPV5HEADER);
+
+			if (dwSrcHeaderSize == 52 || dwSrcHeaderSize == 56)
+				((LPBITMAPV5HEADER)lpDest)->bV5CSType = LCS_sRGB;
+		}
+		__except (EXCEPTION_EXECUTE_HANDLER) { ; }
+
+		GlobalUnlock(hNewDib);
+	}
+	else if (DibHasColorProfile((LPCSTR)lpSrc))
+	{
+		// The ICC profile data of a DIBv5 in memory must follow the color table
+		LPBITMAPV5HEADER lpbiv5 = (LPBITMAPV5HEADER)lpSrc;
+		DWORD dwInfoSize = lpbiv5->bV5Size + PaletteSize((LPCSTR)lpSrc);
+		DWORD dwProfileSize = lpbiv5->bV5ProfileSize;
+		SIZE_T cbImageSize = DibImageSize((LPCSTR)lpSrc);
+		SIZE_T cbDibSize = cbImageSize + dwInfoSize + dwProfileSize;
+
+		if (cbDibSize > cbLen)
+		{
+			GlobalUnlock((HGLOBAL)hDib);
+			return NULL;
+		}
+
+		hNewDib = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT | GMEM_DDESHARE, cbDibSize);
+		if (hNewDib == NULL)
+		{
+			GlobalUnlock((HGLOBAL)hDib);
+			return NULL;
+		}
+
+		LPBYTE lpDest = (LPBYTE)GlobalLock(hNewDib);
+		if (lpDest == NULL)
+		{
+			GlobalFree(hNewDib);
+			GlobalUnlock((HGLOBAL)hDib);
+			return NULL;
+		}
+
+		__try
+		{
+			CopyMemory(lpDest, lpSrc, dwInfoSize);
+			CopyMemory(lpDest + dwInfoSize, lpSrc + lpbiv5->bV5ProfileData, dwProfileSize);
+			CopyMemory(lpDest + dwInfoSize + dwProfileSize, FindDibBits((LPCSTR)lpSrc), cbImageSize);
+
+			// Update the header with the new position of the profile data
+			((LPBITMAPV5HEADER)lpDest)->bV5ProfileData = dwInfoSize;
+		}
+		__except (EXCEPTION_EXECUTE_HANDLER) { ; }
+
+		GlobalUnlock(hNewDib);
+	}
+	else
+	{
+		// Copy the packed DIB
+		hNewDib = GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE, cbLen);
+		if (hNewDib == NULL)
+		{
+			GlobalUnlock((HGLOBAL)hDib);
+			return NULL;
+		}
+
+		LPBYTE lpDest = (LPBYTE)GlobalLock(hNewDib);
+		if (lpDest == NULL)
+		{
+			GlobalFree(hNewDib);
+			GlobalUnlock((HGLOBAL)hDib);
+			return NULL;
+		}
+
+		__try { CopyMemory(lpDest, lpSrc, cbLen); }
+		__except (EXCEPTION_EXECUTE_HANDLER) { ; }
+
+		GlobalUnlock(hNewDib);
+	}
+
+	if (puFormat != NULL)
+		*puFormat = dwSrcHeaderSize <= sizeof(BITMAPINFOHEADER) ? CF_DIB : CF_DIBV5;
+
+	GlobalUnlock((HGLOBAL)hDib);
+
+	return (HANDLE)hNewDib;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
 // Creates a logical color palette from a given DIB
 
 HPALETTE CreateDibPalette(HANDLE hDib)
@@ -1228,7 +1409,7 @@ HPALETTE CreateDibPalette(HANDLE hDib)
 		}
 		else
 		{
-			LPRGBQUAD lprgbqColors = FindDibPalette(lpbi);
+			LPRGBQUAD lprgbqColors = (LPRGBQUAD)FindDibPalette(lpbi);
 			for (UINT i = 0; i < uNumColors; i++)
 			{
 				lpPal->palPalEntry[i].peRed = lprgbqColors[i].rgbRed;
@@ -1347,12 +1528,12 @@ UINT DibBitsOffset(LPCSTR lpbi)
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Returns a pointer to the DIBs color table 
 
-LPRGBQUAD FindDibPalette(LPCSTR lpbi)
+LPBYTE FindDibPalette(LPCSTR lpbi)
 {
 	if (lpbi == NULL)
 		return NULL;
 
-	return (LPRGBQUAD)((LPBYTE)lpbi + *(LPDWORD)lpbi + ColorMasksSize(lpbi));
+	return (LPBYTE)lpbi + *(LPDWORD)lpbi + ColorMasksSize(lpbi);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
