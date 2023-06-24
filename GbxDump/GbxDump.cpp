@@ -833,71 +833,12 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 
 				case IDC_THUMB_COPY:
 					{ // Copy the current thumbnail DIB to the clipboard
-						HGLOBAL hNewDib = NULL;
 						HANDLE hDib = g_hDibThumb ? g_hDibThumb : g_hDibDefault;
 						if (hDib == NULL)
 							return FALSE;
 
-						SIZE_T cbLen = GlobalSize((HGLOBAL)hDib);
-						if (cbLen == 0)
-							return FALSE;
-
-						LPBYTE lpSrc = (LPBYTE)GlobalLock((HGLOBAL)hDib);
-						BOOL bUseDIBV5 = (IS_WIN40_DIB(lpSrc) || IS_WIN50_DIB(lpSrc));
-
-						if (DibHasColorProfile((LPCSTR)lpSrc))
-						{ // The ICC profile data of a DIBv5 in memory must follow the color table
-							LPBITMAPV5HEADER lpbiv5 = (LPBITMAPV5HEADER)lpSrc;
-							DWORD dwInfoSize = lpbiv5->bV5Size + PaletteSize((LPCSTR)lpSrc);
-							DWORD dwProfileSize = lpbiv5->bV5ProfileSize;
-							SIZE_T cbImageSize = DibImageSize((LPCSTR)lpSrc);
-							SIZE_T cbDibSize = cbImageSize + dwInfoSize + dwProfileSize;
-
-							if (cbDibSize > cbLen)
-							{
-								GlobalUnlock((HGLOBAL)hDib);
-								return FALSE;
-							}
-
-							hNewDib = GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE, cbDibSize);
-							if (hNewDib == NULL)
-							{
-								GlobalUnlock((HGLOBAL)hDib);
-								return FALSE;
-							}
-
-							LPBYTE lpDest = (LPBYTE)GlobalLock((HGLOBAL)hNewDib);
-
-							__try
-							{
-								CopyMemory(lpDest, lpSrc, dwInfoSize);
-								CopyMemory(lpDest + dwInfoSize, lpSrc + lpbiv5->bV5ProfileData, dwProfileSize);
-								CopyMemory(lpDest + dwInfoSize + dwProfileSize, FindDibBits((LPCSTR)lpSrc), cbImageSize);
-								// Update the header with the new position of the profile data
-								((LPBITMAPV5HEADER)lpDest)->bV5ProfileData = dwInfoSize;
-							}
-							__except (EXCEPTION_EXECUTE_HANDLER) { ; }
-
-							GlobalUnlock((HGLOBAL)hNewDib);
-						}
-						else
-						{ // Create a copy of the packed DIB
-							hNewDib = GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE, cbLen);
-							if (hNewDib == NULL)
-							{
-								GlobalUnlock((HGLOBAL)hDib);
-								return FALSE;
-							}
-
-							LPBYTE lpDest = (LPBYTE)GlobalLock((HGLOBAL)hNewDib);
-
-							__try { CopyMemory(lpDest, lpSrc, cbLen); }
-							__except (EXCEPTION_EXECUTE_HANDLER) { ; }
-
-							GlobalUnlock((HGLOBAL)hNewDib);
-						}
-
-						GlobalUnlock((HGLOBAL)hDib);
+						UINT uFormat = CF_DIB;
+						HANDLE hNewDib = CreateClipboardDib(hDib, &uFormat);
 
 						if (!OpenClipboard(hDlg))
 						{
@@ -914,7 +855,7 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 							return FALSE;
 						}
 
-						if (SetClipboardData(bUseDIBV5 ? CF_DIBV5 : CF_DIB, (HANDLE)hNewDib) == NULL)
+						if (SetClipboardData(uFormat, hNewDib) == NULL)
 							GlobalFree((HGLOBAL)hNewDib);
 
 						CloseClipboard();
@@ -1042,17 +983,16 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 					{
 						LPBITMAPINFOHEADER lpbi = (LPBITMAPINFOHEADER)GlobalLock(g_hDibThumb);
 
-						if (lpbi == NULL || (!IS_OS2PM_DIB(lpbi) && !IS_WIN30_DIB(lpbi) &&
-							!IS_WIN40_DIB(lpbi) && !IS_WIN50_DIB(lpbi)) ||
-							(lpbi->biCompression != BI_RGB && lpbi->biCompression != BI_RLE4 &&
+						if (lpbi == NULL || (*(LPDWORD)(lpbi) >= sizeof(BITMAPINFOHEADER) &&
+							lpbi->biCompression != BI_RGB && lpbi->biCompression != BI_RLE4 &&
 							lpbi->biCompression != BI_RLE8 && lpbi->biCompression != BI_BITFIELDS))
 							EnableMenuItem(hmenuTrackPopup, IDC_THUMB_COPY, MF_BYCOMMAND | MF_GRAYED);
-						
+
 						// Format restrictions based on the used PNG writer
 						if (lpbi == NULL || lpbi->biSize < sizeof(BITMAPINFOHEADER) || lpbi->biBitCount < 8 ||
 							(lpbi->biCompression != BI_RGB && lpbi->biCompression != BI_BITFIELDS))
 							EnableMenuItem(hmenuTrackPopup, IDC_THUMB_SAVE, MF_BYCOMMAND | MF_GRAYED);
-						
+
 						GlobalUnlock(g_hDibThumb);
 					}
 					else
