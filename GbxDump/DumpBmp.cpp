@@ -266,13 +266,13 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("SizeImage:\t%u bytes\r\n"), lpbih->bV5SizeImage);
 
 		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("XPelsPerMeter:\t%d"), lpbih->bV5XPelsPerMeter);
-		if (lpbih->bV5XPelsPerMeter > 0)
+		if (lpbih->bV5XPelsPerMeter >= 20)
 			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT(" (%d dpi)"),
 				MulDiv(lpbih->bV5XPelsPerMeter, 127, 5000));
 		OutputText(hwndCtl, TEXT("\r\n"));
 			
 		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("YPelsPerMeter:\t%d"), lpbih->bV5YPelsPerMeter);
-		if (lpbih->bV5YPelsPerMeter > 0)
+		if (lpbih->bV5YPelsPerMeter >= 20)
 			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT(" (%d dpi)"),
 				MulDiv(lpbih->bV5YPelsPerMeter, 127, 5000));
 		OutputText(hwndCtl, TEXT("\r\n"));
@@ -393,8 +393,15 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		{
 			if (lpbih->bV5Compression == BI_BITFIELDS || lpbih->bV5Compression == BI_ALPHABITFIELDS)
 			{
+				if ((dwDibHeaderSize + ColorMasksSize(lpbi)) > dwDibSize)
+				{
+					GlobalUnlock(hDib);
+					GlobalFree(hDib);
+					return FALSE;
+				}
+
 				LPDWORD lpdwMasks = (LPDWORD)(lpbi + sizeof(BITMAPINFOHEADER));
-				
+
 				OutputText(hwndCtl, g_szSep1);
 				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("RedMask:\t%08X\r\n"), lpdwMasks[0]);
 				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("GreenMask:\t%08X\r\n"), lpdwMasks[1]);
@@ -509,6 +516,13 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 	UINT uNumColors = min(DibNumColors(lpbi), 4096);
 	if (uNumColors > 0)
 	{
+		if (DibBitsOffset(lpbi) > dwDibSize)
+		{
+			GlobalUnlock(hDib);
+			GlobalFree(hDib);
+			return FALSE;
+		}
+
 		OutputText(hwndCtl, g_szSep1);
 		int nWidthDec = uNumColors > 1000 ? 4 : (uNumColors > 100 ? 3 : (uNumColors > 10 ? 2 : 1));
 		int nWidthHex = uNumColors > 0x100 ? 3 : (uNumColors > 0x10 ? 2 : 1);
@@ -559,6 +573,14 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 
 	// Check for a gap between color table and bitmap bits
 	DWORD dwOffBits = dwFileHeaderSize + dwDibHeaderSize + ColorMasksSize(lpbi) + PaletteSize(lpbi);
+
+	if (((bfh.bfOffBits != 0 ? bfh.bfOffBits : dwOffBits) - dwFileHeaderSize) > dwDibSize)
+	{
+		GlobalUnlock(hDib);
+		GlobalFree(hDib);
+		return FALSE;
+	}
+
 	if (bfh.bfOffBits > dwOffBits)
 	{
 		DWORD dwGap = bfh.bfOffBits - dwOffBits;
@@ -574,45 +596,65 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 	{ // Color table overlaps bitmap bits
 		DWORD dwOverlap = dwOffBits - bfh.bfOffBits;
 
-		if (dwDibHeaderSize >= sizeof(BITMAPINFOHEADER))
-		{ // Adjust the number of color table entries
-			DWORD dwNumEntries = DibNumColors(lpbi);
-			DWORD dwAddEntries = dwOverlap / sizeof(RGBQUAD);
+		OutputText(hwndCtl, g_szSep1);
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Gap to pixels:\t-%u bytes\r\n"), dwOverlap);
 
-			if (dwNumEntries > dwAddEntries)
-				lpbih->bV5ClrUsed = dwNumEntries - dwAddEntries;
-		}
-		else
-		{ // Add the missing color table entries to the DIB
-			GlobalUnlock(hDib);
+		DWORD dwNumEntries = DibNumColors(lpbi);
+		if (dwNumEntries > 0)
+		{
+			if (dwDibHeaderSize == sizeof(BITMAPCOREHEADER))
+			{ // Add the missing color table entries to the DIB
+				dwDibSize += dwOverlap;
 
-			dwDibSize += dwOverlap;
-			HANDLE hTemp = GlobalReAlloc(hDib, dwDibSize, GHND);
-			if (hTemp == NULL)
-			{
-				GlobalFree(hDib);
-				return FALSE;
+				GlobalUnlock(hDib);
+				HANDLE hTemp = GlobalReAlloc(hDib, dwDibSize, GHND);
+				if (hTemp == NULL)
+				{
+					GlobalFree(hDib);
+					return FALSE;
+				}
+
+				hDib = hTemp;
+				lpbi = (LPSTR)GlobalLock(hDib);
+				lpbih = (LPBITMAPV5HEADER)lpbi;
+				if (lpbi == NULL)
+				{
+					GlobalFree(hDib);
+					return FALSE;
+				}
+
+				LPSTR lpOld = lpbi + bfh.bfOffBits - dwFileHeaderSize;
+				LPSTR lpNew = lpbi + dwOffBits - dwFileHeaderSize;
+
+				__try
+				{
+					MoveMemory(lpNew, lpOld, dwFileHeaderSize + dwDibSize - dwOffBits);
+					ZeroMemory(lpOld, dwOverlap);
+					bfh.bfOffBits = dwOffBits;
+				}
+				__except (EXCEPTION_EXECUTE_HANDLER) { ; }
 			}
+			else
+			{ // Adjust the number of color table entries
+				DWORD dwAddEntries = dwOverlap / sizeof(RGBQUAD);
 
-			hDib = hTemp;
-			lpbi = (LPSTR)GlobalLock(hDib);
-			lpbih = (LPBITMAPV5HEADER)lpbi;
-			if (lpbi == NULL)
-			{
-				GlobalFree(hDib);
-				return FALSE;
+				if (dwNumEntries > dwAddEntries)
+					lpbih->bV5ClrUsed = dwNumEntries - dwAddEntries;
 			}
-
-			MoveMemory(lpbi + dwOffBits, lpbi + bfh.bfOffBits, dwDibSize - dwOffBits);
-			ZeroMemory(lpbi + bfh.bfOffBits, dwOverlap);
-			bfh.bfOffBits = dwOffBits;
 		}
 	}
 
 	// Output the profile data
-	if (DibHasColorProfile(lpbi) && dwDibSize > lpbih->bV5ProfileData)
+	if (DibHasColorProfile(lpbi))
 	{
-		// First check for a gap between bitmap bits and profile data
+		if ((lpbih->bV5ProfileData + lpbih->bV5ProfileSize) > dwDibSize)
+		{
+			GlobalUnlock(hDib);
+			GlobalFree(hDib);
+			return FALSE;
+		}
+
+		// Check for a gap between bitmap bits and profile data
 		DWORD dwProfileData = DibBitsOffset(lpbi) + DibImageSize(lpbi);
 		if (lpbih->bV5ProfileData > dwProfileData)
 		{
