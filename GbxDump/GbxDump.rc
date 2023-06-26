@@ -65,7 +65,7 @@ IDI_GBXDUMP             ICON                    "GbxDump.ico"
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,72,3,117
+ FILEVERSION 1,72,4,118
  PRODUCTVERSION 1,0,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
@@ -84,7 +84,7 @@ BEGIN
             VALUE "Comments", "GBX file header viewer application"
             VALUE "CompanyName", "Electron"
             VALUE "FileDescription", "Gbx File Dumper"
-            VALUE "FileVersion", "1.72.3.117"
+            VALUE "FileVersion", "1.72.4.118"
             VALUE "InternalName", "GbxDump"
             VALUE "LegalCopyright", "Copyright © 2010-2023 by Electron"
             VALUE "OriginalFilename", "GbxDump.exe"
@@ -172,7 +172,7 @@ STRINGTABLE
 BEGIN
     IDS_GER_FILTER_GBX      "GameBox, NadeoPak (*.Gbx;*.pak)|*.gbx;*.pak|Maps (*.Map.Gbx;*.Challenge.Gbx)|*.map.gbx;*.challenge.gbx|Replays (*.Replay.Gbx)|*.replay.gbx|Pakete (*.Pack.Gbx;*.pak)|*.pack.gbx;*.pak|Items (*.Item.gbx)|*.item.gbx|Objekte (*.ObjectInfo.gbx)|*.objectinfo.gbx|Blöcke (*.Block.Gbx;*.Macroblock.Gbx)|*.block.gbx;*.macroblock.gbx|DirectDraw Surface (*.dds)|*.dds|Windows Bitmap (*.bmp)|*.bmp|JPEG (*.jpg;*.jpeg)|*.jpg;*.jpeg|WebP (*.webp)|*.webp|Alle Dateien (*.*)|*.*||"
     IDS_GER_FILTER_PNG      "Portable Network Graphics (*.png)|*.png||"
-    IDP_GER_ERR_READ        "Fehler beim Lesen oder parsen der Datei.\r\n"
+    IDP_GER_ERR_READ        "Fehler beim Parsen der Datei.\r\n"
     IDP_GER_ERR_MAGIC       "Dateisignatur nicht gefunden. Dies ist keine gültige GameBox-Datei.\r\n"
     IDP_GER_ERR_VERSION     "Nicht unterstützte oder fehlerhafte Dateiversion!\r\n"
     IDP_GER_ERR_UNAVAIL     "Diese Dateiversion unterstützt keine Benutzerdaten im Dateikopf.\r\n"
@@ -263,7 +263,7 @@ STRINGTABLE
 BEGIN
     IDS_ENG_FILTER_GBX      "GameBox, NadeoPak (*.Gbx;*.pak)|*.gbx;*.pak|Maps (*.Map.Gbx;*.Challenge.Gbx)|*.map.gbx;*.challenge.gbx|Replays (*.Replay.Gbx)|*.replay.gbx|Packs (*.Pack.Gbx;*.pak)|*.pack.gbx;*.pak|Items (*.Item.gbx)|*.item.gbx|Objects (*.ObjectInfo.gbx)|*.objectinfo.gbx|Blocks (*.Block.Gbx;*.Macroblock.Gbx)|*.block.gbx;*.macroblock.gbx|DirectDraw Surface (*.dds)|*.dds|Windows Bitmap (*.bmp)|*.bmp|JPEG (*.jpg;*.jpeg)|*.jpg;*.jpeg|WebP (*.webp)|*.webp|All Files (*.*)|*.*||"
     IDS_ENG_FILTER_PNG      "Portable Network Graphics (*.png)|*.png||"
-    IDP_ENG_ERR_READ        "Error while reading or parsing the file.\r\n"
+    IDP_ENG_ERR_READ        "Error while parsing the file.\r\n"
     IDP_ENG_ERR_MAGIC       "File signature not found. This is not a valid GameBox file.\r\n"
     IDP_ENG_ERR_VERSION     "Unsupported or incorrect file version!\r\n"
     IDP_ENG_ERR_UNAVAIL     "This file version does not support header user data.\r\n"
