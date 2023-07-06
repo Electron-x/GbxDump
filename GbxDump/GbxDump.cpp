@@ -70,7 +70,7 @@ BOOL AllowDarkModeForWindow(HWND hwndParent, BOOL bAllow);
 #endif
 
 const TCHAR g_szTitle[]    = TEXT("GbxDump");
-const TCHAR g_szAbout[]    = TEXT("Gbx File Dumper 1.72.4 (") PLATFORM TEXT(")\r\n")
+const TCHAR g_szAbout[]    = TEXT("Gbx File Dumper 1.72.5 (") PLATFORM TEXT(")\r\n")
                              TEXT("Copyright © 2010-2023 by Electron\r\n");
 const TCHAR g_szDlgCls[]   = TEXT("GbxDumpDlgClass");
 const TCHAR g_szTop[]      = TEXT("GbxDumpWndTop");
