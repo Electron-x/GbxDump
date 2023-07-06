@@ -143,6 +143,54 @@ typedef struct
 } BITMAPV3INFOHEADER, FAR* LPBITMAPV3INFOHEADER, *PBITMAPV3INFOHEADER;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
+// ICC profile header declarations
+
+#define INTENT_PERCEPTUAL               0
+#define INTENT_RELATIVE_COLORIMETRIC    1
+#define INTENT_SATURATION               2
+#define INTENT_ABSOLUTE_COLORIMETRIC    3
+
+#define FLAG_EMBEDDEDPROFILE            0x00000001
+#define FLAG_DEPENDENTONDATA            0x00000002
+#define FLAG_MCSNEEDSSUBSET             0x00000004
+
+#define ATTRIB_TRANSPARENCY             0x00000001
+#define ATTRIB_MATTE                    0x00000002
+#define ATTRIB_MEDIANEGATIVE            0x00000004
+#define ATTRIB_MEDIABLACKANDWHITE       0x00000008
+#define ATTRIB_NONPAPERBASED            0x00000010
+#define ATTRIB_TEXTURED                 0x00000020
+#define ATTRIB_NONISOTROPIC             0x00000040
+#define ATTRIB_SELFLUMINOUS             0x00000080
+
+typedef struct
+{
+    DWORD   phSize;
+    DWORD   phCMMType;
+    DWORD   phVersion;
+    DWORD   phClass;
+    DWORD   phDataColorSpace;
+    DWORD   phConnectionSpace;
+    DWORD   phDateTime[3];
+    DWORD   phSignature;
+    DWORD   phPlatform;
+    DWORD   phProfileFlags;
+    DWORD   phManufacturer;
+    DWORD   phModel;
+    DWORD   phAttributes[2];
+    DWORD   phRenderingIntent;
+    CIEXYZ  phIlluminant;
+    DWORD   phCreator;
+    BYTE    phProfileID[16];
+    DWORD   phSpectralPCS;
+    WORD    phSpectralRange[3];
+    WORD    phBiSpectralRange[3];
+    DWORD   phMCS;
+    DWORD   phDeviceSubClass;
+    BYTE    phReserved[4];
+} PROFILEHEADER, FAR* LPPROFILEHEADER, *PPROFILEHEADER;
+
+////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma pack(pop)
 
