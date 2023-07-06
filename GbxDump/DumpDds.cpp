@@ -348,7 +348,7 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		if (dwFlags != 0 && dwFlags != ddsh.dwHeaderFlags)
 		{
 			_sntprintf(szFlags, _countof(szFlags), TEXT("%08X"), dwFlags);
-			szFlags[FLAGS_LEN - 1] = TEXT('\0');
+			szFlags[FLAGS_LEN - 1] = chNil;
 			AppendFlagName(szOutput, _countof(szOutput), szFlags);
 		}
 
@@ -489,7 +489,7 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 			if (dwFlags != 0 && dwFlags != ddsh.ddspf.dwFlags)
 			{
 				_sntprintf(szFlags, _countof(szFlags), TEXT("%08X"), dwFlags);
-				szFlags[FLAGS_LEN - 1] = TEXT('\0');
+				szFlags[FLAGS_LEN - 1] = chNil;
 				AppendFlagName(szOutput, _countof(szOutput), szFlags);
 			}
 
@@ -563,7 +563,7 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 			if (dwFlags != 0 && dwFlags != ddsh.dwCaps)
 			{
 				_sntprintf(szFlags, _countof(szFlags), TEXT("%08X"), dwFlags);
-				szFlags[FLAGS_LEN - 1] = TEXT('\0');
+				szFlags[FLAGS_LEN - 1] = chNil;
 				AppendFlagName(szOutput, _countof(szOutput), szFlags);
 			}
 
@@ -625,7 +625,7 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 			if (dwFlags != 0 && dwFlags != ddsh.dwCaps2)
 			{
 				_sntprintf(szFlags, _countof(szFlags), TEXT("%08X"), dwFlags);
-				szFlags[FLAGS_LEN - 1] = TEXT('\0');
+				szFlags[FLAGS_LEN - 1] = chNil;
 				AppendFlagName(szOutput, _countof(szOutput), szFlags);
 			}
 
@@ -715,7 +715,7 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 			if (dwFlags != 0 && dwFlags != ddsexth.miscFlag)
 			{
 				_sntprintf(szFlags, _countof(szFlags), TEXT("%08X"), dwFlags);
-				szFlags[FLAGS_LEN - 1] = TEXT('\0');
+				szFlags[FLAGS_LEN - 1] = chNil;
 				AppendFlagName(szOutput, _countof(szOutput), szFlags);
 			}
 
