@@ -27,6 +27,7 @@
 BOOL IsDibSupported(LPCSTR lpbi);
 DWORD QueryDibSupport(LPCSTR lpbi);
 void MarkAsUnsupported(HWND hwndCtl);
+void PrintProfileSignature(HWND hwndCtl, LPCTSTR lpszName, DWORD dwSignature);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // DumpBitmap is called by DumpFile from GbxDump.cpp
@@ -159,7 +160,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		
 		// Perform some sanity checks
 		UINT64 ullBitsSize = WIDTHBYTES((UINT64)lpbch->bcWidth * lpbch->bcPlanes * lpbch->bcBitCount) * lpbch->bcHeight;
-		if (ullBitsSize == 0 || ullBitsSize > 0x40000000 || lpbch->bcPlanes > 4 || lpbch->bcBitCount > 32)
+		if (ullBitsSize == 0 || ullBitsSize > 0x80000000 || lpbch->bcPlanes > 4 || lpbch->bcBitCount > 32)
 			bIsUnsupportedFormat = TRUE;
 	}
 
@@ -175,7 +176,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		bIsUnsupportedFormat = !IsDibSupported(lpbi);
 		// Perform some additional sanity checks
 		INT64 llBitsSize = WIDTHBYTES((INT64)lpbih->bV5Width * lpbih->bV5Planes * lpbih->bV5BitCount) * abs(lpbih->bV5Height);
-		if (llBitsSize <= 0 || llBitsSize > 0x40000000L || lpbih->bV5Planes > 4)
+		if (llBitsSize <= 0 || llBitsSize > 0x80000000L || lpbih->bV5Planes > 4)
 			bIsUnsupportedFormat = TRUE;
 
 		// lpbih->bV5Compression &= ~BI_SRCPREROTATE;
@@ -681,53 +682,195 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		}
 		else if (lpbih->bV5CSType == PROFILE_EMBEDDED)
 		{
-			const int COLUMNS = 16;
-			const int FORMAT_LEN = 256;
-
-			SIZE_T i, j, c;
-			SIZE_T cbLen = min(min(lpbih->bV5ProfileSize, dwDibSize - lpbih->bV5ProfileData), 0x10000);
-			PBYTE pData = (PBYTE)(lpbi + lpbih->bV5ProfileData);
-			PBYTE pByte = pData;
-			TCHAR szFormat[FORMAT_LEN];
-
-			OutputText(hwndCtl, g_szSep1);
-
-			// Output a hex dump of the ICC profile
-			for (i = 0; i < cbLen; i += COLUMNS)
+			if (lpbih->bV5ProfileSize < sizeof(PROFILEHEADER))
 			{
-				c = ((cbLen - i) > COLUMNS) ? COLUMNS : cbLen - i;
+				GlobalUnlock(hDib);
+				GlobalFree(hDib);
+				return FALSE;
+			}
 
-				// Address
-				_sntprintf(szOutput, _countof(szOutput), TEXT("%04IX| "), i);
-				szOutput[OUTPUT_LEN - 1] = TEXT('\0');
+			// Output the ICC profile header
+			LPPROFILEHEADER lpph = (LPPROFILEHEADER)(lpbi + lpbih->bV5ProfileData);
 
-				// Hex dump
-				for (j = c, pByte = pData + i; j--; pByte++)
+			if (_byteswap_ulong(lpph->phSignature) == 'acsp')
+			{
+				OutputText(hwndCtl, g_szSep1);
+
+				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("ProfileSize:\t%u bytes\r\n"),
+					_byteswap_ulong(lpph->phSize));
+
+				PrintProfileSignature(hwndCtl, TEXT("CMMType:\t"), lpph->phCMMType);
+
+				WORD wVersion = HIWORD(_byteswap_ulong(lpph->phVersion));
+				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Version:\t%u.%u.%u\r\n"),
+					HIBYTE(wVersion), (LOBYTE(wVersion) >> 4) & 0xF, LOBYTE(wVersion) & 0xF);
+
+				PrintProfileSignature(hwndCtl, TEXT("DeviceClass:\t"), lpph->phClass);
+				PrintProfileSignature(hwndCtl, TEXT("ColorSpace:\t"), lpph->phDataColorSpace);
+				PrintProfileSignature(hwndCtl, TEXT("PCS:\t\t"), lpph->phConnectionSpace);
+
+				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput),
+					TEXT("DateTime:\t%02u-%02u-%02u %02u:%02u:%02u\r\n"),
+					_byteswap_ushort(LOWORD(lpph->phDateTime[0])),
+					_byteswap_ushort(HIWORD(lpph->phDateTime[0])),
+					_byteswap_ushort(LOWORD(lpph->phDateTime[1])),
+					_byteswap_ushort(HIWORD(lpph->phDateTime[1])),
+					_byteswap_ushort(LOWORD(lpph->phDateTime[2])),
+					_byteswap_ushort(HIWORD(lpph->phDateTime[2])));
+
+				PrintProfileSignature(hwndCtl, TEXT("Signature:\t"), lpph->phSignature);
+				PrintProfileSignature(hwndCtl, TEXT("Platform:\t"), lpph->phPlatform);
+
+				DWORD dwProfileFlags = _byteswap_ulong(lpph->phProfileFlags);
+				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("ProfileFlags:\t%08X"), dwProfileFlags);
+				if (dwProfileFlags != 0)
 				{
-					_sntprintf(szFormat, _countof(szFormat), TEXT("%02X "), *pByte);
-					szFormat[FORMAT_LEN - 1] = TEXT('\0');
-					_tcsncat(szOutput, szFormat, _countof(szOutput) - _tcslen(szOutput) - 4);
+					szOutput[0] = TEXT('\0');
+					DWORD dwFlags = dwProfileFlags;
+					if (dwProfileFlags & FLAG_EMBEDDEDPROFILE)
+					{
+						dwFlags ^= FLAG_EMBEDDEDPROFILE;
+						AppendFlagName(szOutput, _countof(szOutput), TEXT("EMBEDDEDPROFILE"));
+					}
+					if (dwProfileFlags & FLAG_DEPENDENTONDATA)
+					{
+						dwFlags ^= FLAG_DEPENDENTONDATA;
+						AppendFlagName(szOutput, _countof(szOutput), TEXT("DEPENDENTONDATA"));
+					}
+					if (dwProfileFlags & FLAG_MCSNEEDSSUBSET)
+					{
+						dwFlags ^= FLAG_MCSNEEDSSUBSET;
+						AppendFlagName(szOutput, _countof(szOutput), TEXT("MCSNEEDSSUBSET"));
+					}
+					if (dwFlags != 0 && dwFlags != dwProfileFlags)
+					{
+						const int FLAGS_LEN = 32;
+						TCHAR szFlags[FLAGS_LEN];
+						_sntprintf(szFlags, _countof(szFlags), TEXT("%08X"), dwFlags);
+						szFlags[FLAGS_LEN - 1] = TEXT('\0');
+						AppendFlagName(szOutput, _countof(szOutput), szFlags);
+					}
+					if (szOutput[0] != TEXT('\0'))
+					{
+						OutputText(hwndCtl, TEXT(" ("));
+						OutputText(hwndCtl, szOutput);
+						OutputText(hwndCtl, TEXT(")"));
+					}
+				}
+				OutputText(hwndCtl, TEXT("\r\n"));
+
+				PrintProfileSignature(hwndCtl, TEXT("Manufacturer:\t"), lpph->phManufacturer);
+				PrintProfileSignature(hwndCtl, TEXT("Model:\t\t"), lpph->phModel);
+
+				UINT64 ullAttributes = _byteswap_ulong(lpph->phAttributes[0]);
+				ullAttributes |= (UINT64)_byteswap_ulong(lpph->phAttributes[1]) << 32;
+				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Attributes:\t%016llX"), ullAttributes);
+				if (ullAttributes != 0)
+				{
+					szOutput[0] = TEXT('\0');
+					UINT64 ullFlags = ullAttributes;
+					if (ullAttributes & ATTRIB_TRANSPARENCY)
+					{
+						ullFlags ^= ATTRIB_TRANSPARENCY;
+						AppendFlagName(szOutput, _countof(szOutput), TEXT("TRANSPARENCY"));
+					}
+					if (ullAttributes & ATTRIB_MATTE)
+					{
+						ullFlags ^= ATTRIB_MATTE;
+						AppendFlagName(szOutput, _countof(szOutput), TEXT("MATTE"));
+					}
+					if (ullAttributes & ATTRIB_MEDIANEGATIVE)
+					{
+						ullFlags ^= ATTRIB_MEDIANEGATIVE;
+						AppendFlagName(szOutput, _countof(szOutput), TEXT("MEDIANEGATIVE"));
+					}
+					if (ullAttributes & ATTRIB_MEDIABLACKANDWHITE)
+					{
+						ullFlags ^= ATTRIB_MEDIABLACKANDWHITE;
+						AppendFlagName(szOutput, _countof(szOutput), TEXT("MEDIABLACKANDWHITE"));
+					}
+					if (ullAttributes & ATTRIB_NONPAPERBASED)
+					{
+						ullFlags ^= ATTRIB_NONPAPERBASED;
+						AppendFlagName(szOutput, _countof(szOutput), TEXT("NONPAPERBASED"));
+					}
+					if (ullAttributes & ATTRIB_TEXTURED)
+					{
+						ullFlags ^= ATTRIB_TEXTURED;
+						AppendFlagName(szOutput, _countof(szOutput), TEXT("TEXTURED"));
+					}
+					if (ullAttributes & ATTRIB_NONISOTROPIC)
+					{
+						ullFlags ^= ATTRIB_NONISOTROPIC;
+						AppendFlagName(szOutput, _countof(szOutput), TEXT("NONISOTROPIC"));
+					}
+					if (ullAttributes & ATTRIB_SELFLUMINOUS)
+					{
+						ullFlags ^= ATTRIB_SELFLUMINOUS;
+						AppendFlagName(szOutput, _countof(szOutput), TEXT("SELFLUMINOUS"));
+					}
+					if (ullFlags != 0 && ullFlags != ullAttributes)
+					{
+						const int FLAGS_LEN = 32;
+						TCHAR szFlags[FLAGS_LEN];
+						_sntprintf(szFlags, _countof(szFlags), TEXT("%016llX"), ullFlags);
+						szFlags[FLAGS_LEN - 1] = TEXT('\0');
+						AppendFlagName(szOutput, _countof(szOutput), szFlags);
+					}
+					if (szOutput[0] != TEXT('\0'))
+					{
+						OutputText(hwndCtl, TEXT(" ("));
+						OutputText(hwndCtl, szOutput);
+						OutputText(hwndCtl, TEXT(")"));
+					}
+				}
+				OutputText(hwndCtl, TEXT("\r\n"));
+
+				DWORD dwhRenderingIntent = _byteswap_ulong(lpph->phRenderingIntent);
+				OutputText(hwndCtl, TEXT("Intent:\t\t"));
+				switch (dwhRenderingIntent)
+				{
+					case INTENT_PERCEPTUAL:
+						OutputText(hwndCtl, TEXT("PERCEPTUAL"));
+						break;
+					case INTENT_RELATIVE_COLORIMETRIC:
+						OutputText(hwndCtl, TEXT("RELATIVE_COLORIMETRIC"));
+						break;
+					case INTENT_SATURATION:
+						OutputText(hwndCtl, TEXT("SATURATION"));
+						break;
+					case INTENT_ABSOLUTE_COLORIMETRIC:
+						OutputText(hwndCtl, TEXT("ABSOLUTE_COLORIMETRIC"));
+						break;
+					default:
+						OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%u"), dwhRenderingIntent);
+				}
+				OutputText(hwndCtl, TEXT("\r\n"));
+
+				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput),
+					TEXT("Illuminant:\t%.4f, %.4f, %.4f\r\n"),
+					(double)(LONG32)_byteswap_ulong(lpph->phIlluminant.ciexyzX) / 0x10000,
+					(double)(LONG32)_byteswap_ulong(lpph->phIlluminant.ciexyzY) / 0x10000,
+					(double)(LONG32)_byteswap_ulong(lpph->phIlluminant.ciexyzZ) / 0x10000);
+
+				PrintProfileSignature(hwndCtl, TEXT("Creator:\t"), lpph->phCreator);
+
+				if (wVersion >= 0x0400)
+				{
+					ZeroMemory(szOutput, sizeof(szOutput));
+					for (SIZE_T i = 0; i < sizeof(lpph->phProfileID); i++)
+						_sntprintf(szOutput, _countof(szOutput), TEXT("%s%02X"), (LPTSTR)szOutput, lpph->phProfileID[i]);
+					OutputText(hwndCtl, TEXT("ProfileID:\t"));
+					OutputText(hwndCtl, szOutput);
+					OutputText(hwndCtl, TEXT("\r\n"));
 				}
 
-				for (j = COLUMNS - c; j--; )
-					_tcsncat(szOutput, TEXT("   "), _countof(szOutput) - _tcslen(szOutput) - 4);
-
-				_tcsncat(szOutput, TEXT("|"), _countof(szOutput) - _tcslen(szOutput) - 4);
-
-				// ASCII dump
-				for (j = c, pByte = pData + i; j--; pByte++)
+				if (wVersion >= 0x0500)
 				{
-					_sntprintf(szFormat, _countof(szFormat), TEXT("%hc"), isprint(*pByte) ? *pByte : '.');
-					szFormat[FORMAT_LEN - 1] = TEXT('\0');
-					_tcsncat(szOutput, szFormat, _countof(szOutput) - _tcslen(szOutput) - 4);
+					PrintProfileSignature(hwndCtl, TEXT("SpectralPCS:\t"), lpph->phSpectralPCS);
+					PrintProfileSignature(hwndCtl, TEXT("MCS:\t\t"), lpph->phMCS);
+					PrintProfileSignature(hwndCtl, TEXT("DeviceSubClass:\t"), lpph->phDeviceSubClass);
 				}
-
-				for (j = COLUMNS - c; j--; )
-					_tcsncat(szOutput, TEXT(" "), _countof(szOutput) - _tcslen(szOutput) - 4);
-
-				_tcsncat(szOutput, TEXT("|\r\n"), _countof(szOutput) - _tcslen(szOutput) - 1);
-
-				OutputText(hwndCtl, szOutput);
 			}
 		}
 	}
@@ -815,6 +958,52 @@ static void MarkAsUnsupported(HWND hwndCtl)
 	SetWindowText(hwndThumb, szText);
 	if (InvalidateRect(hwndThumb, NULL, FALSE))
 		UpdateWindow(hwndThumb);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Outputs an ICC profile signature given in big-endian format
+
+void PrintProfileSignature(HWND hwndCtl, LPCTSTR lpszName, DWORD dwSignature)
+{
+	TCHAR szOutput[OUTPUT_LEN];
+
+	if (hwndCtl == NULL)
+		return;
+
+	if (lpszName != NULL)
+		OutputText(hwndCtl, lpszName);
+
+	if (dwSignature == 0)
+		OutputText(hwndCtl, TEXT("0"));
+	else
+		if (isprint(dwSignature & 0xff) &&
+			isprint((dwSignature >>  8) & 0xff) &&
+			isprint((dwSignature >> 16) & 0xff) &&
+			isprint((dwSignature >> 24) & 0xff))
+		{
+			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput),
+				TEXT("%hc%hc%hc%hc"),
+				(char)(dwSignature & 0xff),
+				(char)((dwSignature >>  8) & 0xff),
+				(char)((dwSignature >> 16) & 0xff),
+				(char)((dwSignature >> 24) & 0xff));
+		}
+		else
+			if (isprint(dwSignature & 0xff) &&
+				isprint((dwSignature >> 8) & 0xff))
+			{
+				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput),
+					TEXT("%hc%hc%02X%02X"),
+					(char)(dwSignature & 0xff),
+					(char)((dwSignature >>  8) & 0xff),
+					(BYTE)((dwSignature >> 16) & 0xff),
+					(BYTE)((dwSignature >> 24) & 0xff));
+			}
+			else
+				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput),
+					TEXT("%08X"), _byteswap_ulong(dwSignature));
+
+	OutputText(hwndCtl, TEXT("\r\n"));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
