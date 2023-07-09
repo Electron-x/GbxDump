@@ -186,7 +186,7 @@ typedef struct
     WORD    phSpectralRange[3];
     WORD    phBiSpectralRange[3];
     DWORD   phMCS;
-    DWORD   phDeviceSubClass;
+    DWORD   phSubClass;
     BYTE    phReserved[4];
 } PROFILEHEADER, FAR* LPPROFILEHEADER, *PPROFILEHEADER;
 
