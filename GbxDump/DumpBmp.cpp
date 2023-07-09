@@ -28,6 +28,7 @@ BOOL IsDibSupported(LPCSTR lpbi);
 DWORD QueryDibSupport(LPCSTR lpbi);
 void MarkAsUnsupported(HWND hwndCtl);
 void PrintProfileSignature(HWND hwndCtl, LPCTSTR lpszName, DWORD dwSignature);
+float Half2Float(WORD h);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // DumpBitmap is called by DumpFile from GbxDump.cpp
@@ -108,7 +109,10 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		return FALSE;
 	}
 
-	// Read the DIB
+	// Read the entire DIB. This is somewhat easier than allocating new memory for each component
+	// of the DIB. Instead, before reading a new section, we check to see if there is enough data
+	// available for it. We could predict this at this point, but with a truncated file, we still
+	// want as much data as possible displayed. We get a packed DIB by modifying the color table.
 	if (!ReadData(hFile, lpbi, dwDibSize))
 	{
 		GlobalUnlock(hDib);
@@ -701,11 +705,16 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 
 				PrintProfileSignature(hwndCtl, TEXT("CMMType:\t"), lpph->phCMMType);
 
-				WORD wVersion = HIWORD(_byteswap_ulong(lpph->phVersion));
+				DWORD dwVersion = _byteswap_ulong(lpph->phVersion);
+				WORD wProfileVersion = HIWORD(dwVersion);
+				WORD wSubClassVersion = LOWORD(dwVersion);
 				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Version:\t%u.%u.%u\r\n"),
-					HIBYTE(wVersion), (LOBYTE(wVersion) >> 4) & 0xF, LOBYTE(wVersion) & 0xF);
+					HIBYTE(wProfileVersion), (LOBYTE(wProfileVersion) >> 4) & 0xF, LOBYTE(wProfileVersion) & 0xF);
+				if (wProfileVersion >= 0x0500 && lpph->phSubClass != 0)
+					OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("SubVersion:\t%u.%u\r\n"),
+						HIBYTE(wSubClassVersion), LOBYTE(wSubClassVersion));
 
-				PrintProfileSignature(hwndCtl, TEXT("DeviceClass:\t"), lpph->phClass);
+				PrintProfileSignature(hwndCtl, TEXT("Class:\t\t"), lpph->phClass);
 				PrintProfileSignature(hwndCtl, TEXT("ColorSpace:\t"), lpph->phDataColorSpace);
 				PrintProfileSignature(hwndCtl, TEXT("PCS:\t\t"), lpph->phConnectionSpace);
 
@@ -855,7 +864,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 
 				PrintProfileSignature(hwndCtl, TEXT("Creator:\t"), lpph->phCreator);
 
-				if (wVersion >= 0x0400)
+				if (wProfileVersion >= 0x0400)
 				{
 					ZeroMemory(szOutput, sizeof(szOutput));
 					for (SIZE_T i = 0; i < sizeof(lpph->phProfileID); i++)
@@ -865,11 +874,24 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 					OutputText(hwndCtl, TEXT("\r\n"));
 				}
 
-				if (wVersion >= 0x0500)
+				if (wProfileVersion >= 0x0500)
 				{
 					PrintProfileSignature(hwndCtl, TEXT("SpectralPCS:\t"), lpph->phSpectralPCS);
+
+					OutputTextFmt(hwndCtl, szOutput, _countof(szOutput),
+						TEXT("SpectralRange:\t%g nm - %g nm, %u steps\r\n"),
+						Half2Float(_byteswap_ushort(lpph->phSpectralRange[0])),
+						Half2Float(_byteswap_ushort(lpph->phSpectralRange[1])),
+						_byteswap_ushort(lpph->phSpectralRange[2]));
+
+					OutputTextFmt(hwndCtl, szOutput, _countof(szOutput),
+						TEXT("BiSpectrRange:\t%g nm - %g nm, %u steps\r\n"),
+						Half2Float(_byteswap_ushort(lpph->phBiSpectralRange[0])),
+						Half2Float(_byteswap_ushort(lpph->phBiSpectralRange[1])),
+						_byteswap_ushort(lpph->phBiSpectralRange[2]));
+
 					PrintProfileSignature(hwndCtl, TEXT("MCS:\t\t"), lpph->phMCS);
-					PrintProfileSignature(hwndCtl, TEXT("DeviceSubClass:\t"), lpph->phDeviceSubClass);
+					PrintProfileSignature(hwndCtl, TEXT("SubClass:\t"), lpph->phSubClass);
 				}
 			}
 		}
@@ -1004,6 +1026,17 @@ void PrintProfileSignature(HWND hwndCtl, LPCTSTR lpszName, DWORD dwSignature)
 					TEXT("%08X"), _byteswap_ulong(dwSignature));
 
 	OutputText(hwndCtl, TEXT("\r\n"));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Converts a half-precision floating-point number to a single-precision float.
+// Special values like subnormals, infinities, NaN's and -0 are not supported.
+
+float Half2Float(WORD h)
+{
+	DWORD f = h ? ((h & 0x8000) << 16) | (((h & 0x7C00) + 0x1C000) << 13) | ((h & 0x03FF) << 13) : 0;
+
+	return *((float*)((void*)&f));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
