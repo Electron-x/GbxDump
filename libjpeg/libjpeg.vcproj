@@ -298,11 +298,63 @@
 				>
 			</File>
 			<File
+				RelativePath=".\jcapistd.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jcarith.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jccoefct.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jccolor.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jcdctmgr.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jchuff.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jcinit.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jcmainct.c"
+				>
+			</File>
+			<File
 				RelativePath=".\jcmarker.c"
 				>
 			</File>
 			<File
+				RelativePath=".\jcmaster.c"
+				>
+			</File>
+			<File
 				RelativePath=".\jcomapi.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jcparam.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jcprepct.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jcsample.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jctrans.c"
 				>
 			</File>
 			<File
@@ -315,6 +367,10 @@
 			</File>
 			<File
 				RelativePath=".\jdarith.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jdatadst.c"
 				>
 			</File>
 			<File
@@ -371,6 +427,18 @@
 			</File>
 			<File
 				RelativePath=".\jerror.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jfdctflt.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jfdctfst.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jfdctint.c"
 				>
 			</File>
 			<File

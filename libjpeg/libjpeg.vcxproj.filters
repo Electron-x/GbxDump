@@ -105,6 +105,57 @@
     <ClCompile Include="jcmarker.c">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="jcapistd.c">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="jcarith.c">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="jccoefct.c">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="jccolor.c">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="jcdctmgr.c">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="jchuff.c">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="jcinit.c">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="jcmainct.c">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="jcmaster.c">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="jcparam.c">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="jcprepct.c">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="jcsample.c">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="jctrans.c">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="jdatadst.c">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="jfdctflt.c">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="jfdctfst.c">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="jfdctint.c">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="jconfig.h">
