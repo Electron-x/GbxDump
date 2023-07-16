@@ -230,7 +230,8 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 	static HFONT    s_hfontDlgCurr = NULL;
 	static HFONT    s_hfontEditBox = NULL;
 	static HWND     s_hwndSizeBox = NULL;
-	static DWORD    s_dwFilterIndex = 1;
+	static DWORD    s_dwLoadFilterIndex = 1;
+	static DWORD    s_dwSaveFilterIndex = 1;
 	static char     s_szUid[UID_LENGTH];
 	static char     s_szEnvi[ENVI_LENGTH];
 	static TCHAR    s_szFileName[MAX_PATH];
@@ -744,7 +745,7 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 
 				case IDC_OPEN:
 					{
-						if (GetFileName(hDlg, s_szFileName, _countof(s_szFileName), &s_dwFilterIndex))
+						if (GetFileName(hDlg, s_szFileName, _countof(s_szFileName), &s_dwLoadFilterIndex))
 						{
 							HCURSOR hOldCursor = SetCursor(LoadCursor(NULL, IDC_WAIT));
 							HWND hwndCtl = GetDlgItem(hDlg, IDC_OUTPUT);
@@ -864,16 +865,23 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 					return FALSE;
 
 				case IDC_THUMB_SAVE:
-					{ // Save the current thumbnail as a PNG file
-						DWORD dwFilterIndex = 1;
+					{ // Save the current thumbnail as a PNG or BMP file
 						TCHAR szFileName[MAX_PATH];
 						MyStrNCpy(szFileName, s_szFileName, _countof(szFileName));
 
-						if (GetFileName(hDlg, szFileName, _countof(szFileName), &dwFilterIndex, TRUE))
+						if (GetFileName(hDlg, szFileName, _countof(szFileName), &s_dwSaveFilterIndex, TRUE))
 						{
+							BOOL bSuccess = FALSE;
 							HCURSOR hOldCursor = SetCursor(LoadCursor(NULL, IDC_WAIT));
-							SavePngFile(szFileName, g_hDibThumb ? g_hDibThumb : g_hDibDefault);
+
+							if (s_dwSaveFilterIndex == 1)
+								bSuccess = SavePngFile(szFileName, g_hDibThumb ? g_hDibThumb : g_hDibDefault);
+							else
+								bSuccess = SaveBmpFile(szFileName, g_hDibThumb ? g_hDibThumb : g_hDibDefault);
+
 							SetCursor(hOldCursor);
+							if (!bSuccess)
+								MessageBeep(MB_ICONEXCLAMATION);
 						}
 					}
 					return FALSE;
@@ -983,14 +991,14 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 					{
 						LPBITMAPINFOHEADER lpbi = (LPBITMAPINFOHEADER)GlobalLock(g_hDibThumb);
 
-						if (lpbi == NULL || (*(LPDWORD)(lpbi) >= sizeof(BITMAPINFOHEADER) &&
+						if (lpbi == NULL || (lpbi->biSize >= sizeof(BITMAPINFOHEADER) &&
 							lpbi->biCompression != BI_RGB && lpbi->biCompression != BI_RLE4 &&
 							lpbi->biCompression != BI_RLE8 && lpbi->biCompression != BI_BITFIELDS))
 							EnableMenuItem(hmenuTrackPopup, IDC_THUMB_COPY, MF_BYCOMMAND | MF_GRAYED);
 
 						// Format restrictions based on the used PNG writer
-						if (lpbi == NULL || lpbi->biSize < sizeof(BITMAPINFOHEADER) || lpbi->biBitCount < 8 ||
-							(lpbi->biCompression != BI_RGB && lpbi->biCompression != BI_BITFIELDS))
+						if (lpbi == NULL || (lpbi->biSize >= sizeof(BITMAPINFOHEADER) &&
+							(lpbi->biCompression != BI_RGB && lpbi->biCompression != BI_BITFIELDS)))
 							EnableMenuItem(hmenuTrackPopup, IDC_THUMB_SAVE, MF_BYCOMMAND | MF_GRAYED);
 
 						GlobalUnlock(g_hDibThumb);
@@ -1480,39 +1488,9 @@ BOOL DumpJpeg(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 	SetCursor(hOldCursor);
 
 	if (hDib != NULL)
-	{
-		if (g_hBitmapThumb != NULL)
-			FreeBitmap(g_hBitmapThumb);
-		g_hBitmapThumb = NULL;
-
-		if (g_hDibThumb != NULL)
-			FreeDib(g_hDibThumb);
-		g_hDibThumb = hDib;
-
-		// View the thumbnail immediately
-		HWND hwndThumb = GetDlgItem(GetParent(hwndCtl), IDC_THUMB);
-		if (hwndThumb != NULL)
-		{
-			if (InvalidateRect(hwndThumb, NULL, FALSE))
-				UpdateWindow(hwndThumb);
-		}
-	}
+		ReplaceThumbnail(hwndCtl, hDib);
 	else
-	{
-		// Draw "UNSUPPORTED FORMAT" lettering over the default thumbnail image
-		HWND hwndThumb = GetDlgItem(GetParent(hwndCtl), IDC_THUMB);
-		if (hwndThumb != NULL)
-		{
-			TCHAR szText[256];
-			if (LoadString(g_hInstance, g_bGerUI ? IDS_GER_UNSUPPORTED : IDS_ENG_UNSUPPORTED,
-				szText, _countof(szText)) > 0)
-			{
-				SetWindowText(hwndThumb, szText);
-				if (InvalidateRect(hwndThumb, NULL, FALSE))
-					UpdateWindow(hwndThumb);
-			}
-		}
-	}
+		MarkAsUnsupported(hwndCtl);
 
 	MyGlobalFreePtr(lpData);
 
@@ -1554,39 +1532,9 @@ BOOL DumpWebP(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 	SetCursor(hOldCursor);
 
 	if (hDib != NULL)
-	{
-		if (g_hBitmapThumb != NULL)
-			FreeBitmap(g_hBitmapThumb);
-		if (g_hDibThumb != NULL)
-			FreeDib(g_hDibThumb);
-
-		g_hDibThumb = hDib;
-		g_hBitmapThumb = CreatePremultipliedBitmap(hDib);
-
-		// View the thumbnail immediately
-		HWND hwndThumb = GetDlgItem(GetParent(hwndCtl), IDC_THUMB);
-		if (hwndThumb != NULL)
-		{
-			if (InvalidateRect(hwndThumb, NULL, FALSE))
-				UpdateWindow(hwndThumb);
-		}
-	}
+		ReplaceThumbnail(hwndCtl, hDib);
 	else
-	{
-		// Draw "UNSUPPORTED FORMAT" lettering over the default thumbnail image
-		HWND hwndThumb = GetDlgItem(GetParent(hwndCtl), IDC_THUMB);
-		if (hwndThumb != NULL)
-		{
-			TCHAR szText[256];
-			if (LoadString(g_hInstance, g_bGerUI ? IDS_GER_UNSUPPORTED : IDS_ENG_UNSUPPORTED,
-				szText, _countof(szText)) > 0)
-			{
-				SetWindowText(hwndThumb, szText);
-				if (InvalidateRect(hwndThumb, NULL, FALSE))
-					UpdateWindow(hwndThumb);
-			}
-		}
-	}
+		MarkAsUnsupported(hwndCtl);
 
 	MyGlobalFreePtr(lpData);
 

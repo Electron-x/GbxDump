@@ -3693,40 +3693,17 @@ BOOL CollectorIconChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckIcon)
 
 	// Decode the thumbnail image
 	HANDLE hDib = NULL;
+	HCURSOR hOldCursor = SetCursor(LoadCursor(NULL, IDC_WAIT));
+
 	__try { hDib = WebpToDib(lpData, dwImageSize, TRUE); }
 	__except (EXCEPTION_EXECUTE_HANDLER) { hDib = NULL; }
+
+	SetCursor(hOldCursor);
+
 	if (hDib != NULL)
-	{
-		if (g_hBitmapThumb != NULL)
-			FreeBitmap(g_hBitmapThumb);
-		if (g_hDibThumb != NULL)
-			FreeDib(g_hDibThumb);
-
-		g_hDibThumb = hDib;
-		g_hBitmapThumb = CreatePremultipliedBitmap(hDib);
-
-		// View the thumbnail immediately
-		HWND hwndThumb = GetDlgItem(GetParent(hwndCtl), IDC_THUMB);
-		if (hwndThumb != NULL)
-		{
-			if (InvalidateRect(hwndThumb, NULL, FALSE))
-				UpdateWindow(hwndThumb);
-		}
-	}
+		ReplaceThumbnail(hwndCtl, hDib);
 	else
-	{
-		// Draw "UNSUPPORTED FORMAT" lettering over the default thumbnail image
-		HWND hwndThumb = GetDlgItem(GetParent(hwndCtl), IDC_THUMB);
-		if (hwndThumb != NULL)
-		{
-			if (LoadString(g_hInstance, g_bGerUI ? IDS_GER_UNSUPPORTED : IDS_ENG_UNSUPPORTED, szOutput, _countof(szOutput)) > 0)
-			{
-				SetWindowText(hwndThumb, szOutput);
-				if (InvalidateRect(hwndThumb, NULL, FALSE))
-					UpdateWindow(hwndThumb);
-			}
-		}
-	}
+		MarkAsUnsupported(hwndCtl);
 
 	MyGlobalFreePtr(lpData);
 

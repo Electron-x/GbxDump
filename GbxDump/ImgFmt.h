@@ -50,4 +50,7 @@ LPBYTE FindDibBits(LPCSTR lpbi);
 BOOL DibHasColorProfile(LPCSTR lpbi);
 BOOL IsDibVideoCompressed(LPCSTR lpbi);
 
+void MarkAsUnsupported(HWND hwndCtl);
+void ReplaceThumbnail(HWND hwndCtl, HANDLE hDib);
+
 ////////////////////////////////////////////////////////////////////////////////////////////////

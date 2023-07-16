@@ -804,39 +804,9 @@ BOOL DisplayDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize, BOOL bShowTextureD
 	SetCursor(hOldCursor);
 
 	if (hDib != NULL)
-	{
-		if (g_hBitmapThumb != NULL)
-			FreeBitmap(g_hBitmapThumb);
-		if (g_hDibThumb != NULL)
-			FreeDib(g_hDibThumb);
-
-		g_hDibThumb = hDib;
-		g_hBitmapThumb = CreatePremultipliedBitmap(hDib);
-
-		// View the thumbnail immediately
-		HWND hwndThumb = GetDlgItem(GetParent(hwndCtl), IDC_THUMB);
-		if (hwndThumb != NULL)
-		{
-			if (InvalidateRect(hwndThumb, NULL, FALSE))
-				UpdateWindow(hwndThumb);
-		}
-	}
+		ReplaceThumbnail(hwndCtl, hDib);
 	else
-	{
-		// Draw "UNSUPPORTED FORMAT" lettering over the default thumbnail image
-		HWND hwndThumb = GetDlgItem(GetParent(hwndCtl), IDC_THUMB);
-		if (hwndThumb != NULL)
-		{
-			TCHAR szText[256];
-			if (LoadString(g_hInstance, g_bGerUI ? IDS_GER_UNSUPPORTED : IDS_ENG_UNSUPPORTED,
-				szText, _countof(szText)) > 0)
-			{
-				SetWindowText(hwndThumb, szText);
-				if (InvalidateRect(hwndThumb, NULL, FALSE))
-					UpdateWindow(hwndThumb);
-			}
-		}
-	}
+		MarkAsUnsupported(hwndCtl);
 
 	MyGlobalFreePtr(lpData);
 

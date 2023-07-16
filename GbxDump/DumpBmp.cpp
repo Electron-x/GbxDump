@@ -26,7 +26,6 @@
 
 BOOL IsDibSupported(LPCSTR lpbi);
 DWORD QueryDibSupport(LPCSTR lpbi);
-void MarkAsUnsupported(HWND hwndCtl);
 void PrintProfileSignature(HWND hwndCtl, LPCTSTR lpszName, DWORD dwSignature, BOOL bAddCrLf = TRUE);
 float Half2Float(WORD h);
 
@@ -86,6 +85,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		}
 	}
 
+	// Output the file header
 	OutputText(hwndCtl, g_szSep1);
 	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Type:\t\t%hc%hc\r\n"),
 		LOBYTE(bfh.bfType), HIBYTE(bfh.bfType));
@@ -151,7 +151,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 
 	// Since we don't perform format conversions here, all formats
 	// that the GDI cannot directly display are marked as unsupported
-	BOOL bIsUnsupportedFormat = FALSE;
+	BOOL bIsDibSupported = TRUE;
 
 	if (dwDibHeaderSize == sizeof(BITMAPCOREHEADER))
 	{ // OS/2 Version 1.1 Bit-map (DIBv2)
@@ -164,8 +164,8 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		
 		// Perform some sanity checks
 		UINT64 ullBitsSize = WIDTHBYTES((UINT64)lpbch->bcWidth * lpbch->bcPlanes * lpbch->bcBitCount) * lpbch->bcHeight;
-		if (ullBitsSize == 0 || ullBitsSize > 0x80000000 || lpbch->bcPlanes > 4 || lpbch->bcBitCount > 32)
-			bIsUnsupportedFormat = TRUE;
+		if (ullBitsSize == 0 || ullBitsSize > 0x80000000 || lpbch->bcBitCount > 64)
+			bIsDibSupported = FALSE;
 	}
 
 	if (dwDibHeaderSize >= sizeof(BITMAPINFOHEADER))
@@ -176,12 +176,12 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("BitCount:\t%u bpp\r\n"), lpbih->bV5BitCount);
 
 		// Use the QUERYDIBSUPPORT escape function to determine whether GDI
-		// can display this DIB. The Escape does not support OS/2-style DIBs.
-		bIsUnsupportedFormat = !IsDibSupported(lpbi);
+		// can display this DIB. The Escape doesn't support OS/2-style DIBs.
+		bIsDibSupported = IsDibSupported(lpbi);
 		// Perform some additional sanity checks
 		INT64 llBitsSize = WIDTHBYTES((INT64)lpbih->bV5Width * lpbih->bV5Planes * lpbih->bV5BitCount) * abs(lpbih->bV5Height);
-		if (llBitsSize <= 0 || llBitsSize > 0x80000000L || lpbih->bV5Planes > 4)
-			bIsUnsupportedFormat = TRUE;
+		if (llBitsSize <= 0 || llBitsSize > 0x80000000L)
+			bIsDibSupported = FALSE;
 
 		// lpbih->bV5Compression &= ~BI_SRCPREROTATE;
 		DWORD dwCompression = lpbih->bV5Compression;
@@ -217,7 +217,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 				isprint((dwCompression >> 24) & 0xff))
 			{ // biCompression contains a FourCC code
 				// Not supported by GDI, but may be rendered by VfW DrawDibDraw
-				bIsUnsupportedFormat = FALSE;
+				bIsDibSupported = TRUE;
 				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%hc%hc%hc%hc"),
 					(char)(dwCompression & 0xff),
 					(char)((dwCompression >>  8) & 0xff),
@@ -287,7 +287,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 	}
 
 	// The size of the OS/2 2.0 header can be reduced from its full size of
-	// 64 bytes down to 16 bytes. Omitted fields are assumed to have a value
+	// 64 bytes down to 16 bytes. Omitted members are assumed to have a value
 	// of zero. However, we only support bitmaps with full header here.
 	if (dwDibHeaderSize == sizeof(BITMAPINFOHEADER2))
 	{ // OS/2 Version 2.0 Bit-map
@@ -362,14 +362,15 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 			return TRUE;
 		}
 
-		// Downsize an uncompressed OS/2 2.0 bitmap to a DIBv3
+		// An uncompressed OS/2 2.0 bitmap can be converted to a
+		// DIBv3 simply by removing the additional header members
 		MoveMemory(lpbi + sizeof(BITMAPINFOHEADER), lpbi + dwDibHeaderSize, dwDibSize - dwDibHeaderSize);
 
 		DWORD dwDiff = dwDibHeaderSize - sizeof(BITMAPINFOHEADER);
 		dwDibSize -= dwDiff;
 		dwDibHeaderSize -= dwDiff;
 		lpbih->bV5Size = dwDibHeaderSize;
-		if (bfh.bfOffBits != 0 && bfh.bfOffBits > dwDiff)
+		if (bfh.bfOffBits > dwDiff)
 			bfh.bfOffBits -= dwDiff;
 
 		GlobalUnlock(hDib);
@@ -389,7 +390,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 			return FALSE;
 		}
 
-		bIsUnsupportedFormat = FALSE;
+		bIsDibSupported = TRUE;
 	}
 
 	if (dwDibHeaderSize == sizeof(BITMAPINFOHEADER))
@@ -695,8 +696,9 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 
 			// Output the ICC profile header
 			LPPROFILEHEADER lpph = (LPPROFILEHEADER)(lpbi + lpbih->bV5ProfileData);
+			DWORD dwVersion = _byteswap_ulong(lpph->phVersion);
 
-			if (_byteswap_ulong(lpph->phSignature) != 'acsp')
+			if (_byteswap_ulong(lpph->phSignature) != 'acsp' && dwVersion != 0x00000100)
 				goto Exit;
 
 			OutputText(hwndCtl, g_szSep1);
@@ -705,16 +707,14 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 
 			PrintProfileSignature(hwndCtl, TEXT("CMMType:\t"), lpph->phCMMType);
 
-			DWORD dwVersion = _byteswap_ulong(lpph->phVersion);
-			WORD wProfileVersion = HIWORD(dwVersion);
-			WORD wSubClassVersion = LOWORD(dwVersion);
-
 			if (dwVersion == 0x00000100)
 			{ // Apple ColorSync 1.0 profile
 				OutputText(hwndCtl, TEXT("Version:\t1.0\r\n"));
-				goto Exit;
+				goto Exit; // No more identical header members
 			}
 
+			WORD wProfileVersion  = HIWORD(dwVersion);
+			WORD wSubClassVersion = LOWORD(dwVersion);
 			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Version:\t%u.%u.%u\r\n"),
 				HIBYTE(wProfileVersion), (LOBYTE(wProfileVersion) >> 4) & 0xF, LOBYTE(wProfileVersion) & 0xF);
 			if (wProfileVersion >= 0x0500 && lpph->phSubClass != 0)
@@ -941,32 +941,13 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 Exit:
 	GlobalUnlock(hDib);
 
-	if (bIsUnsupportedFormat)
+	if (bIsDibSupported)
+		ReplaceThumbnail(hwndCtl, hDib);
+	else
 	{
 		GlobalFree(hDib);
 		MarkAsUnsupported(hwndCtl);
-		return TRUE;
 	}
-
-	if (g_hBitmapThumb != NULL)
-		FreeBitmap(g_hBitmapThumb);
-	if (g_hDibThumb != NULL)
-		FreeDib(g_hDibThumb);
-
-	// Save the DIB without further changes for display using
-	// StretchDIBits or DrawDibDraw
-	g_hDibThumb = hDib;
-	// Check the DIB for transparent pixels and create an additional
-	// pre-multiplied bitmap for the AlphaBlend function if needed
-	g_hBitmapThumb = CreatePremultipliedBitmap(hDib);
-
-	HWND hwndThumb = GetDlgItem(GetParent(hwndCtl), IDC_THUMB);
-	if (hwndThumb == NULL)
-		return TRUE;
-
-	// Display the DIB immediately
-	if (InvalidateRect(hwndThumb, NULL, FALSE))
-		UpdateWindow(hwndThumb);
 
 	return TRUE;
 }
@@ -1004,24 +985,6 @@ static DWORD QueryDibSupport(LPCSTR lpbi)
 	ReleaseDC(NULL, hdc);
 
 	return dwFlags;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////
-// Draws "UNSUPPORTED FORMAT" lettering over the default thumbnail image
-
-static void MarkAsUnsupported(HWND hwndCtl)
-{
-	HWND hwndThumb = GetDlgItem(GetParent(hwndCtl), IDC_THUMB);
-	if (hwndThumb == NULL)
-		return;
-
-	TCHAR szText[256];
-	if (!LoadString(g_hInstance, g_bGerUI ? IDS_GER_UNSUPPORTED : IDS_ENG_UNSUPPORTED, szText, _countof(szText)))
-		return;
-
-	SetWindowText(hwndThumb, szText);
-	if (InvalidateRect(hwndThumb, NULL, FALSE))
-		UpdateWindow(hwndThumb);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////

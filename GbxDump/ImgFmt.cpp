@@ -42,7 +42,10 @@ BYTE GetColorValue(DWORD dwPixel, DWORD dwMask);
 
 BOOL GetFileName(HWND hDlg, LPTSTR lpszFileName, SIZE_T cchStringLen, LPDWORD lpdwFilterIndex, BOOL bSave)
 {
-	// Filter String
+	if (lpszFileName == NULL || lpdwFilterIndex == NULL)
+		return FALSE;
+
+	// Filter string
 	TCHAR szFilter[1024] = {0};
 	if (bSave)
 		LoadString(g_hInstance, g_bGerUI ? IDS_GER_FILTER_PNG : IDS_ENG_FILTER_PNG, szFilter, _countof(szFilter));
@@ -52,10 +55,10 @@ BOOL GetFileName(HWND hDlg, LPTSTR lpszFileName, SIZE_T cchStringLen, LPDWORD lp
 	while (psz = _tcschr(psz, TEXT('|')))
 		*psz++ = TEXT('\0');
 
-	// Initial Directory
+	// Initial directory
 	TCHAR szInitialDir[MAX_PATH] = {0};
 	TCHAR* pszInitialDir = szInitialDir;
-	if (lpszFileName != NULL && lpszFileName[0] != TEXT('\0'))
+	if (lpszFileName[0] != TEXT('\0'))
 	{
 		MyStrNCpy(pszInitialDir, lpszFileName, _countof(szInitialDir));
 		TCHAR* token = _tcsrchr(pszInitialDir, TEXT('\\'));
@@ -67,18 +70,19 @@ BOOL GetFileName(HWND hDlg, LPTSTR lpszFileName, SIZE_T cchStringLen, LPDWORD lp
 	else
 		pszInitialDir = NULL;
 
-	// File Name
+	// File name
 	TCHAR szFile[MAX_PATH];
 	if (bSave)
 	{
-		if (lpszFileName != NULL && lpszFileName[0] != TEXT('\0'))
+		if (lpszFileName[0] != TEXT('\0'))
 			MyStrNCpy(szFile, lpszFileName, _countof(szFile));
 		else
 			_tcscpy(szFile, TEXT("*"));
 		TCHAR* token = _tcsrchr(szFile, TEXT('.'));
 		if (token != NULL)
 			szFile[token - szFile] = TEXT('\0');
-		_tcsncat(szFile, TEXT(".png"), _countof(szFile)-_tcslen(szFile)-1);
+		_tcsncat(szFile, *lpdwFilterIndex == 1 ? TEXT(".png") : TEXT(".bmp"),
+			_countof(szFile) - _tcslen(szFile) - 1);
 	}
 	else
 		szFile[0] = TEXT('\0');
@@ -90,8 +94,8 @@ BOOL GetFileName(HWND hDlg, LPTSTR lpszFileName, SIZE_T cchStringLen, LPDWORD lp
 	of.lpstrFile       = szFile;
 	of.nMaxFile        = _countof(szFile);
 	of.lpstrFilter     = szFilter;
-	of.nFilterIndex    = (lpdwFilterIndex != NULL) ? *lpdwFilterIndex : 1;
-	of.lpstrDefExt     = bSave ? TEXT("png") : TEXT("gbx");
+	of.nFilterIndex    = *lpdwFilterIndex;
+	of.lpstrDefExt     = bSave ? (*lpdwFilterIndex == 1 ? TEXT("png") : TEXT("bmp")) : TEXT("gbx");
 	of.lpstrInitialDir = pszInitialDir;
 
 	BOOL bRet = FALSE;
@@ -113,10 +117,8 @@ BOOL GetFileName(HWND hDlg, LPTSTR lpszFileName, SIZE_T cchStringLen, LPDWORD lp
 
 	if (bRet)
 	{
-		if (lpszFileName != NULL)
-			MyStrNCpy(lpszFileName, szFile, (int)cchStringLen);
-		if (lpdwFilterIndex != NULL)
-			*lpdwFilterIndex = of.nFilterIndex;
+		MyStrNCpy(lpszFileName, szFile, (int)cchStringLen);
+		*lpdwFilterIndex = of.nFilterIndex;
 	}
 
 	return bRet;
@@ -138,16 +140,12 @@ BOOL SaveBmpFile(LPCTSTR lpszFileName, HANDLE hDib)
 	DWORD dwBitsSize = DibImageSize(lpbi);
 	DWORD dwDibSize = dwOffBits + dwBitsSize;
 
-	if (IS_WIN50_DIB(lpbi))
+	if (DibHasColorProfile(lpbi))
 	{
 		LPBITMAPV5HEADER lpbiv5 = (LPBITMAPV5HEADER)lpbi;
-		if (lpbiv5->bV5ProfileData != 0 && lpbiv5->bV5ProfileSize != 0 &&
-			(lpbiv5->bV5CSType == PROFILE_LINKED || lpbiv5->bV5CSType == PROFILE_EMBEDDED))
-		{
-			if (lpbiv5->bV5ProfileData > dwDibSize)
-				dwDibSize += lpbiv5->bV5ProfileData - dwDibSize;
-			dwDibSize += lpbiv5->bV5ProfileSize;
-		}
+		if (lpbiv5->bV5ProfileData > dwDibSize)
+			dwDibSize += lpbiv5->bV5ProfileData - dwDibSize;
+		dwDibSize += lpbiv5->bV5ProfileSize;
 	}
 
 	BITMAPFILEHEADER bmfHdr = {0};
@@ -188,8 +186,8 @@ BOOL SaveBmpFile(LPCTSTR lpszFileName, HANDLE hDib)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Saves a DIB as a PNG file using miniz. Supports only 8-bit grayscale,
-// 16-bit, 24-bit and 32-bit color images. There is no support for ICC profiles.
+// Saves a DIB as a PNG file using miniz. Creates images with 8-bit grayscale, 24-bit color,
+// and 32-bit color with alpha channel only. Color tables or color spaces are not supported.
 
 BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDib)
 {
@@ -200,16 +198,20 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDib)
 	if (lpbi == NULL)
 		return FALSE;
 
-	if (lpbi->biSize < sizeof(BITMAPINFOHEADER) || lpbi->biBitCount < 8 ||
+	if (lpbi->biSize >= sizeof(BITMAPINFOHEADER) &&
 		(lpbi->biCompression != BI_RGB && lpbi->biCompression != BI_BITFIELDS))
 	{
 		GlobalUnlock(hDib);
 		return FALSE;
 	}
 
+	LPBITMAPCOREHEADER lpbc = (LPBITMAPCOREHEADER)lpbi;
+	BOOL bIsCore = IS_OS2PM_DIB(lpbi);
+	LONG lWidth = bIsCore ? lpbc->bcWidth : lpbi->biWidth;
+	LONG lHeight = bIsCore ? lpbc->bcHeight : lpbi->biHeight;
+	WORD wBitCount = bIsCore ? lpbc->bcBitCount : lpbi->biBitCount;
 	BOOL bFlipImage = FALSE;
-	LONG lWidth = lpbi->biWidth;
-	LONG lHeight = lpbi->biHeight;
+
 	if (lWidth < 0)
 		lWidth = -lWidth;
 	if (lHeight < 0)
@@ -222,10 +224,10 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDib)
 		((LPBITMAPV4HEADER)lpbi)->bV4CSType == LCS_DEVICE_CMYK;
 
 	// CMYK DIBs must be converted to RGB
-	INT nNumChannels = bIsCMYK ? 3 : lpbi->biBitCount >> 3;
+	INT nNumChannels = bIsCMYK ? 3 : max(wBitCount >> 3, 1);
 
 	// 16-bit bitmaps are saved with 3 channels (or 4, if there is an alpha channel)
-	LONG lSizeImage = lHeight * lWidth * (lpbi->biBitCount == 16 ? 4 : nNumChannels);
+	LONG lSizeImage = lHeight * lWidth * (wBitCount == 16 ? 4 : nNumChannels);
 	if (lSizeImage == 0)
 	{
 		GlobalUnlock(hDib);
@@ -244,24 +246,55 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDib)
 	LPBYTE lpSrc, lpDest;
 	LPDWORD lpdwColorMasks;
 	DWORD dwColor, dwRedMask, dwGreenMask, dwBlueMask, dwAlphaMask;
-	DWORD dwIncrement = WIDTHBYTES(lWidth * lpbi->biBitCount);
+	DWORD dwIncrement = WIDTHBYTES(lWidth * wBitCount);
 
 	__try
 	{
 		switch (nNumChannels)
 		{
-			case 1:
-				for (h = 0; h < lHeight; h++)
+			case 1: // 1-, 4-, or 8-bpp DIB --> 8-bpp grayscale PNG; requires a sorted color table
+				if (wBitCount == 8)
 				{
-					lpSrc = lpDIB + (ULONG_PTR)(bFlipImage ? h : lHeight-1 - h) * dwIncrement;
-					lpDest = lpRGBA + (ULONG_PTR)h * lWidth * nNumChannels;
-					for (w = 0; w < lWidth; w++)
-						*lpDest++ = *lpSrc++;
+					for (h = 0; h < lHeight; h++)
+					{
+						lpSrc = lpDIB + (ULONG_PTR)(bFlipImage ? h : lHeight-1 - h) * dwIncrement;
+						lpDest = lpRGBA + (ULONG_PTR)h * lWidth * nNumChannels;
+						for (w = 0; w < lWidth; w++)
+							*lpDest++ = *lpSrc++;
+					}
 				}
+				else if (wBitCount == 4)
+				{
+					for (h = 0; h < lHeight; h++)
+					{
+						lpSrc = lpDIB + (ULONG_PTR)(bFlipImage ? h : lHeight-1 - h) * dwIncrement;
+						lpDest = lpRGBA + (ULONG_PTR)h * lWidth * nNumChannels;
+						for (w = 0; w < lWidth; w += 2)
+						{
+							*lpDest++ = ((*lpSrc >> 4) & 0x0F) * 0x11;
+							*lpDest++ = (*lpSrc++ & 0x0F) * 0x11;
+						}
+					}
+				}
+				else if (wBitCount == 1)
+				{
+					for (h = 0; h < lHeight; h++)
+					{
+						lpSrc = lpDIB + (ULONG_PTR)(bFlipImage ? h : lHeight-1 - h) * dwIncrement;
+						lpDest = lpRGBA + (ULONG_PTR)h * lWidth * nNumChannels;
+						for (w = 0; w < lWidth; w += 8)
+						{
+							for (int b = 0; b < 8; b++)
+								*lpDest++ = ((*lpSrc >> (7 - b)) & 1) ? 0xFF : 0x00;
+							lpSrc++;
+						}
+					}
+				}
+
 				break;
 
-			case 2:
-				if (lpbi->biCompression == BI_BITFIELDS)
+			case 2: // 16-bpp DIB --> 24- or 32-bpp PNG
+				if (!bIsCore && lpbi->biCompression == BI_BITFIELDS)
 				{
 					lpdwColorMasks = (LPDWORD)&(((LPBITMAPINFO)lpbi)->bmiColors[0]);
 					dwRedMask      = lpdwColorMasks[0];
@@ -297,7 +330,7 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDib)
 
 				break;
 
-			case 3:
+			case 3: // 24-bpp RGB or 32-bpp CMYK DIB --> 24-bpp PNG
 				if (bIsCMYK)
 				{
 					BYTE cInvKey;
@@ -330,10 +363,11 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDib)
 						}
 					}
 				}
+
 				break;
 
-			case 4:
-				if (lpbi->biCompression == BI_BITFIELDS)
+			case 4: // 32-bpp DIB --> 32-bpp PNG
+				if (!bIsCore && lpbi->biCompression == BI_BITFIELDS)
 				{
 					lpdwColorMasks = (LPDWORD)&(((LPBITMAPINFO)lpbi)->bmiColors[0]);
 					dwRedMask      = lpdwColorMasks[0];
@@ -1043,26 +1077,33 @@ HBITMAP CreatePremultipliedBitmap(HANDLE hDib)
 	if (lpbi == NULL)
 		return NULL;
 
-	if (lpbi->biSize < sizeof(BITMAPINFOHEADER) ||
-		(lpbi->biBitCount != 16 && lpbi->biBitCount != 32) ||
-		(lpbi->biCompression != BI_RGB && lpbi->biCompression != BI_BITFIELDS) ||
+	LPBITMAPCOREHEADER lpbc = (LPBITMAPCOREHEADER)lpbi;
+	BOOL bIsCore = IS_OS2PM_DIB(lpbi);
+	WORD wBitCount = bIsCore ? lpbc->bcBitCount : lpbi->biBitCount;
+
+	if ((wBitCount != 16 && wBitCount != 32) ||
+		(lpbi->biSize >= sizeof(BITMAPINFOHEADER) &&
+		(lpbi->biCompression != BI_RGB && lpbi->biCompression != BI_BITFIELDS)) ||
 		(lpbi->biSize >= sizeof(BITMAPV4HEADER) &&
-			((LPBITMAPV4HEADER)lpbi)->bV4CSType == LCS_DEVICE_CMYK))
+		((LPBITMAPV4HEADER)lpbi)->bV4CSType == LCS_DEVICE_CMYK))
 	{
 		GlobalUnlock(hDib);
 		return NULL;
 	}
 
-	LONG lWidth = abs(lpbi->biWidth);
-	LONG lHeight = abs(lpbi->biHeight);
+	LONG lWidth = bIsCore ? lpbc->bcWidth : lpbi->biWidth;
+	LONG lHeight = bIsCore ? lpbc->bcHeight : lpbi->biHeight;
 
 	BITMAPINFO bmi = {0};
 	bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-	bmi.bmiHeader.biWidth = lpbi->biWidth;
-	bmi.bmiHeader.biHeight = lpbi->biHeight;
+	bmi.bmiHeader.biWidth = lWidth;
+	bmi.bmiHeader.biHeight = lHeight;
 	bmi.bmiHeader.biPlanes = 1;
 	bmi.bmiHeader.biBitCount = 32;
 	bmi.bmiHeader.biCompression = BI_RGB;
+
+	lWidth = abs(lWidth);
+	lHeight = abs(lHeight);
 
 	LPBYTE lpBGRA = NULL;
 	LPBYTE lpDIB = FindDibBits((LPCSTR)lpbi);
@@ -1079,15 +1120,15 @@ HBITMAP CreatePremultipliedBitmap(HANDLE hDib)
 	LPBYTE lpSrc, lpDest;
 	LPDWORD lpdwColorMasks;
 	DWORD dwColor, dwRedMask, dwGreenMask, dwBlueMask, dwAlphaMask;
-	DWORD dwIncrement = WIDTHBYTES(lWidth * lpbi->biBitCount);
+	DWORD dwIncrement = WIDTHBYTES(lWidth * wBitCount);
 	BOOL bHasVisiblePixels = FALSE;
 	BOOL bHasTransparentPixels = FALSE;
 
 	__try
 	{
-		if (lpbi->biBitCount == 16)
+		if (wBitCount == 16)
 		{
-			if (lpbi->biCompression == BI_BITFIELDS)
+			if (!bIsCore && lpbi->biCompression == BI_BITFIELDS)
 			{
 				lpdwColorMasks = (LPDWORD)&(((LPBITMAPINFO)lpbi)->bmiColors[0]);
 				dwRedMask      = lpdwColorMasks[0];
@@ -1124,9 +1165,9 @@ HBITMAP CreatePremultipliedBitmap(HANDLE hDib)
 				}
 			}
 		}
-		else if(lpbi->biBitCount == 32)
+		else if (wBitCount == 32)
 		{
-			if (lpbi->biCompression == BI_BITFIELDS)
+			if (!bIsCore && lpbi->biCompression == BI_BITFIELDS)
 			{
 				lpdwColorMasks = (LPDWORD)&(((LPBITMAPINFO)lpbi)->bmiColors[0]);
 				dwRedMask      = lpdwColorMasks[0];
@@ -1361,10 +1402,10 @@ HANDLE CreateClipboardDib(HANDLE hDib, UINT *puFormat)
 		GlobalUnlock(hNewDib);
 	}
 
+	GlobalUnlock((HGLOBAL)hDib);
+
 	if (puFormat != NULL)
 		*puFormat = dwSrcHeaderSize <= sizeof(BITMAPINFOHEADER) ? CF_DIB : CF_DIBV5;
-
-	GlobalUnlock((HGLOBAL)hDib);
 
 	return (HANDLE)hNewDib;
 }
@@ -1574,6 +1615,52 @@ BOOL IsDibVideoCompressed(LPCSTR lpbi)
 		isprint((dwCompression >> 8) & 0xff) &&
 		isprint((dwCompression >> 16) & 0xff) &&
 		isprint((dwCompression >> 24) & 0xff));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Draws "UNSUPPORTED FORMAT" lettering over the default thumbnail image
+
+void MarkAsUnsupported(HWND hwndCtl)
+{
+	HWND hwndThumb = GetDlgItem(GetParent(hwndCtl), IDC_THUMB);
+	if (hwndThumb == NULL)
+		return;
+
+	TCHAR szOutput[OUTPUT_LEN];
+	if (!LoadString(g_hInstance, g_bGerUI ? IDS_GER_UNSUPPORTED : IDS_ENG_UNSUPPORTED,
+		szOutput, _countof(szOutput)))
+		return;
+
+	SetWindowText(hwndThumb, szOutput);
+	if (InvalidateRect(hwndThumb, NULL, FALSE))
+		UpdateWindow(hwndThumb);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Replaces the current thumbnail with the given DIB
+
+void ReplaceThumbnail(HWND hwndCtl, HANDLE hDib)
+{
+	// Free the memory of the current thumbnail image
+	if (g_hBitmapThumb != NULL)
+		FreeBitmap(g_hBitmapThumb);
+	if (g_hDibThumb != NULL)
+		FreeDib(g_hDibThumb);
+
+	// Save the DIB for display using StretchDIBits or DrawDibDraw.
+	// If hDib is NULL, a default thumbnail is displayed.
+	g_hDibThumb = hDib;
+	// Check the DIB for transparent pixels and create an additional
+	// pre-multiplied bitmap for the AlphaBlend function if needed
+	g_hBitmapThumb = CreatePremultipliedBitmap(hDib);
+
+	HWND hwndThumb = GetDlgItem(GetParent(hwndCtl), IDC_THUMB);
+	if (hwndThumb == NULL)
+		return;
+
+	// Display the thumbnail immediately
+	if (InvalidateRect(hwndThumb, NULL, FALSE))
+		UpdateWindow(hwndThumb);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
