@@ -38,6 +38,7 @@ BOOL FreeDib(HANDLE hDib);
 HBITMAP CreatePremultipliedBitmap(HANDLE hDib);
 BOOL FreeBitmap(HBITMAP hbmpDib);
 
+HANDLE ConvertDibToDib24(HANDLE hDib);
 HANDLE CreateClipboardDib(HANDLE hDib, UINT* puFormat = NULL);
 HPALETTE CreateDibPalette(HANDLE hDib);
 UINT DibNumColors(LPCSTR lpbi);

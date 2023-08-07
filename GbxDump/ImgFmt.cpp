@@ -199,7 +199,8 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDib)
 		return FALSE;
 
 	if (lpbi->biSize >= sizeof(BITMAPINFOHEADER) &&
-		(lpbi->biCompression != BI_RGB && lpbi->biCompression != BI_BITFIELDS))
+		(lpbi->biCompression != BI_RGB && lpbi->biCompression != BI_RLE4 &&
+		lpbi->biCompression != BI_RLE8 && lpbi->biCompression != BI_BITFIELDS))
 	{
 		GlobalUnlock(hDib);
 		return FALSE;
@@ -210,8 +211,25 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDib)
 	LONG lWidth = bIsCore ? lpbc->bcWidth : lpbi->biWidth;
 	LONG lHeight = bIsCore ? lpbc->bcHeight : lpbi->biHeight;
 	WORD wBitCount = bIsCore ? lpbc->bcBitCount : lpbi->biBitCount;
-	BOOL bFlipImage = FALSE;
+	BOOL bIsCMYK = lpbi->biSize >= sizeof(BITMAPV4HEADER) && ((LPBITMAPV4HEADER)lpbi)->bV4CSType == LCS_DEVICE_CMYK;
 
+	if (wBitCount < 16)
+	{
+		GlobalUnlock(hDib);
+		// Convert a 1-, 4-, or 8-bpp DIB to a 24-bpp DIB
+		HANDLE hNewDib = ConvertDibToDib24(hDib);
+		if (hNewDib == NULL)
+			return FALSE;
+		else
+		{
+			// Restart with the supported format
+			BOOL bSuccess = SavePngFile(lpszFileName, hNewDib);
+			FreeDib(hNewDib);
+			return bSuccess;
+		}
+	}
+
+	BOOL bFlipImage = FALSE;
 	if (lWidth < 0)
 		lWidth = -lWidth;
 	if (lHeight < 0)
@@ -220,12 +238,7 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDib)
 		bFlipImage = TRUE;
 	}
 
-	BOOL bIsCMYK = lpbi->biSize >= sizeof(BITMAPV4HEADER) &&
-		((LPBITMAPV4HEADER)lpbi)->bV4CSType == LCS_DEVICE_CMYK;
-
-	// CMYK DIBs must be converted to RGB
-	INT nNumChannels = bIsCMYK ? 3 : max(wBitCount >> 3, 1);
-
+	int nNumChannels = max(wBitCount >> 3, 1);
 	// 16-bit bitmaps are saved with 3 channels (or 4, if there is an alpha channel)
 	LONG lSizeImage = lHeight * lWidth * (wBitCount == 16 ? 4 : nNumChannels);
 	if (lSizeImage == 0)
@@ -330,9 +343,27 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDib)
 
 				break;
 
-			case 3: // 24-bpp RGB or 32-bpp CMYK DIB --> 24-bpp PNG
-				if (bIsCMYK)
+			case 3: // 24-bpp RGB --> 24-bpp PNG
+				for (h = 0; h < lHeight; h++)
 				{
+					lpSrc = lpDIB + (ULONG_PTR)(bFlipImage ? h : lHeight-1 - h) * dwIncrement;
+					lpDest = lpRGBA + (ULONG_PTR)h * lWidth * nNumChannels;
+					for (w = 0; w < lWidth; w++)
+					{
+						lpDest[2] = *lpSrc++;
+						lpDest[1] = *lpSrc++;
+						lpDest[0] = *lpSrc++;
+						lpDest += 3;
+					}
+				}
+
+				break;
+
+			case 4:
+				if (bIsCMYK)
+				{ // 32-bpp CMYK DIB --> 24-bpp RGB PNG
+					nNumChannels = 3;
+
 					BYTE cInvKey;
 					for (h = 0; h < lHeight; h++)
 					{
@@ -349,52 +380,36 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDib)
 					}
 				}
 				else
-				{
+				{ // 32-bpp DIB --> 32-bpp PNG
+					if (!bIsCore && lpbi->biCompression == BI_BITFIELDS)
+					{
+						lpdwColorMasks = (LPDWORD)&(((LPBITMAPINFO)lpbi)->bmiColors[0]);
+						dwRedMask      = lpdwColorMasks[0];
+						dwGreenMask    = lpdwColorMasks[1];
+						dwBlueMask     = lpdwColorMasks[2];
+						dwAlphaMask    = lpbi->biSize >= 56 ? lpdwColorMasks[3] : 0;
+					}
+					else
+					{
+						dwRedMask   = 0x00FF0000;
+						dwGreenMask = 0x0000FF00;
+						dwBlueMask  = 0x000000FF;
+						dwAlphaMask = 0xFF000000;
+					}
+
 					for (h = 0; h < lHeight; h++)
 					{
 						lpSrc = lpDIB + (ULONG_PTR)(bFlipImage ? h : lHeight-1 - h) * dwIncrement;
 						lpDest = lpRGBA + (ULONG_PTR)h * lWidth * nNumChannels;
 						for (w = 0; w < lWidth; w++)
 						{
-							lpDest[2] = *lpSrc++;
-							lpDest[1] = *lpSrc++;
-							lpDest[0] = *lpSrc++;
-							lpDest += 3;
+							dwColor = MAKELONG(MAKEWORD(lpSrc[0], lpSrc[1]), MAKEWORD(lpSrc[2], lpSrc[3]));
+							*lpDest++ = GetColorValue(dwColor, dwRedMask);
+							*lpDest++ = GetColorValue(dwColor, dwGreenMask);
+							*lpDest++ = GetColorValue(dwColor, dwBlueMask);
+							*lpDest++ = dwAlphaMask ? GetColorValue(dwColor, dwAlphaMask) : 0xFF;
+							lpSrc += 4;
 						}
-					}
-				}
-
-				break;
-
-			case 4: // 32-bpp DIB --> 32-bpp PNG
-				if (!bIsCore && lpbi->biCompression == BI_BITFIELDS)
-				{
-					lpdwColorMasks = (LPDWORD)&(((LPBITMAPINFO)lpbi)->bmiColors[0]);
-					dwRedMask      = lpdwColorMasks[0];
-					dwGreenMask    = lpdwColorMasks[1];
-					dwBlueMask     = lpdwColorMasks[2];
-					dwAlphaMask    = lpbi->biSize >= 56 ? lpdwColorMasks[3] : 0;
-				}
-				else
-				{
-					dwRedMask   = 0x00FF0000;
-					dwGreenMask = 0x0000FF00;
-					dwBlueMask  = 0x000000FF;
-					dwAlphaMask = 0xFF000000;
-				}
-
-				for (h = 0; h < lHeight; h++)
-				{
-					lpSrc = lpDIB + (ULONG_PTR)(bFlipImage ? h : lHeight-1 - h) * dwIncrement;
-					lpDest = lpRGBA + (ULONG_PTR)h * lWidth * nNumChannels;
-					for (w = 0; w < lWidth; w++)
-					{
-						dwColor = MAKELONG(MAKEWORD(lpSrc[0], lpSrc[1]), MAKEWORD(lpSrc[2], lpSrc[3]));
-						*lpDest++ = GetColorValue(dwColor, dwRedMask);
-						*lpDest++ = GetColorValue(dwColor, dwGreenMask);
-						*lpDest++ = GetColorValue(dwColor, dwBlueMask);
-						*lpDest++ = dwAlphaMask ? GetColorValue(dwColor, dwAlphaMask) : 0xFF;
-						lpSrc += 4;
 					}
 				}
 
@@ -481,7 +496,7 @@ METHODDEF(void my_output_message(j_common_ptr pjInfo));
 METHODDEF(void my_emit_message(j_common_ptr pjInfo, int nMessageLevel));
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// JpegToDib: Converts a JPEG image to a DIB
+// JPEG decoder: Converts a JPEG image to a DIB
 
 HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData, BOOL bFlipImage, INT nTraceLevel)
 {
@@ -720,8 +735,8 @@ HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData, BOOL bFlipImage, INT nTrace
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
+// JPEG decoder: Performs housekeeping
 
-// cleanup_jpeg_to_dib: Performs housekeeping
 void cleanup_jpeg_to_dib(LPJPEG_DECOMPRESS lpJpegDecompress, HANDLE hDib)
 {
 	if (lpJpegDecompress != NULL)
@@ -748,8 +763,8 @@ void cleanup_jpeg_to_dib(LPJPEG_DECOMPRESS lpJpegDecompress, HANDLE hDib)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
+// JPEG decoder: Registers the callback functions for the error manager
 
-// set_error_manager: Registers the callback functions for the error manager
 void set_error_manager(j_common_ptr pjInfo, j_error_mgr *pjError)
 {
 	// Activate the default error manager
@@ -768,11 +783,11 @@ void set_error_manager(j_common_ptr pjInfo, j_error_mgr *pjError)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-
-// my_error_exit: Error handling
+// JPEG decoder: Error handling
 // If an error occurs in LIBJPEG, my_error_exit is called. In this case, a
 // precise error message should be displayed on the screen. Then my_error_exit
 // deletes the JPEG object and returns to the JpegToDib function using throw.
+
 void my_error_exit(j_common_ptr pjInfo)
 {
 	// Display error message on screen
@@ -786,9 +801,9 @@ void my_error_exit(j_common_ptr pjInfo)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-
-// my_output_message: Text output
+// JPEG decoder: Text output
 // This callback function formats a message and displays it on the screen.
+
 void my_output_message(j_common_ptr pjInfo)
 {
 	char szBuffer[JMSG_LENGTH_MAX];
@@ -814,13 +829,13 @@ void my_output_message(j_common_ptr pjInfo)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-
-// my_emit_message: Message handling
+// JPEG decoder: Message handling
 // This function handles all messages (trace, debug or error printouts) generated by LIBJPEG.
 // my_emit_message determines whether the message is suppressed or displayed on the screen:
 //  -1: Warning
 //   0: Important message (e.g. error)
 // 1-3: Trace information
+
 void my_emit_message(j_common_ptr pjInfo, int nMessageLevel)
 {
 	char szBuffer[JMSG_LENGTH_MAX];
@@ -850,7 +865,7 @@ void my_emit_message(j_common_ptr pjInfo, int nMessageLevel)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// WebpToDib: Decodes a WebP image into a DIB using libwebpdecoder (no support for ICC profiles)
+// Decodes a WebP image into a DIB using libwebpdecoder (no support for ICC profiles)
 
 HANDLE WebpToDib(LPVOID lpWebpData, DWORD dwLenData, BOOL bFlipImage, BOOL bShowFeatures)
 {
@@ -958,7 +973,7 @@ HANDLE WebpToDib(LPVOID lpWebpData, DWORD dwLenData, BOOL bFlipImage, BOOL bShow
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// DdsToDib: Decodes a DDS image into a DIB using crunch/crnlib
+// Decodes a DDS image into a DIB using crunch/crnlib
 
 HANDLE DdsToDib(LPVOID lpDdsData, DWORD dwLenData, BOOL bFlipImage, BOOL bShowTextureDesc)
 {
@@ -1050,7 +1065,7 @@ HANDLE DdsToDib(LPVOID lpDdsData, DWORD dwLenData, BOOL bFlipImage, BOOL bShowTe
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// FreeDib: Frees the memory allocated for the DIB
+// Frees the memory allocated for the DIB
 
 BOOL FreeDib(HANDLE hDib)
 {
@@ -1066,7 +1081,7 @@ BOOL FreeDib(HANDLE hDib)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// CreatePremultipliedBitmap: Creates a 32-bit DIB of a 16-/32-bit DIB with premultiplied alpha
+// Creates a 32-bit DIB of a 16-/32-bit DIB with premultiplied alpha
 
 HBITMAP CreatePremultipliedBitmap(HANDLE hDib)
 {
@@ -1219,7 +1234,7 @@ HBITMAP CreatePremultipliedBitmap(HANDLE hDib)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// FreeBitmap: Frees the memory allocated for the DIB section
+// Frees the memory allocated for the DIB section
 
 BOOL FreeBitmap(HBITMAP hbmpDib)
 {
@@ -1230,7 +1245,110 @@ BOOL FreeBitmap(HBITMAP hbmpDib)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Creates a memory object from a given DIB, which can be placed on the clipboard
+// Converts any DIB to a DDB and then to a 24-bpp DIB
+//
+HANDLE ConvertDibToDib24(HANDLE hDib)
+{
+	if (hDib == NULL)
+		return NULL;
+
+	HDC hdc = GetDC(NULL);
+	HPALETTE hOldPal = NULL;
+	HPALETTE hPal = CreateDibPalette(hDib);
+	if (hPal != NULL)
+	{
+		hOldPal = SelectPalette(hdc, hPal, FALSE);
+		RealizePalette(hdc);
+	}
+
+	HBITMAP hBitmap = NULL;
+	LPSTR lpbi = (LPSTR)GlobalLock(hDib);
+	if (lpbi != NULL)
+	{
+		// Color management is performed because CreateDIBitmap
+		// (with CBM_INIT) internally calls SetDIBits
+		if ((IS_WIN40_DIB(lpbi) || IS_WIN50_DIB(lpbi)) &&
+			(((LPBITMAPV4HEADER)lpbi)->bV4CSType == LCS_CALIBRATED_RGB ||
+			((LPBITMAPV5HEADER)lpbi)->bV5CSType == PROFILE_EMBEDDED))
+			SetICMMode(hdc, ICM_ON);
+
+		// Convert the DIB to a DDB with the bit depth of the screen.
+		// CreateDIBitmap also supports BITMAPCOREHEADER DIBs.
+		hBitmap = CreateDIBitmap(hdc, (LPBITMAPINFOHEADER)lpbi, CBM_INIT, FindDibBits(lpbi),
+			(LPBITMAPINFO)lpbi, DIB_RGB_COLORS);
+
+		GlobalUnlock(hDib);
+	}
+
+	if (hBitmap == NULL)
+	{
+		if (hOldPal != NULL)
+			SelectPalette(hdc, hOldPal, FALSE);
+		if (hPal != NULL)
+			DeleteObject(hPal);
+		ReleaseDC(NULL, hdc);
+		return NULL;
+	}
+
+	BITMAP bm = {0};
+	GetObject(hBitmap, sizeof(BITMAP), (LPSTR)&bm);
+
+	// Define the format of the destination DIB
+	BITMAPINFOHEADER bi = {0};
+	bi.biSize = sizeof(BITMAPINFOHEADER);
+	bi.biWidth = bm.bmWidth;
+	bi.biHeight = bm.bmHeight;
+	bi.biPlanes = 1;
+	bi.biBitCount = 24;
+	bi.biCompression = BI_RGB;
+
+	// Request memory for the target DIB. The memory block must
+	// be large enough to hold the data supplied by GetDIBits.
+	HANDLE hNewDib = GlobalAlloc(GHND, (SIZE_T)DibBitsOffset((LPCSTR)&bi) + DibImageSize((LPCSTR)&bi));
+	if (hNewDib == NULL)
+	{
+		DeleteObject(hBitmap);
+		if (hOldPal != NULL)
+			SelectPalette(hdc, hOldPal, FALSE);
+		if (hPal != NULL)
+			DeleteObject(hPal);
+		ReleaseDC(NULL, hdc);
+		return NULL;
+	}
+
+	int nRet = 0;
+	lpbi = (LPSTR)GlobalLock(hNewDib);
+	if (lpbi != NULL)
+	{
+		// Set the information header
+		*(LPBITMAPINFOHEADER)lpbi = bi;
+		// Convert and retrieve the bitmap bits
+		nRet = GetDIBits(hdc, hBitmap, 0, (UINT)bi.biHeight, FindDibBits(lpbi),
+			(LPBITMAPINFO)lpbi, DIB_RGB_COLORS);
+
+		GlobalUnlock(hNewDib);
+	}
+
+	if (!nRet)
+	{
+		GlobalFree(hNewDib);
+		hNewDib = NULL;
+	}
+
+	DeleteObject(hBitmap);
+	if (hOldPal != NULL)
+		SelectPalette(hdc, hOldPal, FALSE);
+	if (hPal != NULL)
+		DeleteObject(hPal);
+	ReleaseDC(NULL, hdc);
+
+	return hNewDib;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Creates a memory object from a given DIB, which can be placed on the clipboard.
+// Depending on the source DIB, a CF_DIB or CF_DIBV5 is created. The system can then
+// create the other formats itself.
 
 HANDLE CreateClipboardDib(HANDLE hDib, UINT *puFormat)
 {
@@ -1404,6 +1522,7 @@ HANDLE CreateClipboardDib(HANDLE hDib, UINT *puFormat)
 
 	GlobalUnlock((HGLOBAL)hDib);
 
+	// Set the clipboard format according to the created DIB
 	if (puFormat != NULL)
 		*puFormat = dwSrcHeaderSize <= sizeof(BITMAPINFOHEADER) ? CF_DIB : CF_DIBV5;
 
@@ -1674,7 +1793,7 @@ static __inline int Mul8Bit(int a, int b)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// GetColorValue: Calculates the value of a color component
+// Calculates the value of a color component
 
 static BYTE GetColorValue(DWORD dwPixel, DWORD dwMask)
 {
