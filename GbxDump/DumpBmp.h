@@ -69,7 +69,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize);
 #define BCE_PALETTE         (-1L)
 #define BCE_RGB             0L
 
-typedef struct
+typedef struct _BITMAPARRAYFILEHEADER
 {
     USHORT usType;
     ULONG  cbSize;
@@ -79,7 +79,7 @@ typedef struct
     BITMAPFILEHEADER bfh;
 } BITMAPARRAYFILEHEADER, FAR* LPBITMAPARRAYFILEHEADER, *PBITMAPARRAYFILEHEADER;
 
-typedef struct
+typedef struct _BITMAPINFOHEADER2
 {
     ULONG  cbFix;
     ULONG  cx;
@@ -105,7 +105,7 @@ typedef struct
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Adobe Photoshop
 
-typedef struct
+typedef struct _BITMAPV2INFOHEADER
 {
     DWORD  biSize;
     LONG   biWidth;
@@ -123,7 +123,7 @@ typedef struct
     DWORD  biBlueMask;
 } BITMAPV2INFOHEADER, FAR* LPBITMAPV2INFOHEADER, *PBITMAPV2INFOHEADER;
 
-typedef struct
+typedef struct _BITMAPV3INFOHEADER
 {
     DWORD  biSize;
     LONG   biWidth;
@@ -163,7 +163,7 @@ typedef struct
 #define ATTRIB_NONISOTROPIC             0x00000040
 #define ATTRIB_SELFLUMINOUS             0x00000080
 
-typedef struct
+typedef struct _PROFILEHEADER
 {
     DWORD   phSize;
     DWORD   phCMMType;
