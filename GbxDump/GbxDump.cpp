@@ -601,6 +601,68 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 					}
 					return FALSE;
 
+				case IDC_PASTE:
+					{ // Open all files of a list pasted from the clipboard
+						if (!IsClipboardFormatAvailable(CF_HDROP) || !OpenClipboard(hDlg))
+							return FALSE;
+
+						HDROP hDrop = (HDROP)GetClipboardData(CF_HDROP);
+						if (hDrop == NULL)
+						{
+							CloseClipboard();
+							return FALSE;
+						}
+
+						LPVOID lpDropFiles = GlobalLock(hDrop);
+						if (lpDropFiles == NULL)
+						{
+							CloseClipboard();
+							return FALSE;
+						}
+
+						UINT nFiles = DragQueryFile(hDrop, (UINT)-1, NULL, 0);
+						if (nFiles == 0)
+						{
+							GlobalUnlock(hDrop);
+							CloseClipboard();
+							return FALSE;
+						}
+
+						HCURSOR hOldCursor = SetCursor(LoadCursor(NULL, IDC_WAIT));
+						HWND hwndCtl = GetDlgItem(hDlg, IDC_OUTPUT);
+
+						// Clear the output window
+						Edit_SetText(hwndCtl, TEXT(""));
+						Edit_EmptyUndoBuffer(hwndCtl);
+						Edit_SetModify(hwndCtl, FALSE);
+						UpdateWindow(hwndCtl);
+
+						BOOL bSuccess = FALSE;
+						for (UINT iFile = 0; iFile < nFiles; iFile++)
+						{
+							DragQueryFile(hDrop, iFile, s_szFileName, _countof(s_szFileName));
+
+							if (iFile > 0)
+								Edit_ReplaceSel(hwndCtl, TEXT("\r\n"));
+
+							// Dump the file
+							bSuccess = DumpFile(hwndCtl, s_szFileName, s_szUid, s_szEnvi) || bSuccess;
+						}
+
+						GlobalUnlock(hDrop);
+						CloseClipboard();
+
+						if (bSuccess && GetFocus() != hwndCtl)
+						{
+							SetFocus(hwndCtl);
+							int nLen = Edit_GetTextLength(hwndCtl);
+							Edit_SetSel(hwndCtl, nLen, nLen);
+						}
+
+						SetCursor(hOldCursor);
+					}
+					return FALSE;
+
 				case IDC_WORDWRAP:
 					{
 						HCURSOR hOldCursor = SetCursor(LoadCursor(NULL, IDC_WAIT));
@@ -1096,6 +1158,16 @@ LRESULT CALLBACK OutputWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 	if (uMsg == WM_KEYDOWN && GetKeyState(VK_CONTROL) < 0 && wParam == 'A')
 	{
 		Edit_SetSel(hwnd, 0, -1);
+		return FALSE;
+	}
+
+	// CTRL+V and SHIFT+INS to paste a list of files from the clipboard.
+	// Since we don't have a menu, these shortcuts are just a workaround.
+	if (uMsg == WM_KEYDOWN &&
+		((GetKeyState(VK_CONTROL) < 0 && wParam == 'V') ||
+		(GetKeyState(VK_SHIFT) < 0 && wParam == VK_INSERT)))
+	{
+		PostMessage(GetParent(hwnd), WM_COMMAND, MAKEWPARAM(IDC_PASTE, 1), 0);
 		return FALSE;
 	}
 
