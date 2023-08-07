@@ -57,6 +57,9 @@ int SelectText(HWND hwndCtl);
 BOOL SetWordWrap(HWND hDlg, BOOL bWordWrap);
 HFONT CreateScaledFont(HDC hDC, LPCRECT lpRect, LPCTSTR lpszFormat);
 
+BOOL LoadSettings(LPWINDOWPLACEMENT lpWindowPlacement, LPLONG lpFontHeight);
+void SaveSettings(HWND hDlg, HFONT hFont);
+
 void StoreWindowRect(HWND hwnd, LPRECT lprc);
 void RetrieveWindowRect(HWND hwnd, LPRECT lprc);
 void DeleteWindowRect(HWND hwnd);
@@ -79,6 +82,9 @@ BOOL AllowDarkModeForWindow(HWND hwndParent, BOOL bAllow);
 const TCHAR g_szTitle[]     = TEXT("GbxDump");
 const TCHAR g_szAbout[]     = TEXT("Gbx File Dumper ") VERSION TEXT(" (") PLATFORM TEXT(")\r\n")
                               TEXT("Copyright © 2010-2023 by Electron\r\n");
+const TCHAR g_szRegPath[]   = TEXT("Software\\Electron\\GbxDump");
+const TCHAR g_szPlacement[] = TEXT("WindowPlacement");
+const TCHAR g_szFntHeight[] = TEXT("FontHeight");
 const TCHAR g_szFontEdit[]  = TEXT("Consolas");
 const TCHAR g_szFontThumb[] = TEXT("Arial");
 const TCHAR g_szDlgClass[]  = TEXT("GbxDumpDlgClass");
@@ -513,6 +519,8 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 				case IDOK:
 				case IDCANCEL:
 					{
+						SaveSettings(hDlg, s_hfontEditBox);
+
 						DeleteWindowRect(hDlg);
 						HWND hCtl = GetWindow(hDlg, GW_CHILD);
 						while (hCtl)
@@ -690,7 +698,12 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 							SetCursor(hOldCursor);
 
 							if (!bSuccess)
-								MessageBeep(MB_ICONEXCLAMATION);
+							{
+								TCHAR szText[512];
+								if (LoadString(g_hInstance, g_bGerUI ? IDS_GER_MSG_WRITE : IDS_ENG_MSG_WRITE,
+									szText, _countof(szText)) > 0)
+									MessageBox(hDlg, szText, g_szTitle, MB_OK | MB_ICONEXCLAMATION);
+							}
 						}
 					}
 					return FALSE;
@@ -882,6 +895,12 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 				s_bWordWrap = FALSE;
 				SetWindowText(hDlg, g_szTitle);
 
+				// Load settings
+				LONG lFontHeight = 0;
+				WINDOWPLACEMENT wpl = {0};
+				if (GetKeyState(VK_SHIFT) >= 0)
+					LoadSettings(&wpl, &lFontHeight);
+
 				// Determine logical DPI
 				HDC hdc = GetDC(hDlg);
 				if (hdc != NULL)
@@ -956,6 +975,17 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 				lf.lfPitchAndFamily = FIXED_PITCH | FF_MODERN;
 				MyStrNCpy(lf.lfFaceName, g_szFontEdit, _countof(lf.lfFaceName));
 
+				BOOL bShowFontScalingInfo = FALSE;
+				if (lFontHeight != 0)
+				{
+					// Check if the font size stored in the registry
+					// is too different from the default value
+					if (abs(lFontHeight - lf.lfHeight) > 3)
+						bShowFontScalingInfo = TRUE;
+					// Use the saved font height in any case
+					lf.lfHeight = lFontHeight;
+				}
+
 				if (s_hfontEditBox != NULL)
 					DeleteFont(s_hfontEditBox);
 				s_hfontEditBox = CreateFontIndirect(&lf);
@@ -973,6 +1003,16 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 					AllowDarkModeForWindow(hDlg, g_bUseDarkMode);
 				}
 
+				// Set the dialog box position and size
+				if (wpl.length == sizeof(WINDOWPLACEMENT))
+				{
+					// SetWindowPlacement internally calls ShowWindow with
+					// wpl.showCmd. Any visible initialization should be
+					// completed or wpl.showCmd should be set to SW_HIDE.
+					// wpl.showCmd = SW_HIDE;
+					SetWindowPlacement(hDlg, &wpl);
+				}
+
 				if ((LPCTSTR)lParam != NULL && ((LPCTSTR)lParam)[0] != TEXT('\0'))
 				{ // Open a GBX file passed by program argument
 					MyStrNCpy(s_szFileName, (LPCTSTR)lParam, _countof(s_szFileName));
@@ -982,6 +1022,10 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 				{ // Display default text
 					s_szFileName[0] = TEXT('\0');
 					Edit_ReplaceSel(hwndCtl, g_szAbout);
+					// Show a hint to scale the font if needed
+					if (bShowFontScalingInfo && LoadString(g_hInstance,
+						g_bGerUI ? IDS_GER_FONTSIZEINFO : IDS_ENG_FONTSIZEINFO, szText, _countof(szText)) > 0)
+						Edit_ReplaceSel(hwndCtl, szText);
 					if ((GetWindowStyle(hwndCtl) & ES_READONLY) == 0)
 						Edit_SetReadOnly(hwndCtl, TRUE);
 				}
@@ -993,6 +1037,8 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 
 		case WM_CLOSE:
 			{
+				SaveSettings(hDlg, s_hfontEditBox);
+
 				DeleteWindowRect(hDlg);
 				HWND hCtl = GetWindow(hDlg, GW_CHILD);
 				while (hCtl)
@@ -1868,6 +1914,73 @@ HFONT CreateScaledFont(HDC hDC, LPCRECT lpRect, LPCTSTR lpszText)
 	}
 
 	return hFont;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Loads the dialog placement and the font height of the edit control from the registry
+
+BOOL LoadSettings(LPWINDOWPLACEMENT lpWindowPlacement, LPLONG lpFontHeight)
+{
+	if (lpWindowPlacement == NULL || lpFontHeight == NULL)
+		return FALSE;
+
+	HKEY hKey = NULL;
+	LONG lStatus = RegOpenKeyEx(HKEY_CURRENT_USER, g_szRegPath, 0, KEY_READ, &hKey);
+	if (lStatus != ERROR_SUCCESS || hKey == NULL)
+		return FALSE;
+
+	BOOL bSuccess = TRUE;
+	DWORD dwValue = (DWORD)*lpFontHeight;
+	DWORD dwSize = sizeof(dwValue);
+	DWORD dwType = REG_DWORD;
+	lStatus = RegQueryValueEx(hKey, g_szFntHeight, NULL, &dwType, (LPBYTE)&dwValue, &dwSize);
+	if (lStatus != ERROR_SUCCESS || ((LONG)dwValue < -127 || (LONG)dwValue > 127))
+		bSuccess = bSuccess && FALSE;
+	else
+		*lpFontHeight = (LONG)dwValue;
+
+	WINDOWPLACEMENT wpl = {0};
+	dwSize = sizeof(wpl);
+	dwType = REG_BINARY;
+	lStatus = RegQueryValueEx(hKey, g_szPlacement, NULL, &dwType, (LPBYTE)&wpl, &dwSize);
+	if (lStatus != ERROR_SUCCESS || dwSize != sizeof(wpl) || wpl.length != sizeof(wpl))
+		bSuccess = bSuccess && FALSE;
+	else
+	{
+		STARTUPINFO si = {0};
+		si.cb = sizeof(si);
+		GetStartupInfo(&si);
+		wpl.showCmd = (si.dwFlags & STARTF_USESHOWWINDOW) ? si.wShowWindow : SW_SHOWDEFAULT;
+		CopyMemory(lpWindowPlacement, &wpl, sizeof(WINDOWPLACEMENT));
+	}
+
+	RegCloseKey(hKey);
+	return bSuccess;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Saves the dialog placement and the font height of the edit control to the registry.
+// The settings are saved only if the registry subkey was created by the installer.
+
+void SaveSettings(HWND hDlg, HFONT hFont)
+{
+	WINDOWPLACEMENT wpl = {0};
+	wpl.length = sizeof(wpl);
+	if (hDlg != NULL)
+		GetWindowPlacement(hDlg, &wpl);
+
+	LOGFONT lf = {0};
+	if (hFont != NULL)
+		GetObject(hFont, sizeof(LOGFONT), (LPVOID)&lf);
+
+	HKEY hKey = NULL;
+	if (RegOpenKeyEx(HKEY_CURRENT_USER, g_szRegPath, 0, KEY_WRITE, &hKey) != ERROR_SUCCESS || hKey == NULL)
+		return;
+
+	RegSetValueEx(hKey, g_szFntHeight, 0, REG_DWORD, (LPBYTE)&lf.lfHeight, sizeof(DWORD));
+	RegSetValueEx(hKey, g_szPlacement, 0, REG_BINARY, (LPBYTE)&wpl, sizeof(wpl));
+
+	RegCloseKey(hKey);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
