@@ -72,7 +72,7 @@ BOOL AllowDarkModeForWindow(HWND hwndParent, BOOL bAllow);
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Global Variables
 //
-#define VERSION TEXT("1.72.5")
+#define VERSION TEXT("1.73")
 #if defined(_WIN64)
 #define PLATFORM TEXT("64-bit")
 #else
@@ -1042,7 +1042,7 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 				{
 					// Check if the font size stored in the registry
 					// is too different from the default value
-					if (abs(lFontHeight - lf.lfHeight) > 3)
+					if (abs(lFontHeight - lf.lfHeight) > 5)
 						bShowFontScalingInfo = TRUE;
 					// Use the saved font height in any case
 					lf.lfHeight = lFontHeight;
