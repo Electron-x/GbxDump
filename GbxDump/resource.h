@@ -22,6 +22,8 @@
 #define IDS_GER_HEXDUMP                 413
 #define IDS_GER_THUMBNAIL               414
 #define IDS_GER_UNSUPPORTED             415
+#define IDS_GER_FONTSIZEINFO            416
+#define IDS_GER_MSG_WRITE               417
 #define IDD_ENG_GBXDUMP                 800
 #define IDS_ENG_FILTER_GBX              801
 #define IDS_ENG_FILTER_PNG              802
@@ -38,6 +40,8 @@
 #define IDS_ENG_HEXDUMP                 813
 #define IDS_ENG_THUMBNAIL               814
 #define IDS_ENG_UNSUPPORTED             815
+#define IDS_ENG_FONTSIZEINFO            816
+#define IDS_ENG_MSG_WRITE               817
 #define IDC_OUTPUT                      1001
 #define IDC_OPEN                        1002
 #define IDC_COPY                        1003
@@ -45,6 +49,7 @@
 #define IDC_TMX                         1005
 #define IDC_DEDIMANIA                   1006
 #define IDC_THUMB                       1007
+#define IDC_PASTE                       1008
 #define IDC_THUMB_COPY                  32771
 #define IDC_THUMB_SAVE                  32772
 #define IDC_STATIC                      -1
@@ -56,7 +61,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        105
 #define _APS_NEXT_COMMAND_VALUE         32773
-#define _APS_NEXT_CONTROL_VALUE         1008
+#define _APS_NEXT_CONTROL_VALUE         1009
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

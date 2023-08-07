@@ -187,6 +187,12 @@ BEGIN
     IDS_GER_UNSUPPORTED     "Nicht unterstütztes Format"
 END
 
+STRINGTABLE
+BEGIN
+    IDS_GER_FONTSIZEINFO    "\r\nDie Schrift kann mittels STRG+Mausrad skaliert werden.\r\nDurch Halten der UMSCHALT-Taste während des Startvorgangs werden die Standardeinstellungen geladen.\r\n"
+    IDS_GER_MSG_WRITE       "Fehler beim Erstellen der Bilddatei. Versuchen Sie, das Bild in einem anderen Format zu speichern."
+END
+
 #endif    // Deutsch (Deutschland) resources
 /////////////////////////////////////////////////////////////////////////////
 
@@ -276,6 +282,12 @@ BEGIN
     IDS_ENG_HEXDUMP         "Hex dump of the first {COUNT} bytes:\r\n"
     IDS_ENG_THUMBNAIL       "NO THUMBNAIL"
     IDS_ENG_UNSUPPORTED     "UNSUPPORTED FORMAT"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_ENG_FONTSIZEINFO    "\r\nThe font can be scaled with Ctrl + Mouse scroll wheel.\r\nHolding down the Shift key during startup will load the default settings.\r\n"
+    IDS_ENG_MSG_WRITE       "Error while creating the image file. Try to save the image in a different format."
 END
 
 #endif    // Englisch (USA) resources
