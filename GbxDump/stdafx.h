@@ -19,8 +19,8 @@
 #define _WIN32_WINDOWS 0x0400 // Change this to the appropriate value to target Windows Me or later.
 #endif
 
-#ifndef _WIN32_IE			// Allow use of features specific to IE 6.0 or later.
-#define _WIN32_IE 0x0600	// Change this to the appropriate value to target other versions of IE.
+#ifndef _WIN32_IE			// Allow use of features specific to IE 6.0 SP2 or later.
+#define _WIN32_IE 0x0603	// Change this to the appropriate value to target other versions of IE.
 #endif
 
 #if defined (_MSC_VER) && (_MSC_VER <= 1500)
