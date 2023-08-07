@@ -452,6 +452,36 @@
                             "Transitive" = "11:FALSE"
                                 "Keys"
                                 {
+                                    "{60EA8692-D2D5-43EB-80DC-7906BF13D6EF}:_D01C776B57B4445D9AD1BE77F3709887"
+                                    {
+                                    "Name" = "8:GbxDump"
+                                    "Condition" = "8:"
+                                    "AlwaysCreate" = "11:FALSE"
+                                    "DeleteAtUninstall" = "11:FALSE"
+                                    "Transitive" = "11:FALSE"
+                                        "Keys"
+                                        {
+                                        }
+                                        "Values"
+                                        {
+                                            "{ADCFDA98-8FDD-45E4-90BC-E3D20B029870}:_1DFD05BD032A4CB4A11A82D509954470"
+                                            {
+                                            "Name" = "8:WindowPlacement"
+                                            "Condition" = "8:"
+                                            "Transitive" = "11:FALSE"
+                                            "ValueTypes" = "3:4"
+                                            "Value" = "8:00"
+                                            }
+                                            "{ADCFDA98-8FDD-45E4-90BC-E3D20B029870}:_8A2DFC31DA1443AA94AB104C9DDB01BA"
+                                            {
+                                            "Name" = "8:FontHeight"
+                                            "Condition" = "8:"
+                                            "Transitive" = "11:FALSE"
+                                            "ValueTypes" = "3:3"
+                                            "Value" = "3:0"
+                                            }
+                                        }
+                                    }
                                 }
                                 "Values"
                                 {
