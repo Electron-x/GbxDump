@@ -919,10 +919,10 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 				return FALSE;
 			}
 
-			// The private tag 'ICC5' indicates that an iccMAX profile (tag type
-			// signature: 'ICCp') is embedded in an ICC v2 or v4 profile, and
-			// the private tag 'MS00' indicates that a Windows Color System XML
-			// profile (type signature: 'MS10') is embedded in the ICC profile
+			// The private tag 'ICC5' indicates that an iccMAX profile (tag
+			// type signature: 'ICCp') is embedded in an ICC v2 or v4 profile,
+			// and the private tag 'MS00' indicates that WCS profile data
+			// (type signature: 'MS10') is embedded in an output ICC profile
 
 			OutputText(hwndCtl, g_szSep1);
 			OutputText(hwndCtl, TEXT("Sig. | Element Offset | Element Size |\r\n"));
