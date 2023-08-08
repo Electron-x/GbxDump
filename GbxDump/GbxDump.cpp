@@ -29,10 +29,6 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Data Types
 //
-typedef HDRAWDIB (VFWAPI *LPFNDRAWDIBOPEN)(void);
-typedef BOOL (VFWAPI *LPFNDRAWDIBCLOSE)(HDRAWDIB);
-typedef BOOL (VFWAPI *LPFNDRAWDIBDRAW)(HDRAWDIB, HDC, int, int, int, int,
-	LPBITMAPINFOHEADER, LPVOID, int, int, int, int, UINT);
 typedef HRESULT(STDAPICALLTYPE* LPFNDWMSETWINDOWATTRIBUTE)(HWND, DWORD, LPCVOID, DWORD);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -104,9 +100,6 @@ HANDLE g_hDibThumb = NULL;
 HBITMAP g_hBitmapThumb = NULL;
 HDRAWDIB g_hDrawDib = NULL;
 
-LPFNDRAWDIBOPEN g_pfnDrawDibOpen = NULL;
-LPFNDRAWDIBCLOSE g_pfnDrawDibClose = NULL;
-LPFNDRAWDIBDRAW g_pfnDrawDibDraw = NULL;
 LPFNDWMSETWINDOWATTRIBUTE g_pfnDwmSetWindowAttribute = NULL;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -117,8 +110,14 @@ int APIENTRY _tWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstanc
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(nCmdShow);
 
+	// Register the window class of the application and specific common control classes
 	if (!MyRegisterClass(hInstance))
 		return 0;
+
+	// Explicit link to the Desktop Window Manager API (not supported by Windows XP)
+	HINSTANCE hLibDwmapi = LoadLibrary(TEXT("dwmapi.dll"));
+	if (hLibDwmapi != NULL)
+		g_pfnDwmSetWindowAttribute = (LPFNDWMSETWINDOWATTRIBUTE)GetProcAddress(hLibDwmapi, "DwmSetWindowAttribute");
 
 	g_hInstance = hInstance;
 	// Set the language of the user interface and error messages
@@ -127,20 +126,6 @@ int APIENTRY _tWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstanc
 	g_bUseDarkMode = ShouldAppsUseDarkMode() && !IsHighContrast();
 	// Load the default thumbnail from the resources
 	g_hDibDefault = LoadDefaultThumbnail(hInstance);
-
-	// Explicit link to the Desktop Window Manager API (not supported by Windows XP)
-	HINSTANCE hLibDwmapi = LoadLibrary(TEXT("dwmapi.dll"));
-	if (hLibDwmapi != NULL)
-		g_pfnDwmSetWindowAttribute = (LPFNDWMSETWINDOWATTRIBUTE)GetProcAddress(hLibDwmapi, "DwmSetWindowAttribute");
-
-	// Explicit link to Video for Windows (deprecated)
-	HINSTANCE hLibVfw32 = LoadLibrary(TEXT("msvfw32.dll"));
-	if (hLibVfw32 != NULL)
-	{
-		g_pfnDrawDibOpen = (LPFNDRAWDIBOPEN)GetProcAddress(hLibVfw32, "DrawDibOpen");
-		g_pfnDrawDibClose = (LPFNDRAWDIBCLOSE)GetProcAddress(hLibVfw32, "DrawDibClose");
-		g_pfnDrawDibDraw = (LPFNDRAWDIBDRAW)GetProcAddress(hLibVfw32, "DrawDibDraw");
-	}
 
 	LPTSTR lpszFilename = NULL;
 	LPTSTR lpszCommandLine = AllocGetCmdLine(lpCmdLine, &lpszFilename);
@@ -152,17 +137,15 @@ int APIENTRY _tWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstanc
 	if (lpszCommandLine != NULL)
 		MyGlobalFreePtr((LPVOID)lpszCommandLine);
 
-	if (g_hDrawDib != NULL && g_pfnDrawDibClose != NULL)
-		g_pfnDrawDibClose(g_hDrawDib);
-
-	if (hLibVfw32 != NULL)
-		FreeLibrary(hLibVfw32);
-	if (hLibDwmapi != NULL)
-		FreeLibrary(hLibDwmapi);
+	if (g_hDrawDib != NULL)
+		DrawDibClose(g_hDrawDib);
 
 	FreeBitmap(g_hBitmapThumb);
 	FreeDib(g_hDibThumb);
 	FreeDib(g_hDibDefault);
+
+	if (hLibDwmapi != NULL)
+		FreeLibrary(hLibDwmapi);
 
 	return (int)nResult;
 }
@@ -1042,7 +1025,7 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 				{
 					// Check if the font size stored in the registry
 					// is too different from the default value
-					if (abs(lFontHeight - lf.lfHeight) > 5)
+					if (abs(lFontHeight - lf.lfHeight) > 6)
 						bShowFontScalingInfo = TRUE;
 					// Use the saved font height in any case
 					lf.lfHeight = lFontHeight;
@@ -1154,21 +1137,23 @@ LRESULT CALLBACK OutputWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 	if (uMsg == WM_LBUTTONDBLCLK && SelectText(hwnd) != 0)
 		return FALSE;
 
-	// CTRL+A to select the entire text
-	if (uMsg == WM_KEYDOWN && GetKeyState(VK_CONTROL) < 0 && wParam == 'A')
+	if (uMsg == WM_KEYDOWN)
 	{
-		Edit_SetSel(hwnd, 0, -1);
-		return FALSE;
-	}
+		// CTRL+A to select the entire text
+		if (wParam == 'A' && GetKeyState(VK_CONTROL) < 0)
+		{
+			Edit_SetSel(hwnd, 0, -1);
+			return FALSE;
+		}
 
-	// CTRL+V and SHIFT+INS to paste a list of files from the clipboard.
-	// Since we don't have a menu, these shortcuts are just a workaround.
-	if (uMsg == WM_KEYDOWN &&
-		((GetKeyState(VK_CONTROL) < 0 && wParam == 'V') ||
-		(GetKeyState(VK_SHIFT) < 0 && wParam == VK_INSERT)))
-	{
-		PostMessage(GetParent(hwnd), WM_COMMAND, MAKEWPARAM(IDC_PASTE, 1), 0);
-		return FALSE;
+		// CTRL+V and SHIFT+INS to paste a list of files from the clipboard.
+		// Since we don't have a menu, these shortcuts are just a workaround.
+		if ((wParam == 'V' && GetKeyState(VK_CONTROL) < 0) ||
+			(wParam == VK_INSERT && GetKeyState(VK_SHIFT) < 0))
+		{
+			PostMessage(GetParent(hwnd), WM_COMMAND, MAKEWPARAM(IDC_PASTE, 1), 0);
+			return FALSE;
+		}
 	}
 
 	return CallWindowProc(g_lpPrevOutputWndProc, hwnd, uMsg, wParam, lParam);
@@ -1329,14 +1314,13 @@ BOOL OnDrawItem(HWND hDlg, const LPDRAWITEMSTRUCT lpDrawItem)
 				{
 					bFailed = TRUE;
 					// Is it possibly a video compressed DIB?
-					if (IsDibVideoCompressed(lpbi) &&
-						g_pfnDrawDibOpen != NULL && g_pfnDrawDibClose != NULL && g_pfnDrawDibDraw != NULL)
+					if (IsDibVideoCompressed(lpbi))
 					{ // Try to output the DIB using Video for Windows DrawDib API
 						if (g_hDrawDib == NULL)
-							g_hDrawDib = g_pfnDrawDibOpen();
+							g_hDrawDib = DrawDibOpen();
 
 						if (g_hDrawDib != NULL)
-							bFailed = !g_pfnDrawDibDraw(g_hDrawDib, hdc, rc.left, rc.top, cx, cy,
+							bFailed = !DrawDibDraw(g_hDrawDib, hdc, rc.left, rc.top, cx, cy,
 								(LPBITMAPINFOHEADER)lpbi, FindDibBits(lpbi), nSrcX, nSrcY, nSrcWidth, nSrcHeight, 0);
 					}
 				}

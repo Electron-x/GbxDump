@@ -51,6 +51,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_71630AC360EED3B1AD0A6C0E08C3A855"
+        "OwnerKey" = "8:_5E8AEAFD11C74E80BC3B91263C4DF1B7"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_9916E8FB1568A866ABA28E7CDFB66806"
         "OwnerKey" = "8:_5E8AEAFD11C74E80BC3B91263C4DF1B7"
         "MsmSig" = "8:_UNDEFINED"
@@ -244,6 +250,26 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_71630AC360EED3B1AD0A6C0E08C3A855"
+            {
+            "SourcePath" = "8:MSVFW32.dll"
+            "TargetName" = "8:MSVFW32.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_79ECAC9DA6DF4F4FA0D4934AA7ECB9AA"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:TRUE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_9916E8FB1568A866ABA28E7CDFB66806"
             {
             "SourcePath" = "8:COMDLG32.dll"
@@ -368,7 +394,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:GbxDump (x64)"
         "ProductCode" = "8:{01390602-2A53-4206-8CFE-A60C344CA907}"
-        "PackageCode" = "8:{DC103D0C-83CC-4550-9E83-3B332657E92F}"
+        "PackageCode" = "8:{1039771E-1300-4FC2-89C0-EB564B988983}"
         "UpgradeCode" = "8:{2702E740-3470-47E4-BB3C-6478AA9C3A51}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
