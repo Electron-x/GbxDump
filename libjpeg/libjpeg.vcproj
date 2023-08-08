@@ -173,7 +173,9 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
+				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
+				OmitFramePointers="true"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				ExceptionHandling="2"
 				RuntimeLibrary="0"
@@ -238,7 +240,9 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
+				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
+				OmitFramePointers="true"
 				PreprocessorDefinitions="WIN32;_WIN64;_AMD64_;_M_AMD64;NDEBUG;_LIB"
 				ExceptionHandling="2"
 				RuntimeLibrary="0"
