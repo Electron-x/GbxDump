@@ -1052,9 +1052,9 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 				if (wpl.length == sizeof(WINDOWPLACEMENT))
 				{
 					// SetWindowPlacement internally calls ShowWindow with
-					// wpl.showCmd. Any visible initialization should be
-					// completed or wpl.showCmd should be set to SW_HIDE.
-					// wpl.showCmd = SW_HIDE;
+					// wpl.showCmd. Since not all visible initializations
+					// are completed yet, we set wpl.showCmd to SW_HIDE.
+					wpl.showCmd = SW_HIDE;
 					SetWindowPlacement(hDlg, &wpl);
 				}
 
@@ -2003,10 +2003,7 @@ BOOL LoadSettings(LPWINDOWPLACEMENT lpWindowPlacement, LPLONG lpFontHeight)
 		bSuccess = bSuccess && FALSE;
 	else
 	{
-		STARTUPINFO si = {0};
-		si.cb = sizeof(si);
-		GetStartupInfo(&si);
-		wpl.showCmd = (si.dwFlags & STARTF_USESHOWWINDOW) ? si.wShowWindow : SW_SHOWDEFAULT;
+		wpl.showCmd = SW_SHOWDEFAULT;
 		CopyMemory(lpWindowPlacement, &wpl, sizeof(WINDOWPLACEMENT));
 	}
 
