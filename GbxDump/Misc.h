@@ -34,9 +34,16 @@ LPWSTR MyStrNCpyW(LPWSTR lpString1, LPCWSTR lpString2, int iMaxLength);
 #define MyStrNCpy MyStrNCpyA
 #endif
 
+BOOL IsKeyDown(int nVirtKey);
+BOOL DisableButton(HWND hDlg, int nIDButton, int nIDFocus);
+
+HWND GetOutputWindow(HWND hDlg = NULL);
+void ClearOutputWindow(HWND hwndCtl);
+
 void OutputText(HWND hwndCtl, LPCTSTR lpszOutput);
 void OutputTextFmt(HWND hwndCtl, LPTSTR lpszOutput, SIZE_T cchLenOutput, LPCTSTR lpszFormat, ...);
 BOOL OutputTextErr(HWND hwndCtl, UINT uID);
+BOOL OutputTextCount(HWND hwndCtl, UINT uID, SIZE_T uCount);
 BOOL OutputErrorMessage(HWND hwndCtl, DWORD dwError);
 
 PTCHAR AppendFlagName(LPTSTR lpszOutput, SIZE_T cchLenOutput, LPCTSTR lpszFlagName);

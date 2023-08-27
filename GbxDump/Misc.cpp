@@ -54,6 +54,66 @@ LPWSTR MyStrNCpyW(LPWSTR lpString1, LPCWSTR lpString2, int iMaxLength)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
+// Determines whether the specified key was down at the time the input message was generated
+
+BOOL IsKeyDown(int nVirtKey)
+{
+	return (GetKeyState(nVirtKey) < 0);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Disables a button control and sets the keyboard focus to the specified control if needed
+
+BOOL DisableButton(HWND hDlg, int nIDButton, int nIDFocus)
+{
+	HWND hwndButton = GetDlgItem(hDlg, nIDButton);
+	if (hwndButton == NULL)
+		return FALSE;
+
+	if (!IsWindowEnabled(hwndButton))
+		return TRUE;
+
+	HWND hwndFocus = GetDlgItem(hDlg, nIDFocus);
+	if (GetFocus() == hwndButton)
+		SendMessage(hDlg, WM_NEXTDLGCTL, (WPARAM)hwndFocus, hwndFocus != NULL);
+
+	return Button_Enable(hwndButton, FALSE);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Determines the window handle of the output edit control
+
+HWND GetOutputWindow(HWND hDlg)
+{
+	HWND hwndDlg = NULL;
+	if (hDlg != NULL && IsWindow(hDlg))
+		hwndDlg = hDlg;
+	else
+		hwndDlg = GetActiveWindow();
+
+	HWND hwndCtl = NULL;
+	if (hwndDlg != NULL)
+		hwndCtl = GetDlgItem(hwndDlg, IDC_OUTPUT);
+
+	return hwndCtl;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Clears the text of an edit control, resets the undo flag, and clears the modification flag
+
+void ClearOutputWindow(HWND hwndCtl)
+{
+	if (hwndCtl == NULL)
+		return;
+
+	Edit_SetText(hwndCtl, TEXT(""));
+	Edit_EmptyUndoBuffer(hwndCtl);
+	Edit_SetModify(hwndCtl, FALSE);
+
+	UpdateWindow(hwndCtl);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
 // Inserts the passed text at the current cursor position of an edit control
 
 void OutputText(HWND hwndCtl, LPCTSTR lpszOutput)
@@ -94,6 +154,38 @@ BOOL OutputTextErr(HWND hwndCtl, UINT uID)
 
 	Edit_ReplaceSel(hwndCtl, g_szSep1);
 	Edit_ReplaceSel(hwndCtl, szOutput);
+
+	return TRUE;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Loads a message from the resources and replaces the placeholder {COUNT} with the passed
+// value (to keep the printf-style format specifiers under internal control). The text is
+// then inserted with a separator line at the current cursor position of an edit control.
+
+BOOL OutputTextCount(HWND hwndCtl, UINT uID, SIZE_T uCount)
+{
+	const int FORMAT_LEN = 256;
+
+	if (hwndCtl == NULL)
+		return FALSE;
+
+	TCHAR szOutput[OUTPUT_LEN];
+	if (LoadString(g_hInstance, uID, szOutput, _countof(szOutput)) == 0)
+		return FALSE;
+
+	TCHAR szFormat[FORMAT_LEN];
+	_sntprintf(szFormat, _countof(szFormat), TEXT("%Iu"), uCount);
+	szFormat[FORMAT_LEN - 1] = TEXT('\0');
+
+	LPCTSTR lpszText = AllocReplaceString(szOutput, TEXT("{COUNT}"), szFormat);
+	if (lpszText == NULL)
+		return FALSE;
+
+	OutputText(hwndCtl, lpszText);
+	OutputText(hwndCtl, g_szSep1);
+
+	MyGlobalFreePtr((LPVOID)lpszText);
 
 	return TRUE;
 }

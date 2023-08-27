@@ -38,7 +38,9 @@ BOOL FreeDib(HANDLE hDib);
 HBITMAP CreatePremultipliedBitmap(HANDLE hDib);
 BOOL FreeBitmap(HBITMAP hbmpDib);
 
-HANDLE ConvertDibToDib24(HANDLE hDib);
+HANDLE DecompressDib(HANDLE hDib);
+HANDLE ChangeDibBitDepth(HANDLE hDib, WORD wBitCount = 0);
+HANDLE ConvertBitmapToDib(HBITMAP hBitmap, HDC hdc = NULL, WORD wBitCount = 0);
 HANDLE CreateClipboardDib(HANDLE hDib, UINT* puFormat = NULL);
 HPALETTE CreateDibPalette(HANDLE hDib);
 UINT DibNumColors(LPCSTR lpbi);
@@ -49,9 +51,8 @@ UINT DibBitsOffset(LPCSTR lpbi);
 LPBYTE FindDibPalette(LPCSTR lpbi);
 LPBYTE FindDibBits(LPCSTR lpbi);
 BOOL DibHasColorProfile(LPCSTR lpbi);
-BOOL IsDibVideoCompressed(LPCSTR lpbi);
-
-void MarkAsUnsupported(HWND hwndCtl);
-void ReplaceThumbnail(HWND hwndCtl, HANDLE hDib);
+BOOL DibHasColorSpaceData(LPCSTR lpbi);
+BOOL DibIsVideoCompressed(LPCSTR lpbi);
+BOOL DibIsCMYK(LPCSTR lpbi);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
