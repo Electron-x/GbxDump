@@ -3551,6 +3551,8 @@ BOOL CollectorDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckDesc)
 
 BOOL CollectorIconChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckIcon)
 {
+	HWND hDlg = GetParent(hwndCtl);
+
 	TCHAR szOutput[OUTPUT_LEN];
 	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szSep3, pckIcon->dwId);
 
@@ -3644,7 +3646,7 @@ BOOL CollectorIconChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckIcon)
 			}
 
 			// View the thumbnail immediately
-			HWND hwndThumb = GetDlgItem(GetParent(hwndCtl), IDC_THUMB);
+			HWND hwndThumb = GetDlgItem(hDlg, IDC_THUMB);
 			if (hwndThumb != NULL)
 			{
 				if (InvalidateRect(hwndThumb, NULL, FALSE))
@@ -3701,9 +3703,9 @@ BOOL CollectorIconChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckIcon)
 	SetCursor(hOldCursor);
 
 	if (hDib != NULL)
-		ReplaceThumbnail(hwndCtl, hDib);
+		ReplaceThumbnail(hDlg, hDib);
 	else
-		MarkAsUnsupported(hwndCtl);
+		MarkAsUnsupported(hDlg);
 
 	MyGlobalFreePtr(lpData);
 

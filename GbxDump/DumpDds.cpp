@@ -776,6 +776,8 @@ BOOL DisplayDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize, BOOL bShowTextureD
 	if (hwndCtl == NULL || hFile == NULL || dwFileSize == 0)
 		return FALSE;
 
+	HWND hDlg = GetParent(hwndCtl);
+
 	// Jump to the beginning of the file
 	if (!FileSeekBegin(hFile, 0))
 		return FALSE;
@@ -804,9 +806,9 @@ BOOL DisplayDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize, BOOL bShowTextureD
 	SetCursor(hOldCursor);
 
 	if (hDib != NULL)
-		ReplaceThumbnail(hwndCtl, hDib);
+		ReplaceThumbnail(hDlg, hDib);
 	else
-		MarkAsUnsupported(hwndCtl);
+		MarkAsUnsupported(hDlg);
 
 	MyGlobalFreePtr(lpData);
 

@@ -41,6 +41,8 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 	if (hwndCtl == NULL || hFile == NULL || dwFileSize < dwFileHeaderSize)
 		return FALSE;
 
+	HWND hDlg = GetParent(hwndCtl);
+
 	// Jump to the beginning of the file
 	if (!FileSeekBegin(hFile, 0))
 		return FALSE;
@@ -65,7 +67,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		// Proceed only if the array contains only one bitmap
 		if (lpbafh->offNext != 0)
 		{
-			MarkAsUnsupported(hwndCtl);
+			MarkAsUnsupported(hDlg);
 			return TRUE;
 		}
 
@@ -80,7 +82,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 
 		if (bfh.bfType != BFT_BMAP)
 		{ // No support for icons and pointers
-			MarkAsUnsupported(hwndCtl);
+			MarkAsUnsupported(hDlg);
 			return TRUE;
 		}
 	}
@@ -145,7 +147,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		// or a BITMAPINFOHEADER2 DIB with cbFix < 64
 		GlobalUnlock(hDib);
 		GlobalFree(hDib);
-		MarkAsUnsupported(hwndCtl);
+		MarkAsUnsupported(hDlg);
 		return TRUE;
 	}
 
@@ -358,7 +360,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		{
 			GlobalUnlock(hDib);
 			GlobalFree(hDib);
-			MarkAsUnsupported(hwndCtl);
+			MarkAsUnsupported(hDlg);
 			return TRUE;
 		}
 
@@ -942,11 +944,11 @@ Exit:
 	GlobalUnlock(hDib);
 
 	if (bIsDibSupported)
-		ReplaceThumbnail(hwndCtl, hDib);
+		ReplaceThumbnail(hDlg, hDib);
 	else
 	{
 		GlobalFree(hDib);
-		MarkAsUnsupported(hwndCtl);
+		MarkAsUnsupported(hDlg);
 	}
 
 	return TRUE;
