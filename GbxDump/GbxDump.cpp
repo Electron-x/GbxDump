@@ -35,13 +35,11 @@ typedef HRESULT(STDAPICALLTYPE* LPFNDWMSETWINDOWATTRIBUTE)(HWND, DWORD, LPCVOID,
 // Forward declarations of functions included in this code module
 //
 ATOM MyRegisterClass(HINSTANCE hInstance);
-HANDLE LoadDefaultThumbnail(HINSTANCE hInstance);
+HANDLE MyLoadBitmap(HINSTANCE hInstance, LPCTSTR lpBitmapName, UINT fuLoad);
 LPTSTR AllocGetCmdLine(LPTSTR lpCmdLine, LPTSTR* lpszFilename);
 
 INT_PTR CALLBACK GbxDumpDlgProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK OutputWndProc(HWND, UINT, WPARAM, LPARAM);
-
-BOOL OnDrawItem(HWND hDlg, const LPDRAWITEMSTRUCT lpDrawItem);
 
 BOOL DumpFile(HWND hwndCtl, LPCTSTR lpszFileName, LPSTR lpszUid, LPSTR lpszEnvi);
 BOOL DumpMux(HWND hwndCtl, HANDLE hFile);
@@ -49,12 +47,21 @@ BOOL DumpJpeg(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize);
 BOOL DumpWebP(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize);
 BOOL DumpHex(HWND hwndCtl, HANDLE hFile, SIZE_T cbLen);
 
+BOOL OnDrawItem(HWND hDlg, const LPDRAWITEMSTRUCT lpDrawItem);
+BOOL DrawDib(HDC hdc, LPBITMAPINFOHEADER lpbi, int xDest, int yDest, int wDest,
+	int hDest, int xSrc, int ySrc, int wSrc, int hSrc);
+BOOL AlphaBlendBitmap(HDC hdc, HBITMAP hbm, int xDest, int yDest, int wDest, int hDest,
+	int xSrc, int ySrc, int wSrc, int hSrc);
+BOOL DrawThumbnailText(HDC hdc, LPRECT lpRect, LPCTSTR lpszText, COLORREF color, int mode);
+HFONT CreateScaledFont(HDC hdc, LPCRECT lpRect, LPCTSTR lpszFormat);
+
 int SelectText(HWND hwndCtl);
 BOOL SetWordWrap(HWND hDlg, BOOL bWordWrap);
-HFONT CreateScaledFont(HDC hDC, LPCRECT lpRect, LPCTSTR lpszFormat);
 
 BOOL LoadSettings(LPWINDOWPLACEMENT lpWindowPlacement, LPLONG lpFontHeight);
 void SaveSettings(HWND hDlg, HFONT hFont);
+
+BOOL MySetWindowPlacement(HWND hWnd, const LPWINDOWPLACEMENT lpwndpl, BOOL bUseShowWindow);
 
 void StoreWindowRect(HWND hwnd, LPRECT lprc);
 void RetrieveWindowRect(HWND hwnd, LPRECT lprc);
@@ -78,6 +85,7 @@ BOOL AllowDarkModeForWindow(HWND hwndParent, BOOL bAllow);
 const TCHAR g_szTitle[]     = TEXT("GbxDump");
 const TCHAR g_szAbout[]     = TEXT("Gbx File Dumper ") VERSION TEXT(" (") PLATFORM TEXT(")\r\n")
                               TEXT("Copyright © 2010-2023 by Electron\r\n");
+const TCHAR g_szUserAgent[] = TEXT("GbxDump") TEXT("/") VERSION;
 const TCHAR g_szRegPath[]   = TEXT("Software\\Electron\\GbxDump");
 const TCHAR g_szPlacement[] = TEXT("WindowPlacement");
 const TCHAR g_szFntHeight[] = TEXT("FontHeight");
@@ -115,7 +123,7 @@ int APIENTRY _tWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstanc
 		return 0;
 
 	// Explicit link to the Desktop Window Manager API (not supported by Windows XP)
-	HINSTANCE hLibDwmapi = LoadLibrary(TEXT("dwmapi.dll"));
+	HMODULE hLibDwmapi = LoadLibrary(TEXT("dwmapi.dll"));
 	if (hLibDwmapi != NULL)
 		g_pfnDwmSetWindowAttribute = (LPFNDWMSETWINDOWATTRIBUTE)GetProcAddress(hLibDwmapi, "DwmSetWindowAttribute");
 
@@ -125,7 +133,7 @@ int APIENTRY _tWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstanc
 	// Use light or dark mode
 	g_bUseDarkMode = ShouldAppsUseDarkMode() && !IsHighContrast();
 	// Load the default thumbnail from the resources
-	g_hDibDefault = LoadDefaultThumbnail(hInstance);
+	g_hDibDefault = MyLoadBitmap(hInstance, MAKEINTRESOURCE(IDB_THUMB), LR_CREATEDIBSECTION);
 
 	LPTSTR lpszFilename = NULL;
 	LPTSTR lpszCommandLine = AllocGetCmdLine(lpCmdLine, &lpszFilename);
@@ -178,35 +186,23 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Loads the default thumbnail from the resources and converts the JPEG image to a DIB
+// Loads the specified bitmap resource and converts the image to a DIB
 //
-HANDLE LoadDefaultThumbnail(HINSTANCE hInstance)
+HANDLE MyLoadBitmap(HINSTANCE hInstance, LPCTSTR lpBitmapName, UINT fuLoad)
 {
-	HRSRC hRes = FindResource(hInstance, MAKEINTRESOURCE(IDR_THUMB), RT_RCDATA);
-	if (hRes == NULL)
+	HBITMAP hBitmap = (HBITMAP)LoadImage(hInstance, lpBitmapName, IMAGE_BITMAP, 0, 0, fuLoad);
+	if (hBitmap == NULL)
 		return NULL;
 
-	DWORD dwSize = SizeofResource(hInstance, hRes);
-	if (dwSize == 0)
-		return NULL;
+	HANDLE hDib = ConvertBitmapToDib(hBitmap);
 
-	HGLOBAL hResLoad = LoadResource(hInstance, hRes);
-	if (hResLoad == NULL)
-		return NULL;
-
-	LPVOID pvResLock = LockResource(hResLoad);
-	if (pvResLock == NULL)
-		return NULL;
-
-	HANDLE hDib = NULL;
-	__try { hDib = JpegToDib(pvResLock, dwSize); }
-	__except (EXCEPTION_EXECUTE_HANDLER) { hDib = NULL; }
+	DeleteBitmap(hBitmap);
 
 	return hDib;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Creates a copy of the command line and provides the argument between the quotation marks
+// Creates a copy of the command line and returns the argument between the first two quotes
 //
 LPTSTR AllocGetCmdLine(LPTSTR lpCmdLine, LPTSTR* lpszFilename)
 {
@@ -287,16 +283,16 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 				UINT colChanged = 0;
 				if (g_hDibDefault != NULL || g_hDibThumb != NULL)
 				{
-					HPALETTE hPal = CreateDibPalette(g_hDibThumb != NULL ? g_hDibThumb : g_hDibDefault);
-					if (hPal != NULL)
+					HPALETTE hpal = CreateDibPalette(g_hDibThumb != NULL ? g_hDibThumb : g_hDibDefault);
+					if (hpal != NULL)
 					{
-						HDC hDC = GetDC(hDlg);
-						HPALETTE hOldPal = SelectPalette (hDC, hPal, FALSE);
-						colChanged = RealizePalette(hDC);
-						if (hOldPal != NULL)
-							SelectPalette (hDC, hOldPal, FALSE);
-						ReleaseDC(hDlg, hDC);
-						DeletePalette(hPal);
+						HDC hdc = GetDC(hDlg);
+						HPALETTE hpalOld = SelectPalette (hdc, hpal, FALSE);
+						colChanged = RealizePalette(hdc);
+						if (hpalOld != NULL)
+							SelectPalette (hdc, hpalOld, FALSE);
+						ReleaseDC(hDlg, hdc);
+						DeletePalette(hpal);
 						if (colChanged != 0)
 							InvalidateRect(hDlg, NULL, TRUE);
 					}
@@ -308,18 +304,18 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 			{
 				if (wParam != (WPARAM)hDlg && (g_hDibDefault != NULL || g_hDibThumb != NULL))
 				{
-					HPALETTE hPal = CreateDibPalette(g_hDibThumb != NULL ? g_hDibThumb : g_hDibDefault);
-					if (hPal != NULL)
+					HPALETTE hpal = CreateDibPalette(g_hDibThumb != NULL ? g_hDibThumb : g_hDibDefault);
+					if (hpal != NULL)
 					{
-						HDC hDC = GetDC(hDlg);
-						HPALETTE hOldPal = SelectPalette(hDC, hPal, TRUE);
-						UINT colChanged = RealizePalette(hDC);
+						HDC hdc = GetDC(hDlg);
+						HPALETTE hpalOld = SelectPalette(hdc, hpal, TRUE);
+						UINT colChanged = RealizePalette(hdc);
 						if (colChanged != 0)
-							UpdateColors(hDC);
-						if (hOldPal != NULL)
-							SelectPalette(hDC, hOldPal, TRUE);
-						ReleaseDC(hDlg, hDC);
-						DeletePalette(hPal);
+							UpdateColors(hdc);
+						if (hpalOld != NULL)
+							SelectPalette(hdc, hpalOld, TRUE);
+						ReleaseDC(hDlg, hdc);
+						DeletePalette(hpal);
 					}
 				}
 				return FALSE;
@@ -505,11 +501,11 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 						SaveSettings(hDlg, s_hfontEditBox);
 
 						DeleteWindowRect(hDlg);
-						HWND hCtl = GetWindow(hDlg, GW_CHILD);
-						while (hCtl)
+						HWND hwndCtl = GetWindow(hDlg, GW_CHILD);
+						while (hwndCtl)
 						{
-							DeleteWindowRect(hCtl);
-							hCtl = GetNextSibling(hCtl);
+							DeleteWindowRect(hwndCtl);
+							hwndCtl = GetNextSibling(hwndCtl);
 						}
 
 						if (s_hwndSizeBox != NULL)
@@ -518,9 +514,9 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 							s_hwndSizeBox = NULL;
 						}
 
-						hCtl = GetWindow(hDlg, IDC_OUTPUT);
-						if (hCtl != NULL && g_lpPrevOutputWndProc != NULL)
-							SubclassWindow(hCtl, g_lpPrevOutputWndProc);
+						hwndCtl = GetDlgItem(hDlg, IDC_OUTPUT);
+						if (hwndCtl != NULL && g_lpPrevOutputWndProc != NULL)
+							SubclassWindow(hwndCtl, g_lpPrevOutputWndProc);
 
 						if (s_hfontEditBox != NULL)
 						{
@@ -536,7 +532,7 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 
 						if (s_hbrBkgnd != NULL)
 						{
-							DeleteObject(s_hbrBkgnd);
+							DeleteBrush(s_hbrBkgnd);
 							s_hbrBkgnd = NULL;
 						}
 
@@ -551,11 +547,7 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 							HCURSOR hOldCursor = SetCursor(LoadCursor(NULL, IDC_WAIT));
 							HWND hwndCtl = GetDlgItem(hDlg, IDC_OUTPUT);
 
-							// Clear the output window
-							Edit_SetText(hwndCtl, TEXT(""));
-							Edit_EmptyUndoBuffer(hwndCtl);
-							Edit_SetModify(hwndCtl, FALSE);
-							UpdateWindow(hwndCtl);
+							ClearOutputWindow(hwndCtl);
 
 							// Dump the file
 							if (DumpFile(hwndCtl, s_szFileName, s_szUid, s_szEnvi) && GetFocus() != hwndCtl)
@@ -585,7 +577,7 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 					return FALSE;
 
 				case IDC_PASTE:
-					{ // Open all files of a list pasted from the clipboard
+					{ // Open up to 100 files of a list pasted from the clipboard
 						if (!IsClipboardFormatAvailable(CF_HDROP) || !OpenClipboard(hDlg))
 							return FALSE;
 
@@ -604,6 +596,9 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 						}
 
 						UINT nFiles = DragQueryFile(hDrop, (UINT)-1, NULL, 0);
+						if (nFiles > 100)
+							nFiles = 100;
+
 						if (nFiles == 0)
 						{
 							GlobalUnlock(hDrop);
@@ -614,11 +609,7 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 						HCURSOR hOldCursor = SetCursor(LoadCursor(NULL, IDC_WAIT));
 						HWND hwndCtl = GetDlgItem(hDlg, IDC_OUTPUT);
 
-						// Clear the output window
-						Edit_SetText(hwndCtl, TEXT(""));
-						Edit_EmptyUndoBuffer(hwndCtl);
-						Edit_SetModify(hwndCtl, FALSE);
-						UpdateWindow(hwndCtl);
+						ClearOutputWindow(hwndCtl);
 
 						BOOL bSuccess = FALSE;
 						for (UINT iFile = 0; iFile < nFiles; iFile++)
@@ -776,7 +767,7 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 			return TRUE;
 
 		case WM_DROPFILES:
-			{ // Open all GBX files transferred via drag-and-drop
+			{ // Open up to 100 GBX files transferred via drag-and-drop
 				HDROP hDrop = (HDROP)wParam;
 				if (hDrop == NULL)
 					return FALSE;
@@ -786,6 +777,9 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 				SetForegroundWindow(hDlg);
 
 				UINT nFiles = DragQueryFile(hDrop, (UINT)-1, NULL, 0);
+				if (nFiles > 100)
+					nFiles = 100;
+
 				if (nFiles == 0)
 				{
 					DragFinish(hDrop);
@@ -795,11 +789,7 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 				HCURSOR hOldCursor = SetCursor(LoadCursor(NULL, IDC_WAIT));
 				HWND hwndCtl = GetDlgItem(hDlg, IDC_OUTPUT);
 
-				// Clear the output window
-				Edit_SetText(hwndCtl, TEXT(""));
-				Edit_EmptyUndoBuffer(hwndCtl);
-				Edit_SetModify(hwndCtl, FALSE);
-				UpdateWindow(hwndCtl);
+				ClearOutputWindow(hwndCtl);
 
 				BOOL bSuccess = FALSE;
 				for (UINT iFile = 0; iFile < nFiles; iFile++)
@@ -827,23 +817,28 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 			return TRUE;
 
 		case WM_CONTEXTMENU:
-			{ // Displays the context menu for the thumbnail
-				HWND hwndCtl = GetDlgItem(hDlg, IDC_THUMB);
-				if ((HWND)wParam == hwndCtl)
+			{ // Display the context menu for the dialog box or the thumbnail
+				HWND hwndContext = (HWND)wParam;
+				HWND hwndThumb = GetDlgItem(hDlg, IDC_THUMB);
+
+				if (hwndContext == hDlg || hwndContext == hwndThumb)
 				{
-					int x = (int)(short)LOWORD(lParam);
-					int y = (int)(short)HIWORD(lParam);
+					int x = GET_X_LPARAM(lParam);
+					int y = GET_Y_LPARAM(lParam);
 
 					if (x == -1 || y == -1)
 					{
 						RECT rc;
-						GetWindowRect(hwndCtl, &rc);
+						GetWindowRect(hwndContext, &rc);
 						x = (rc.left + rc.right) / 2;
 						y = (rc.top + rc.bottom) / 2;
 					}
 
-					HMENU hmenuPopup = LoadMenu(g_hInstance,
-						MAKEINTRESOURCE(g_bGerUI ? IDR_GER_POPUP : IDR_ENG_POPUP));
+					LPTSTR lpszMenuName = MAKEINTRESOURCE(g_bGerUI ? IDR_GER_POPUP_DIALOG : IDR_ENG_POPUP_DIALOG);
+					if (hwndContext == hwndThumb)
+						lpszMenuName = MAKEINTRESOURCE(g_bGerUI ? IDR_GER_POPUP_THUMB : IDR_ENG_POPUP_THUMB);
+
+					HMENU hmenuPopup = LoadMenu(g_hInstance, lpszMenuName);
 					if (hmenuPopup == NULL)
 						return FALSE;
 
@@ -854,24 +849,32 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 						return FALSE;
 					}
 
-					if (g_hDibThumb != NULL)
+					if (hwndContext == hDlg)
 					{
-						LPBITMAPINFOHEADER lpbi = (LPBITMAPINFOHEADER)GlobalLock(g_hDibThumb);
-
-						if (lpbi == NULL || (lpbi->biSize >= sizeof(BITMAPINFOHEADER) &&
-							lpbi->biCompression != BI_RGB && lpbi->biCompression != BI_RLE4 &&
-							lpbi->biCompression != BI_RLE8 && lpbi->biCompression != BI_BITFIELDS))
-							EnableMenuItem(hmenuTrackPopup, IDC_THUMB_COPY, MF_BYCOMMAND | MF_GRAYED);
-
-						if (lpbi == NULL)
-							EnableMenuItem(hmenuTrackPopup, IDC_THUMB_SAVE, MF_BYCOMMAND | MF_GRAYED);
-
-						GlobalUnlock(g_hDibThumb);
+						if (!IsClipboardFormatAvailable(CF_HDROP))
+							EnableMenuItem(hmenuTrackPopup, IDC_PASTE, MF_BYCOMMAND | MF_GRAYED);
 					}
-					else
+					else if (hwndContext == hwndThumb)
 					{
-						EnableMenuItem(hmenuTrackPopup, IDC_THUMB_COPY, MF_BYCOMMAND | MF_GRAYED);
-						EnableMenuItem(hmenuTrackPopup, IDC_THUMB_SAVE, MF_BYCOMMAND | MF_GRAYED);
+						if (g_hDibThumb != NULL)
+						{
+							LPBITMAPINFOHEADER lpbi = (LPBITMAPINFOHEADER)GlobalLock(g_hDibThumb);
+
+							if (lpbi == NULL || (lpbi->biSize >= sizeof(BITMAPINFOHEADER) &&
+								lpbi->biCompression != BI_RGB && lpbi->biCompression != BI_RLE4 &&
+								lpbi->biCompression != BI_RLE8 && lpbi->biCompression != BI_BITFIELDS))
+								EnableMenuItem(hmenuTrackPopup, IDC_THUMB_COPY, MF_BYCOMMAND | MF_GRAYED);
+
+							if (lpbi == NULL)
+								EnableMenuItem(hmenuTrackPopup, IDC_THUMB_SAVE, MF_BYCOMMAND | MF_GRAYED);
+
+							GlobalUnlock(g_hDibThumb);
+						}
+						else
+						{
+							EnableMenuItem(hmenuTrackPopup, IDC_THUMB_COPY, MF_BYCOMMAND | MF_GRAYED);
+							EnableMenuItem(hmenuTrackPopup, IDC_THUMB_SAVE, MF_BYCOMMAND | MF_GRAYED);
+						}
 					}
 
 					BOOL bSuccess = TrackPopupMenu(hmenuTrackPopup,
@@ -899,7 +902,6 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 				mbp.dwLanguageId = MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL);
 
 				s_bAboutBox = TRUE;
-				PlaySound((LPCTSTR)SND_ALIAS_SYSTEMASTERISK, NULL, SND_ALIAS_ID | SND_ASYNC);
 				MessageBoxIndirect(&mbp);
 				s_bAboutBox = FALSE;
 			}
@@ -921,10 +923,9 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 					AllowDarkModeForWindow(hDlg, g_bUseDarkMode);
 
 					if (s_hwndSizeBox != NULL)
-					{
-						// For safety's sake, hide the size box in undocumented
-						// dark mode. Without the "DarkMode_Explorer" theme,
-						// the size box doesn't visually match the dark mode.
+					{	// For safety's sake, hide the size box in undocumented dark mode. Without the
+						// "DarkMode_Explorer" theme, the size box doesn't visually match the dark mode.
+						// Also, certain compatibility and performance settings may disable themes.
 						BOOL bIsVisible = IsWindowVisible(s_hwndSizeBox);
 						if (g_bUseDarkMode && bIsVisible)
 							ShowWindow(s_hwndSizeBox, SW_HIDE);
@@ -943,7 +944,7 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 				// Load settings
 				LONG lFontHeight = 0;
 				WINDOWPLACEMENT wpl = {0};
-				if (GetKeyState(VK_SHIFT) >= 0)
+				if (!IsKeyDown(VK_SHIFT))
 					LoadSettings(&wpl, &lFontHeight);
 
 				// Determine logical DPI
@@ -960,19 +961,19 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 					s_hfontDlgOrig = GetStockFont(DEFAULT_GUI_FONT);
 
 				RECT rc;
-				// Position thumbnail window
-				HWND hwndCtl = GetDlgItem(hDlg, IDC_THUMB);
-				GetWindowRect(hwndCtl, &rc);
+				// Position the thumbnail window
+				HWND hwndThumb = GetDlgItem(hDlg, IDC_THUMB);
+				GetWindowRect(hwndThumb, &rc);
 				ScreenToClient(hDlg, (LPPOINT)&rc.left);
 				ScreenToClient(hDlg, (LPPOINT)&rc.right);
-				MoveWindow(hwndCtl, rc.left, rc.bottom - (rc.right - rc.left),
+				MoveWindow(hwndThumb, rc.left, rc.bottom - (rc.right - rc.left),
 					rc.right - rc.left, rc.right - rc.left, FALSE);
 
 				TCHAR szText[512];
 				// Set the title for the default thumbnail
 				if (LoadString(g_hInstance, g_bGerUI ? IDS_GER_THUMBNAIL : IDS_ENG_THUMBNAIL,
 					szText, _countof(szText)) > 0)
-					SetWindowText(hwndCtl, szText);
+					SetWindowText(hwndThumb, szText);
 
 				// Set the minimum size of the dialog box
 				GetWindowRect(hDlg, &rc);
@@ -996,7 +997,7 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 					rc.right - cx, rc.bottom - cy, cx, cy, hDlg, (HMENU)-1, g_hInstance, NULL);
 
 				// Save size of all child windows as property
-				hwndCtl = GetWindow(hDlg, GW_CHILD);
+				HWND hwndCtl = GetWindow(hDlg, GW_CHILD);
 				while (hwndCtl)
 				{
 					GetWindowRect(hwndCtl, &rc);
@@ -1049,14 +1050,7 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 				}
 
 				// Set the dialog box position and size
-				if (wpl.length == sizeof(WINDOWPLACEMENT))
-				{
-					// SetWindowPlacement internally calls ShowWindow with
-					// wpl.showCmd. Since not all visible initializations
-					// are completed yet, we set wpl.showCmd to SW_HIDE.
-					wpl.showCmd = SW_HIDE;
-					SetWindowPlacement(hDlg, &wpl);
-				}
+				MySetWindowPlacement(hDlg, &wpl, FALSE);
 
 				if ((LPCTSTR)lParam != NULL && ((LPCTSTR)lParam)[0] != TEXT('\0'))
 				{ // Open a GBX file passed by program argument
@@ -1085,11 +1079,11 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 				SaveSettings(hDlg, s_hfontEditBox);
 
 				DeleteWindowRect(hDlg);
-				HWND hCtl = GetWindow(hDlg, GW_CHILD);
-				while (hCtl)
+				HWND hwndCtl = GetWindow(hDlg, GW_CHILD);
+				while (hwndCtl)
 				{
-					DeleteWindowRect(hCtl);
-					hCtl = GetNextSibling(hCtl);
+					DeleteWindowRect(hwndCtl);
+					hwndCtl = GetNextSibling(hwndCtl);
 				}
 
 				if (s_hwndSizeBox != NULL)
@@ -1098,9 +1092,9 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 					s_hwndSizeBox = NULL;
 				}
 
-				hCtl = GetWindow(hDlg, IDC_OUTPUT);
-				if (hCtl != NULL && g_lpPrevOutputWndProc != NULL)
-					SubclassWindow(hCtl, g_lpPrevOutputWndProc);
+				hwndCtl = GetDlgItem(hDlg, IDC_OUTPUT);
+				if (hwndCtl != NULL && g_lpPrevOutputWndProc != NULL)
+					SubclassWindow(hwndCtl, g_lpPrevOutputWndProc);
 
 				if (s_hfontEditBox != NULL)
 				{
@@ -1116,7 +1110,7 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 
 				if (s_hbrBkgnd != NULL)
 				{
-					DeleteObject(s_hbrBkgnd);
+					DeleteBrush(s_hbrBkgnd);
 					s_hbrBkgnd = NULL;
 				}
 
@@ -1140,16 +1134,15 @@ LRESULT CALLBACK OutputWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 	if (uMsg == WM_KEYDOWN)
 	{
 		// CTRL+A to select the entire text
-		if (wParam == 'A' && GetKeyState(VK_CONTROL) < 0)
+		if (wParam == 'A' && IsKeyDown(VK_CONTROL))
 		{
 			Edit_SetSel(hwnd, 0, -1);
 			return FALSE;
 		}
 
 		// CTRL+V and SHIFT+INS to paste a list of files from the clipboard.
-		// Since we don't have a menu, these shortcuts are just a workaround.
-		if ((wParam == 'V' && GetKeyState(VK_CONTROL) < 0) ||
-			(wParam == VK_INSERT && GetKeyState(VK_SHIFT) < 0))
+		if ((wParam == 'V' && IsKeyDown(VK_CONTROL)) ||
+			(wParam == VK_INSERT && IsKeyDown(VK_SHIFT)))
 		{
 			PostMessage(GetParent(hwnd), WM_COMMAND, MAKEWPARAM(IDC_PASTE, 1), 0);
 			return FALSE;
@@ -1157,222 +1150,6 @@ LRESULT CALLBACK OutputWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 	}
 
 	return CallWindowProc(g_lpPrevOutputWndProc, hwnd, uMsg, wParam, lParam);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////
-// Draws the thumbnail
-
-BOOL OnDrawItem(HWND hDlg, const LPDRAWITEMSTRUCT lpDrawItem)
-{
-	if (lpDrawItem == NULL || lpDrawItem->CtlID != IDC_THUMB)
-		return FALSE;
-
-	HDC hdc = lpDrawItem->hDC;
-	RECT rc = lpDrawItem->rcItem;
-	LONG cx = rc.right - rc.left;
-	LONG cy = rc.bottom - rc.top;
-
-	BOOL bFailed = FALSE;
-	BOOL bDrawText = TRUE;
-	HANDLE hDib = g_hDibDefault;
-	if (g_hDibThumb != NULL)
-	{
-		bDrawText = FALSE;
-		hDib = g_hDibThumb;
-	}
-
-	if (hDib == NULL)
-		bFailed = TRUE;
-	else
-	{
-		// If necessary, create and select a color palette
-		HPALETTE hOldPal = NULL;
-		HPALETTE hPal = (GetDeviceCaps(hdc, RASTERCAPS) & RC_PALETTE) ? CreateDibPalette(hDib) : NULL;
-		if (hPal != NULL)
-		{
-			hOldPal = SelectPalette(hdc, hPal, FALSE);
-			if (hOldPal)
-				RealizePalette(hdc);
-		}
-
-		// Output the DIB
-		LPSTR lpbi = (LPSTR)GlobalLock(hDib);
-		if (lpbi == NULL)
-			bFailed = TRUE;
-		else
-		{
-			int nSrcX = 0;
-			int nSrcY = 0;
-			int nSrcWidth  = abs(((LPBITMAPINFOHEADER)lpbi)->biWidth);
-			int nSrcHeight = abs(((LPBITMAPINFOHEADER)lpbi)->biHeight);
-			if (IS_OS2PM_DIB(lpbi))
-			{
-				nSrcWidth  = ((LPBITMAPCOREHEADER)lpbi)->bcWidth;
-				nSrcHeight = ((LPBITMAPCOREHEADER)lpbi)->bcHeight;
-			}
-			if (lpDrawItem->itemState & ODS_SELECTED)
-			{
-				nSrcX = nSrcWidth  / 20;
-				nSrcY = nSrcHeight / 20;
-				nSrcWidth  -= 2 * nSrcX;
-				nSrcHeight -= 2 * nSrcY;
-			}
-
-			if (g_hBitmapThumb != NULL)
-			{ // Output a 32-bit DIB with transparency
-				HDC hdcMem = CreateCompatibleDC(hdc);
-				if (hdcMem == NULL)
-					bFailed = TRUE;
-				else
-				{
-					HBITMAP hbmpSurface = CreateCompatibleBitmap(hdc, cx, cy);
-					if (hbmpSurface == NULL)
-						bFailed = TRUE;
-					else
-					{
-						HBITMAP hbmpSurfaceOld = (HBITMAP)SelectObject(hdcMem, hbmpSurface);
-
-						static WORD wCheckPat[8] =
-						{
-							0x000F, 0x000F, 0x000F, 0x000F,
-							0x00F0, 0x00F0, 0x00F0, 0x00F0
-						};
-
-						// Draw a checkerboard pattern as background
-						HBITMAP hbmpBrush = CreateBitmap(8, 8, 1, 1, wCheckPat);
-						if (hbmpBrush != NULL)
-						{
-							HBRUSH hbr = CreatePatternBrush(hbmpBrush);
-							if (hbr != NULL)
-							{
-								HBRUSH hbrOld = (HBRUSH)SelectObject(hdcMem, hbr);
-								COLORREF rgbTextOld = SetTextColor(hdcMem, RGB(204, 204, 204));
-								COLORREF rgbBkOld = SetBkColor(hdcMem, RGB(255, 255, 255));
-
-								PatBlt(hdcMem, rc.left, rc.top, cx, cy, PATCOPY);
-
-								if (rgbBkOld != CLR_INVALID)
-									SetBkColor(hdcMem, rgbBkOld);
-								if (rgbTextOld != CLR_INVALID)
-									SetTextColor(hdcMem, rgbTextOld);
-								if (hbrOld != NULL)
-									SelectObject(hdcMem, hbrOld);
-
-								DeleteObject(hbr);
-							}
-
-							DeleteObject(hbmpBrush);
-						}
-
-						HDC hdcAlpha = CreateCompatibleDC(hdc);
-						if (hdcAlpha != NULL)
-						{
-							int nBltModeOld = SetStretchBltMode(hdc, COLORONCOLOR);
-							HGDIOBJ hbmpThumbOld = SelectObject(hdcAlpha, g_hBitmapThumb);
-
-							// Blend the thumbnail with the checkerboard pattern
-							BLENDFUNCTION pixelblend = { AC_SRC_OVER, 0, 0xFF, AC_SRC_ALPHA };
-							if (!AlphaBlend(hdcMem, rc.left, rc.top, cx, cy, hdcAlpha,
-								nSrcX, nSrcY, nSrcWidth, nSrcHeight, pixelblend))
-								StretchBlt(hdcMem, rc.left, rc.top, cx, cy, hdcAlpha,
-									nSrcX, nSrcY, nSrcWidth, nSrcHeight, SRCCOPY);
-
-							if (hbmpThumbOld != NULL)
-								SelectObject(hdcAlpha, hbmpThumbOld);
-							if (nBltModeOld != 0)
-								SetStretchBltMode(hdc, nBltModeOld);
-
-							DeleteDC(hdcAlpha);
-						}
-
-						// Transfer the offscreen surface to the screen
-						bFailed = !BitBlt(hdc, rc.left, rc.top, cx, cy, hdcMem, rc.left, rc.top, SRCCOPY);
-
-						if (hbmpSurfaceOld != NULL)
-							SelectObject(hdcMem, hbmpSurfaceOld);
-
-						DeleteObject(hbmpSurface);
-					}
-
-					DeleteDC(hdcMem);
-				}
-			}
-			else
-			{
-				// For performance reasons, enable ICM only if the DIB contains color space data
-				if ((IS_WIN40_DIB(lpbi) || IS_WIN50_DIB(lpbi)) &&
-					(((LPBITMAPV4HEADER)lpbi)->bV4CSType == LCS_CALIBRATED_RGB ||
-					((LPBITMAPV5HEADER)lpbi)->bV5CSType == PROFILE_EMBEDDED))
-					SetICMMode(hdc, ICM_ON);
-
-				int nBltModeOld = SetStretchBltMode(hdc, HALFTONE);
-
-				int nRet = StretchDIBits(hdc, rc.left, rc.top, cx, cy, nSrcX, nSrcY, nSrcWidth, nSrcHeight,
-					FindDibBits(lpbi), (LPBITMAPINFO)lpbi, DIB_RGB_COLORS, SRCCOPY);
-
-				if (nRet == 0 || nRet == GDI_ERROR)
-				{
-					bFailed = TRUE;
-					// Is it possibly a video compressed DIB?
-					if (IsDibVideoCompressed(lpbi))
-					{ // Try to output the DIB using Video for Windows DrawDib API
-						if (g_hDrawDib == NULL)
-							g_hDrawDib = DrawDibOpen();
-
-						if (g_hDrawDib != NULL)
-							bFailed = !DrawDibDraw(g_hDrawDib, hdc, rc.left, rc.top, cx, cy,
-								(LPBITMAPINFOHEADER)lpbi, FindDibBits(lpbi), nSrcX, nSrcY, nSrcWidth, nSrcHeight, 0);
-					}
-				}
-
-				if (nBltModeOld != 0)
-					SetStretchBltMode(hdc, nBltModeOld);
-			}
-
-			GlobalUnlock(hDib);
-		}
-
-		if (hOldPal != NULL)
-			SelectPalette(hdc, hOldPal, FALSE);
-		if (hPal != NULL)
-			DeletePalette(hPal);
-	}
-
-	if (bFailed)
-	{ // Draw a 45-degree crosshatch
-		HBRUSH hbr = CreateHatchBrush(HS_DIAGCROSS, RGB(0, 0, 0));
-		FillRect(hdc, &rc, hbr);
-		DeleteObject(hbr);
-	}
-
-	if (bDrawText)
-	{ // Draw "NO THUMBNAIL" lettering over the default thumbnail image
-		TCHAR szText[256];
-		if (GetWindowText(lpDrawItem->hwndItem, szText, _countof(szText)) > 0)
-		{
-			COLORREF rgbTextOld = SetTextColor(hdc, RGB(255, 255, 255));
-			int nBkModeOld = SetBkMode(hdc, TRANSPARENT);
-
-			HFONT hfontOld = NULL;
-			HFONT hfont = CreateScaledFont(hdc, &rc, szText);
-			if (hfont != NULL)
-				hfontOld = SelectFont(hdc, hfont);
-
-			DrawText(hdc, szText, -1, &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOCLIP | DT_NOPREFIX);
-
-			if (hfontOld != NULL)
-				SelectFont(hdc, hfontOld);
-			if (hfont != NULL)
-				DeleteFont(hfont);
-
-			if (nBkModeOld != 0)
-				SetBkMode(hdc, nBkModeOld);
-			if (rgbTextOld != CLR_INVALID)
-				SetTextColor(hdc, rgbTextOld);
-		}
-	}
-
-	return TRUE;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1393,20 +1170,8 @@ BOOL DumpFile(HWND hwndCtl, LPCTSTR lpszFileName, LPSTR lpszUid, LPSTR lpszEnvi)
 	HWND hDlg = GetParent(hwndCtl);
 
 	// Disable the TMX and Dedimania buttons
-	HWND hwndButton = GetDlgItem(hDlg, IDC_TMX);
-	if (IsWindowEnabled(hwndButton))
-	{
-		if (GetFocus() == hwndButton)
-			SendMessage(hDlg, WM_NEXTDLGCTL, (WPARAM)GetDlgItem(hDlg, IDC_OPEN), 1);
-		Button_Enable(hwndButton, FALSE);
-	}
-	hwndButton = GetDlgItem(hDlg, IDC_DEDIMANIA);
-	if (IsWindowEnabled(hwndButton))
-	{
-		if (GetFocus() == hwndButton)
-			SendMessage(hDlg, WM_NEXTDLGCTL, (WPARAM)GetDlgItem(hDlg, IDC_OPEN), 1);
-		Button_Enable(hwndButton, FALSE);
-	}
+	DisableButton(hDlg, IDC_TMX, IDC_OPEN);
+	DisableButton(hDlg, IDC_DEDIMANIA, IDC_OPEN);
 
 	// Release old thumbnail
 	if (g_hBitmapThumb != NULL)
@@ -1584,36 +1349,38 @@ BOOL DumpJpeg(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 	if (hwndCtl == NULL || hFile == NULL || dwFileSize == 0)
 		return FALSE;
 
+	HWND hDlg = GetParent(hwndCtl);
+
 	// Jump to the beginning of the file
 	if (!FileSeekBegin(hFile, 0))
 		return FALSE;
 
-	// Read the file
 	LPVOID lpData = MyGlobalAllocPtr(GHND, dwFileSize);
 	if (lpData == NULL)
 		return FALSE;
 
+	// Read the file
 	if (!ReadData(hFile, lpData, dwFileSize))
 	{
 		MyGlobalFreePtr(lpData);
 		return FALSE;
 	}
 
-	// Decode the JPEG image
 	OutputText(hwndCtl, g_szSep1);
 
 	HANDLE hDib = NULL;
 	HCURSOR hOldCursor = SetCursor(LoadCursor(NULL, IDC_WAIT));
 
+	// Decode the JPEG image
 	__try { hDib = JpegToDib(lpData, dwFileSize, FALSE, nTraceLevel); }
 	__except (EXCEPTION_EXECUTE_HANDLER) { hDib = NULL; }
 
 	SetCursor(hOldCursor);
 
 	if (hDib != NULL)
-		ReplaceThumbnail(hwndCtl, hDib);
+		ReplaceThumbnail(hDlg, hDib);
 	else
-		MarkAsUnsupported(hwndCtl);
+		MarkAsUnsupported(hDlg);
 
 	MyGlobalFreePtr(lpData);
 
@@ -1628,36 +1395,38 @@ BOOL DumpWebP(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 	if (hwndCtl == NULL || hFile == NULL || dwFileSize == 0)
 		return FALSE;
 
+	HWND hDlg = GetParent(hwndCtl);
+
 	// Jump to the beginning of the file
 	if (!FileSeekBegin(hFile, 0))
 		return FALSE;
 
-	// Read the file
 	LPVOID lpData = MyGlobalAllocPtr(GHND, dwFileSize);
 	if (lpData == NULL)
 		return FALSE;
 
+	// Read the file
 	if (!ReadData(hFile, lpData, dwFileSize))
 	{
 		MyGlobalFreePtr(lpData);
 		return FALSE;
 	}
 
-	// Decode the WebP image
 	OutputText(hwndCtl, g_szSep1);
 
 	HANDLE hDib = NULL;
 	HCURSOR hOldCursor = SetCursor(LoadCursor(NULL, IDC_WAIT));
 
+	// Decode the WebP image
 	__try { hDib = WebpToDib(lpData, dwFileSize, FALSE, TRUE); }
 	__except (EXCEPTION_EXECUTE_HANDLER) { hDib = NULL; }
 
 	SetCursor(hOldCursor);
 
 	if (hDib != NULL)
-		ReplaceThumbnail(hwndCtl, hDib);
+		ReplaceThumbnail(hDlg, hDib);
 	else
-		MarkAsUnsupported(hwndCtl);
+		MarkAsUnsupported(hDlg);
 
 	MyGlobalFreePtr(lpData);
 
@@ -1692,20 +1461,7 @@ BOOL DumpHex(HWND hwndCtl, HANDLE hFile, SIZE_T cbLen)
 	}
 
 	OutputText(hwndCtl, g_szSep1);
-	if (LoadString(g_hInstance, g_bGerUI ? IDS_GER_HEXDUMP : IDS_ENG_HEXDUMP,
-		szOutput, _countof(szOutput)) > 0)
-	{ // Keep the printf-style format specifiers under internal control
-		_sntprintf(szFormat, _countof(szFormat), TEXT("%Iu"), cbLen);
-		szFormat[FORMAT_LEN - 1] = TEXT('\0');
-
-		LPCTSTR lpszText = AllocReplaceString(szOutput, TEXT("{COUNT}"), szFormat);
-		if (lpszText != NULL)
-		{
-			OutputText(hwndCtl, lpszText);
-			OutputText(hwndCtl, g_szSep1);
-			MyGlobalFreePtr((LPVOID)lpszText);
-		}
-	}
+	OutputTextCount(hwndCtl, g_bGerUI ? IDS_GER_HEXDUMP : IDS_ENG_HEXDUMP, cbLen);
 
 	PBYTE pByte;
 	SIZE_T i, j, c;
@@ -1749,6 +1505,332 @@ BOOL DumpHex(HWND hwndCtl, HANDLE hFile, SIZE_T cbLen)
 	MyGlobalFreePtr((LPVOID)pData);
 
 	return TRUE;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Draws the thumbnail
+
+BOOL OnDrawItem(HWND hDlg, const LPDRAWITEMSTRUCT lpDrawItem)
+{
+	if (lpDrawItem == NULL || lpDrawItem->CtlID != IDC_THUMB)
+		return FALSE;
+
+	HDC hdc = lpDrawItem->hDC;
+	RECT rc = lpDrawItem->rcItem;
+
+	BOOL bSuccess = TRUE;
+	BOOL bDrawText = TRUE;
+	HANDLE hDib = g_hDibDefault;
+	if (g_hDibThumb != NULL)
+	{
+		bDrawText = FALSE;
+		hDib = g_hDibThumb;
+	}
+
+	if (hDib == NULL)
+		bSuccess = FALSE;
+	else
+	{
+		// If necessary, create and select a color palette
+		HPALETTE hpal = NULL;
+		HPALETTE hpalOld = NULL;
+		if (GetDeviceCaps(hdc, RASTERCAPS) & RC_PALETTE)
+			hpal = CreateDibPalette(hDib);
+		if (hpal != NULL)
+		{
+			hpalOld = SelectPalette(hdc, hpal, FALSE);
+			if (hpalOld != NULL)
+				RealizePalette(hdc);
+		}
+
+		// Output the DIB
+		LPBITMAPINFOHEADER lpbi = (LPBITMAPINFOHEADER)GlobalLock(hDib);
+		if (lpbi == NULL)
+			bSuccess = FALSE;
+		else
+		{
+			int nSrcX = 0;
+			int nSrcY = 0;
+			int nSrcWidth  = abs(lpbi->biWidth);
+			int nSrcHeight = abs(lpbi->biHeight);
+
+			if (IS_OS2PM_DIB(lpbi))
+			{
+				nSrcWidth  = ((LPBITMAPCOREHEADER)lpbi)->bcWidth;
+				nSrcHeight = ((LPBITMAPCOREHEADER)lpbi)->bcHeight;
+			}
+
+			if (lpDrawItem->itemState & ODS_SELECTED)
+			{
+				nSrcX = nSrcWidth  / 20;
+				nSrcY = nSrcHeight / 20;
+				nSrcWidth  -= 2 * nSrcX;
+				nSrcHeight -= 2 * nSrcY;
+			}
+
+			if (g_hBitmapThumb != NULL)
+				bSuccess = AlphaBlendBitmap(hdc, g_hBitmapThumb, rc.left, rc.top,
+					rc.right-rc.left, rc.bottom-rc.top, nSrcX, nSrcY, nSrcWidth, nSrcHeight);
+			else
+				bSuccess = DrawDib(hdc, lpbi, rc.left, rc.top, rc.right-rc.left, rc.bottom-rc.top,
+					nSrcX, nSrcY, nSrcWidth, nSrcHeight);
+
+			GlobalUnlock(hDib);
+		}
+
+		if (hpalOld != NULL)
+			SelectPalette(hdc, hpalOld, FALSE);
+		if (hpal != NULL)
+			DeletePalette(hpal);
+	}
+
+	if (!bSuccess)
+	{ // Draw a 45-degree crosshatch
+		HBRUSH hbr = CreateHatchBrush(HS_DIAGCROSS, RGB(0, 0, 0));
+		FillRect(hdc, &rc, hbr);
+		DeleteBrush(hbr);
+	}
+
+	if (bDrawText)
+	{ // Draw the lettering "No thumbnail" or "Unsupported format" on the default thumbnail
+		TCHAR szText[256];
+		if (GetWindowText(lpDrawItem->hwndItem, szText, _countof(szText)) > 0)
+			DrawThumbnailText(hdc, &rc, szText,
+				bSuccess ? RGB_THUMBNAIL_TEXTCOLOR : RGB_DARKMODE_BKCOLOR,
+				bSuccess ? TRANSPARENT : OPAQUE);
+	}
+
+	return TRUE;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Draws a DIB with StretchDIBits or DrawDibDraw
+
+BOOL DrawDib(HDC hdc, LPBITMAPINFOHEADER lpbi, int xDest, int yDest, int wDest, int hDest, int xSrc, int ySrc, int wSrc, int hSrc)
+{
+	if (hdc == NULL || lpbi == NULL)
+		return FALSE;
+
+	// For performance reasons, enable ICM only if the DIB contains color space data
+	if (DibHasColorSpaceData((LPCSTR)lpbi))
+		SetICMMode(hdc, ICM_ON);
+
+	POINT pt = {0};
+	GetBrushOrgEx(hdc, &pt);
+	int nBltModeOld = SetStretchBltMode(hdc, HALFTONE);
+	SetBrushOrgEx(hdc, pt.x, pt.y, NULL);
+
+	int nRet = StretchDIBits(hdc, xDest, yDest, wDest, hDest, xSrc, ySrc, wSrc, hSrc,
+		FindDibBits((LPCSTR)lpbi), (LPBITMAPINFO)lpbi, DIB_RGB_COLORS, SRCCOPY);
+
+	BOOL bSuccess = (nRet != 0 && nRet != GDI_ERROR);
+	if (!bSuccess)
+	{
+		// Is it possibly a video compressed DIB?
+		if (DibIsVideoCompressed((LPCSTR)lpbi))
+		{ // Try to output the DIB using Video for Windows DrawDib API
+			if (g_hDrawDib == NULL)
+				g_hDrawDib = DrawDibOpen();
+
+			if (g_hDrawDib != NULL)
+				bSuccess = DrawDibDraw(g_hDrawDib, hdc, xDest, yDest, wDest, hDest,
+					lpbi, FindDibBits((LPCSTR)lpbi), xSrc, ySrc, wSrc, hSrc, 0);
+		}
+	}
+
+	if (nBltModeOld != 0)
+	{
+		if (nBltModeOld == HALFTONE)
+			GetBrushOrgEx(hdc, &pt);
+		SetStretchBltMode(hdc, nBltModeOld);
+		if (nBltModeOld == HALFTONE)
+			SetBrushOrgEx(hdc, pt.x, pt.y, NULL);
+	}
+
+	return bSuccess;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Draws a DIB section with pre-multiplied alpha on a checkerboard pattern
+
+BOOL AlphaBlendBitmap(HDC hdc, HBITMAP hbm, int xDest, int yDest, int wDest, int hDest, int xSrc, int ySrc, int wSrc, int hSrc)
+{
+	if (hdc == NULL || hbm == NULL)
+		return FALSE;
+
+	// Create an offscreen surface
+	HDC hdcMem = CreateCompatibleDC(hdc);
+	if (hdcMem == NULL)
+		return FALSE;
+
+	HBITMAP hbmpSurface = CreateCompatibleBitmap(hdc, wDest, hDest);
+	if (hbmpSurface == NULL)
+	{
+		DeleteDC(hdcMem);
+		return FALSE;
+	}
+
+	HBITMAP hbmpSurfaceOld = SelectBitmap(hdcMem, hbmpSurface);
+	if (hbmpSurfaceOld == NULL)
+	{
+		DeleteBitmap(hbmpSurface);
+		DeleteDC(hdcMem);
+		return FALSE;
+	}
+
+	static WORD wCheckPat[8] =
+	{
+		0x000F, 0x000F, 0x000F, 0x000F,
+		0x00F0, 0x00F0, 0x00F0, 0x00F0
+	};
+
+	// Draw a checkerboard pattern as background
+	HBITMAP hbmpBrush = CreateBitmap(8, 8, 1, 1, wCheckPat);
+	if (hbmpBrush != NULL)
+	{
+		HBRUSH hbr = CreatePatternBrush(hbmpBrush);
+		if (hbr != NULL)
+		{
+			HBRUSH hbrOld = SelectBrush(hdcMem, hbr);
+			COLORREF rgbTextOld = SetTextColor(hdcMem, RGB(204, 204, 204));
+			COLORREF rgbBkOld = SetBkColor(hdcMem, RGB(255, 255, 255));
+
+			PatBlt(hdcMem, xDest, yDest, wDest, hDest, PATCOPY);
+
+			if (rgbBkOld != CLR_INVALID)
+				SetBkColor(hdcMem, rgbBkOld);
+			if (rgbTextOld != CLR_INVALID)
+				SetTextColor(hdcMem, rgbTextOld);
+			if (hbrOld != NULL)
+				SelectBrush(hdcMem, hbrOld);
+
+			DeleteBrush(hbr);
+		}
+
+		DeleteBitmap(hbmpBrush);
+	}
+
+	HDC hdcAlpha = CreateCompatibleDC(hdc);
+	if (hdcAlpha != NULL)
+	{
+		int nBltModeOld = SetStretchBltMode(hdc, COLORONCOLOR);
+		HBITMAP hbmpThumbOld = SelectBitmap(hdcAlpha, hbm);
+
+		// Blend the thumbnail with the checkerboard pattern
+		BLENDFUNCTION pixelblend = { AC_SRC_OVER, 0, 0xFF, AC_SRC_ALPHA };
+		if (!AlphaBlend(hdcMem, xDest, yDest, wDest, hDest, hdcAlpha, xSrc, ySrc, wSrc, hSrc, pixelblend))
+			StretchBlt(hdcMem, xDest, yDest, wDest, hDest, hdcAlpha, xSrc, ySrc, wSrc, hSrc, SRCCOPY);
+
+		if (hbmpThumbOld != NULL)
+			SelectBitmap(hdcAlpha, hbmpThumbOld);
+		if (nBltModeOld != 0)
+		{
+			POINT pt = {0};
+			if (nBltModeOld == HALFTONE)
+				GetBrushOrgEx(hdc, &pt);
+			SetStretchBltMode(hdc, nBltModeOld);
+			if (nBltModeOld == HALFTONE)
+				SetBrushOrgEx(hdc, pt.x, pt.y, NULL);
+		}
+
+		DeleteDC(hdcAlpha);
+	}
+
+	// Transfer the offscreen surface to the screen
+	BOOL bSuccess = BitBlt(hdc, xDest, yDest, wDest, hDest, hdcMem, xDest, yDest, SRCCOPY);
+
+	SelectBitmap(hdcMem, hbmpSurfaceOld);
+	DeleteBitmap(hbmpSurface);
+	DeleteDC(hdcMem);
+
+	return bSuccess;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Draws text on the thumbnail
+
+BOOL DrawThumbnailText(HDC hdc, LPRECT lpRect, LPCTSTR lpszText, COLORREF color, int mode)
+{
+	if (hdc == NULL || lpRect == NULL || lpszText == NULL)
+		return FALSE;
+
+	COLORREF rgbTextOld = SetTextColor(hdc, color);
+	int nBkModeOld = SetBkMode(hdc, mode);
+
+	HFONT hfontOld = NULL;
+	HFONT hfont = CreateScaledFont(hdc, lpRect, lpszText);
+	if (hfont != NULL)
+		hfontOld = SelectFont(hdc, hfont);
+
+	BOOL bSuccess = DrawText(hdc, lpszText, -1, lpRect,
+		DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOCLIP | DT_NOPREFIX) != 0;
+
+	if (hfontOld != NULL)
+		SelectFont(hdc, hfontOld);
+	if (hfont != NULL)
+		DeleteFont(hfont);
+
+	if (nBkModeOld != 0)
+		SetBkMode(hdc, nBkModeOld);
+	if (rgbTextOld != CLR_INVALID)
+		SetTextColor(hdc, rgbTextOld);
+
+	return bSuccess;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Creates a font that fits the size of the thumbnail window
+
+HFONT CreateScaledFont(HDC hdc, LPCRECT lpRect, LPCTSTR lpszText)
+{
+	if (hdc == NULL || lpRect == NULL || lpszText == NULL)
+		return NULL;
+
+	SIZE_T cchTextLen = _tcslen(lpszText);
+	if (cchTextLen == 0)
+		return NULL;
+
+	// Define the maximum size of the rectangle in the center
+	// of the thumbnail in which the text must be positioned
+	SIZE sizeTextMax = {0};
+	sizeTextMax.cx = ((lpRect->right - lpRect->left)) * 3 / 4;
+	sizeTextMax.cy = ((lpRect->bottom - lpRect->top)) / 6;
+
+	LOGFONT lf = {0};
+	lf.lfHeight = -sizeTextMax.cy; // Set the max practicable font size
+	lf.lfWeight = FW_BOLD;
+	lf.lfPitchAndFamily = DEFAULT_PITCH | FF_SWISS;
+	MyStrNCpy(lf.lfFaceName, g_szFontThumb, _countof(lf.lfFaceName));
+
+	HFONT hFont = CreateFontIndirect(&lf);
+	if (hFont == NULL)
+		return NULL;
+
+	HFONT hFontOld = SelectFont(hdc, hFont);
+
+	SIZE sizeTextRatio = {0};
+	GetTextExtentPoint32(hdc, lpszText, (int)cchTextLen, &sizeTextRatio);
+
+	if (hFontOld != NULL)
+		SelectFont(hdc, hFontOld);
+
+	__try
+	{
+		// If the text has become too wide due to the maximum
+		// font height, reduce the font size until it fits in
+		lf.lfHeight = 0;
+		if (((sizeTextMax.cy * sizeTextRatio.cx) / sizeTextRatio.cy) > sizeTextMax.cx)
+			lf.lfHeight = -((sizeTextMax.cx * sizeTextRatio.cy) / sizeTextRatio.cx);
+	}
+	__except (EXCEPTION_EXECUTE_HANDLER) { ; }
+
+	if (lf.lfHeight != 0)
+	{
+		DeleteFont(hFont);
+		hFont = CreateFontIndirect(&lf);
+	}
+
+	return hFont;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1886,13 +1968,13 @@ BOOL SetWordWrap(HWND hDlg, BOOL bWordWrap)
 		SetWindowTheme(hwndEditNew, L"DarkMode_Explorer", NULL);
 
 	SetWindowLong(hwndEditOld, GWL_ID, nID+2000);
-	SetWindowPos(hwndEditNew, NULL, 0, 0, 0, 0,
+	SetWindowPos(hwndEditNew, HWND_TOP, 0, 0, 0, 0,
 		SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOZORDER | SWP_SHOWWINDOW);
-	SetWindowPos(hwndEditNew, NULL, 0, 0, 0, 0,
+	SetWindowPos(hwndEditNew, HWND_TOP, 0, 0, 0, 0,
 		SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOZORDER | SWP_DRAWFRAME);
 
 	// Destroy the old edit control
-	SetWindowPos(hwndEditOld, NULL, 0, 0, 0, 0,
+	SetWindowPos(hwndEditOld, HWND_TOP, 0, 0, 0, 0,
 		SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOREDRAW | SWP_HIDEWINDOW);
 	DeleteWindowRect(hwndEditOld);
 	DestroyWindow(hwndEditOld);
@@ -1909,67 +1991,6 @@ BOOL SetWordWrap(HWND hDlg, BOOL bWordWrap)
 	g_lpPrevOutputWndProc = SubclassWindow(hwndEditNew, OutputWndProc);
 
 	return TRUE;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////
-// Create a font that fits the size of the thumbnail window
-
-HFONT CreateScaledFont(HDC hDC, LPCRECT lpRect, LPCTSTR lpszText)
-{
-	if (hDC == NULL || lpRect == NULL || lpszText == NULL)
-		return NULL;
-
-	SIZE_T cchTextLen = _tcslen(lpszText);
-	if (cchTextLen == 0)
-		return NULL;
-
-	// Define the maximum size of the rectangle in the center
-	// of the thumbnail in which the text must be positioned
-	SIZE sizeTextMax = {0};
-	sizeTextMax.cx = ((lpRect->right - lpRect->left)) * 3 / 4;
-	sizeTextMax.cy = ((lpRect->bottom - lpRect->top)) / 6;
-
-	LOGFONT lf = {0};
-	lf.lfHeight = -sizeTextMax.cy; // Set the max practicable font size
-	lf.lfWeight = FW_BOLD;
-	lf.lfPitchAndFamily = DEFAULT_PITCH | FF_SWISS;
-	MyStrNCpy(lf.lfFaceName, g_szFontThumb, _countof(lf.lfFaceName));
-
-	HFONT hFont = CreateFontIndirect(&lf);
-	if (hFont == NULL)
-		return NULL;
-
-	HFONT hFontOld = SelectFont(hDC, hFont);
-
-	SIZE sizeTextRatio;
-	GetTextExtentPoint32(hDC, lpszText, (int)cchTextLen, &sizeTextRatio);
-
-	if (hFontOld != NULL)
-		SelectFont(hDC, hFontOld);
-
-	__try
-	{
-		// If the text has become too wide due to the maximum
-		// font height, reduce the font size until it fits in
-		if (((sizeTextMax.cy * sizeTextRatio.cx) / sizeTextRatio.cy) > sizeTextMax.cx)
-		{
-			DeleteFont(hFont);
-			hFont = NULL;
-
-			lf.lfHeight = -((sizeTextMax.cx * sizeTextRatio.cy) / sizeTextRatio.cx);
-			hFont = CreateFontIndirect(&lf);
-		}
-	}
-	__except (EXCEPTION_EXECUTE_HANDLER)
-	{
-		if (hFont != NULL)
-		{
-			DeleteFont(hFont);
-			hFont = NULL;
-		}
-	}
-
-	return hFont;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2002,10 +2023,7 @@ BOOL LoadSettings(LPWINDOWPLACEMENT lpWindowPlacement, LPLONG lpFontHeight)
 	if (lStatus != ERROR_SUCCESS || dwSize != sizeof(wpl) || wpl.length != sizeof(wpl))
 		bSuccess = bSuccess && FALSE;
 	else
-	{
-		wpl.showCmd = SW_SHOWDEFAULT;
 		CopyMemory(lpWindowPlacement, &wpl, sizeof(WINDOWPLACEMENT));
-	}
 
 	RegCloseKey(hKey);
 	return bSuccess;
@@ -2037,7 +2055,37 @@ void SaveSettings(HWND hDlg, HFONT hFont)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Save the size of a window in the property list of the window
+// Rudimentary replacement for SetWindowPlacement, which allows not to call ShowWindow
+
+BOOL MySetWindowPlacement(HWND hWnd, const LPWINDOWPLACEMENT lpwndpl, BOOL bUseShowWindow)
+{
+	if (hWnd == NULL || lpwndpl == NULL || lpwndpl->length != sizeof(WINDOWPLACEMENT))
+		return FALSE;
+
+	RECT rc;
+	CopyRect(&rc, &lpwndpl->rcNormalPosition);
+
+	HMONITOR hMonitor = MonitorFromRect(&rc, MONITOR_DEFAULTTONULL);
+	if (hMonitor == NULL)
+		return FALSE;
+
+	MONITORINFO mi = {0};
+	mi.cbSize = sizeof(mi);
+	if (!GetMonitorInfo(hMonitor, &mi))
+		return FALSE;
+
+	OffsetRect(&rc, mi.rcWork.left - mi.rcMonitor.left, mi.rcWork.top - mi.rcMonitor.top);
+	SetWindowPos(hWnd, HWND_TOP, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top,
+		SWP_NOZORDER | SWP_NOACTIVATE);
+
+	if (bUseShowWindow)
+		ShowWindow(hWnd, lpwndpl->showCmd);
+
+	return TRUE;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Saves the size of a window in the property list of the window
 
 void StoreWindowRect(HWND hwnd, LPRECT lprc)
 {
@@ -2051,7 +2099,7 @@ void StoreWindowRect(HWND hwnd, LPRECT lprc)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Retrieve a saved window size from the property list of a window
+// Retrieves a saved window size from the property list of a window
 
 void RetrieveWindowRect(HWND hwnd, LPRECT lprc)
 {
@@ -2070,7 +2118,7 @@ void RetrieveWindowRect(HWND hwnd, LPRECT lprc)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Remove previously created entries from the property list of a window
+// Removes previously created entries from the property list of a window
 
 void DeleteWindowRect(HWND hwnd)
 {
@@ -2164,6 +2212,52 @@ BOOL AllowDarkModeForWindow(HWND hwndParent, BOOL bAllow)
 		RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_UPDATENOW | RDW_FRAME);
 
 	return TRUE;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Sets the title of the default thumbnail to "Unsupported format"
+
+void MarkAsUnsupported(HWND hDlg)
+{
+	HWND hwndThumb = GetDlgItem(hDlg, IDC_THUMB);
+	if (hwndThumb == NULL)
+		return;
+
+	TCHAR szOutput[OUTPUT_LEN];
+	if (!LoadString(g_hInstance, g_bGerUI ? IDS_GER_UNSUPPORTED : IDS_ENG_UNSUPPORTED,
+		szOutput, _countof(szOutput)))
+		return;
+
+	SetWindowText(hwndThumb, szOutput);
+	if (InvalidateRect(hwndThumb, NULL, FALSE))
+		UpdateWindow(hwndThumb);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Replaces the current thumbnail with the given DIB
+
+void ReplaceThumbnail(HWND hDlg, HANDLE hDib)
+{
+	// Free the memory of the current thumbnail image
+	if (g_hBitmapThumb != NULL)
+		FreeBitmap(g_hBitmapThumb);
+	if (g_hDibThumb != NULL)
+		FreeDib(g_hDibThumb);
+
+	// Save the DIB for display using StretchDIBits or DrawDibDraw.
+	// If hDib is NULL, a default thumbnail is displayed.
+	g_hDibThumb = hDib;
+	// Check the DIB for transparent pixels and create an additional
+	// pre-multiplied bitmap for the AlphaBlend function if needed
+	g_hBitmapThumb = CreatePremultipliedBitmap(hDib);
+
+	HWND hwndThumb = GetDlgItem(hDlg, IDC_THUMB);
+	if (hwndThumb == NULL)
+		return;
+
+	// Display the thumbnail immediately
+	if (InvalidateRect(hwndThumb, NULL, FALSE))
+		UpdateWindow(hwndThumb);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
