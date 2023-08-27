@@ -27,8 +27,9 @@
 #define UID_LENGTH  64
 #define ENVI_LENGTH 64
 
-#define RGB_DARKMODE_TEXTCOLOR RGB(255, 255, 255)
-#define RGB_DARKMODE_BKCOLOR   RGB(56, 56, 56)
+#define RGB_DARKMODE_TEXTCOLOR  RGB(255, 255, 255)
+#define RGB_DARKMODE_BKCOLOR    RGB(56, 56, 56)
+#define RGB_THUMBNAIL_TEXTCOLOR RGB(255, 255, 255)
 
 #ifndef USER_DEFAULT_SCREEN_DPI
 #define USER_DEFAULT_SCREEN_DPI 96
@@ -52,10 +53,16 @@ const TCHAR g_szSep3[] = TEXT("\r\n-[%08X]--------------------------------------
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern const TCHAR g_szTitle[];
+extern const TCHAR g_szUserAgent[];
 extern HINSTANCE g_hInstance;
 extern HBITMAP g_hBitmapThumb;
 extern HANDLE g_hDibThumb;
 extern BOOL g_bUseDarkMode;
 extern BOOL g_bGerUI;
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MarkAsUnsupported(HWND hDlg);
+void ReplaceThumbnail(HWND hDlg, HANDLE hDib);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
