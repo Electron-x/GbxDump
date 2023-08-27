@@ -19,7 +19,6 @@
 #include "stdafx.h"
 #include "internet.h"
 
-#define TITLE_LEN 256
 #define TIMEOUT 10000 // 10 seconds
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -29,23 +28,12 @@ BOOL IsGlobalOffline(HINTERNET hInternet = NULL);
 void LastInternetError(HWND hwndCtl, DWORD dwError);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// String Constants
-//
-const TCHAR g_szUserAgent[]  = TEXT("GbxDump/1.73");
-const TCHAR g_szWininetDll[] = TEXT("wininet.dll");
-const TCHAR g_szConnecting[] = TEXT("%s - Connecting...");
-const TCHAR g_szDownload[]   = TEXT("%s - Downloading...");
-
-////////////////////////////////////////////////////////////////////////////////////////////////
 // Retrieves data from an Internet address
 
 BOOL ReadInternetFile(HWND hwndCtl, LPCTSTR lpszUrl, LPSTR lpszData, DWORD dwSize)
 {
 	if (hwndCtl == NULL || lpszUrl == NULL || lpszData == NULL || dwSize == 0)
 		return FALSE;
-
-	TCHAR szTitle[TITLE_LEN];
-	HWND hwndDlg = GetParent(hwndCtl);
 
 	HINTERNET hInternet = InternetOpen(g_szUserAgent, INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
 	if (hInternet == NULL)
@@ -58,10 +46,6 @@ BOOL ReadInternetFile(HWND hwndCtl, LPCTSTR lpszUrl, LPSTR lpszData, DWORD dwSiz
 	InternetSetOption(hInternet, INTERNET_OPTION_CONNECT_TIMEOUT, &dwTimeout, sizeof(dwTimeout));
 	InternetSetOption(hInternet, INTERNET_OPTION_RECEIVE_TIMEOUT, &dwTimeout, sizeof(dwTimeout));
 
-	_sntprintf(szTitle, _countof(szTitle), g_szConnecting, g_szTitle);
-	szTitle[TITLE_LEN - 1] = TEXT('\0');
-	SetWindowText(hwndDlg, szTitle);
-
 	HINTERNET hInternetFile = InternetOpenUrl(hInternet, lpszUrl, NULL, 0, 0, 0);
 	if (hInternetFile == NULL)
 	{
@@ -70,14 +54,12 @@ BOOL ReadInternetFile(HWND hwndCtl, LPCTSTR lpszUrl, LPSTR lpszData, DWORD dwSiz
 		if (!IsGlobalOffline(hInternet))
 		{
 			LastInternetError(hwndCtl, dwError);
-			SetWindowText(hwndDlg, g_szTitle);
 			InternetCloseHandle(hInternet);
 			return FALSE;
 		}
 
-		if (!InternetGoOnline((LPTSTR)lpszUrl, hwndDlg, INTERENT_GOONLINE_REFRESH))
+		if (!InternetGoOnline((LPTSTR)lpszUrl, GetParent(hwndCtl), INTERENT_GOONLINE_REFRESH))
 		{
-			SetWindowText(hwndDlg, g_szTitle);
 			InternetCloseHandle(hInternet);
 			return FALSE;
 		}
@@ -86,15 +68,10 @@ BOOL ReadInternetFile(HWND hwndCtl, LPCTSTR lpszUrl, LPSTR lpszData, DWORD dwSiz
 		if (hInternetFile == NULL)
 		{
 			LastInternetError(hwndCtl, GetLastError());
-			SetWindowText(hwndDlg, g_szTitle);
 			InternetCloseHandle(hInternet);
 			return FALSE;
 		}
 	}
-
-	_sntprintf(szTitle, _countof(szTitle), g_szDownload, g_szTitle);
-	szTitle[TITLE_LEN - 1] = TEXT('\0');
-	SetWindowText(hwndDlg, szTitle);
 
 	DWORD dwRead = 0;
 	DWORD dwReadTotal = 0;
@@ -105,7 +82,6 @@ BOOL ReadInternetFile(HWND hwndCtl, LPCTSTR lpszUrl, LPSTR lpszData, DWORD dwSiz
 		if (!InternetReadFile(hInternetFile, lpsz, dwSize-dwReadTotal-1, &dwRead))
 		{
 			LastInternetError(hwndCtl, GetLastError());
-			SetWindowText(hwndDlg, g_szTitle);
 			InternetCloseHandle(hInternetFile);
 			InternetCloseHandle(hInternet);
 			return FALSE;
@@ -118,7 +94,6 @@ BOOL ReadInternetFile(HWND hwndCtl, LPCTSTR lpszUrl, LPSTR lpszData, DWORD dwSiz
 
 	lpszData[dwReadTotal] = '\0';
 
-	SetWindowText(hwndDlg, g_szTitle);
 	InternetCloseHandle(hInternetFile);
 	InternetCloseHandle(hInternet);
 
@@ -153,7 +128,7 @@ void LastInternetError(HWND hwndCtl, DWORD dwError)
 	LPVOID lpMsgBuf = NULL;
 
 	DWORD dwLen = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_HMODULE |
-		FORMAT_MESSAGE_IGNORE_INSERTS, GetModuleHandle(g_szWininetDll), dwError,
+		FORMAT_MESSAGE_IGNORE_INSERTS, GetModuleHandle(TEXT("wininet.dll")), dwError,
 		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf, 0, NULL);
 
 	if (lpMsgBuf == NULL)
