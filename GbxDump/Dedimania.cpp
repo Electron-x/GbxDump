@@ -34,7 +34,7 @@ BOOL ConvertDediString(LPVOID lpData, SIZE_T cbLenData, LPTSTR lpszOutput, SIZE_
 const char g_szTm1Envis[] = "Stadium,Coast,Bay,Island,Desert,Rally,Snow,Alpine,Speed";
 
 const TCHAR g_szDedimania[] = TEXT("Dedimania Records System:\r\n");
-const TCHAR g_szUrlDedi[]   = TEXT("http://dedimania.net:%u/%s?uid=%hs");
+const TCHAR g_szUrlDedi[]   = TEXT("%s://dedimania.net:%u/%s?uid=%hs");
 const TCHAR g_szErrOom[]    = TEXT("Out of memory.\r\n");
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -132,8 +132,8 @@ BOOL PrintDedimaniaData(HWND hwndCtl, LPCSTR lpszUid, BOOL bIsManiaPlanet, LPBOO
 
 	// Build the URL for querying the data
 	TCHAR szDediUrl[512];
-	_sntprintf(szDediUrl, _countof(szDediUrl), g_szUrlDedi, bIsManiaPlanet ? 8080 : 8000,
-		bIsManiaPlanet ? TEXT("MX") : TEXT("TMX"), lpszUid);
+	_sntprintf(szDediUrl, _countof(szDediUrl), g_szUrlDedi, TEXT("http"),
+		bIsManiaPlanet ? 8080 : 8000, bIsManiaPlanet ? TEXT("MX") : TEXT("TMX"), lpszUid);
 	if (!ReadInternetFile(hwndCtl, szDediUrl, lpszData, DEDI_MAX_DATASIZE))
 	{
 		MyGlobalFreePtr((LPVOID)lpszData);

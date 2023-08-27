@@ -63,6 +63,8 @@ BOOL FormatTimeW(int nTime, WCHAR* pwszTime, SIZE_T cchStringLen);
 // String Constants
 //
 const TCHAR g_szTmx[]         = TEXT("Track-/Mania Exchange:\r\n");
+const TCHAR g_szHttp[]        = TEXT("http");
+const TCHAR g_szHttps[]       = TEXT("https");
 const TCHAR g_szTM[]          = TEXT("tm");
 const TCHAR g_szSM[]          = TEXT("sm");
 const TCHAR g_szQM[]          = TEXT("qm");
@@ -75,13 +77,13 @@ const TCHAR g_szOriginal[]    = TEXT("original");
 const TCHAR g_szParamInfo[]   = TEXT("apitrackinfo&uid");
 const TCHAR g_szParamSearch[] = TEXT("apisearch&trackid");
 const TCHAR g_szParamRecord[] = TEXT("apitrackrecords&id");
-const TCHAR g_szUrlTmx[]      = TEXT("http://%s.tm-exchange.com/apiget.aspx?action=%s=%hs");
-const TCHAR g_szUrlMpMaps[]   = TEXT("https://%s.mania.exchange/api/maps/get_map_info/uid/%hs?format=xml");
-const TCHAR g_szUrlMpItems[]  = TEXT("https://%s.mania.exchange/api/maps/embeddedobjects/%d?format=xml");
-const TCHAR g_szUrlMpRepl[]   = TEXT("https://%s.mania.exchange/api/replays/get_replays/%d?format=xml");
-const TCHAR g_szUrlMxMaps[]   = TEXT("https://%s.exchange/api/maps/get_map_info/uid/%hs?format=xml");
-const TCHAR g_szUrlMxItems[]  = TEXT("https://%s.exchange/api/maps/embeddedobjects/%d?format=xml");
-const TCHAR g_szUrlMxRepl[]   = TEXT("https://%s.exchange/api/replays/get_replays/%d?format=xml");
+const TCHAR g_szUrlTmx[]      = TEXT("%s://%s.tm-exchange.com/apiget.aspx?action=%s=%hs");
+const TCHAR g_szUrlMpMaps[]   = TEXT("%s://%s.mania.exchange/api/maps/get_map_info/uid/%hs?format=xml");
+const TCHAR g_szUrlMpItems[]  = TEXT("%s://%s.mania.exchange/api/maps/embeddedobjects/%d?format=xml");
+const TCHAR g_szUrlMpRepl[]   = TEXT("%s://%s.mania.exchange/api/replays/get_replays/%d?format=xml");
+const TCHAR g_szUrlMxMaps[]   = TEXT("%s://%s.exchange/api/maps/get_map_info/uid/%hs?format=xml");
+const TCHAR g_szUrlMxItems[]  = TEXT("%s://%s.exchange/api/maps/embeddedobjects/%d?format=xml");
+const TCHAR g_szUrlMxRepl[]   = TEXT("%s://%s.exchange/api/replays/get_replays/%d?format=xml");
 const TCHAR g_szErrOom[]      = TEXT("Out of memory.\r\n");
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -200,7 +202,7 @@ BOOL ProcessTmx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 
 	// Create query URL and retrieve data via track UID
 	TCHAR szTmxUrl[512];
-	_sntprintf(szTmxUrl, _countof(szTmxUrl), g_szUrlTmx, szSubDomain, g_szParamInfo, lpszUid);
+	_sntprintf(szTmxUrl, _countof(szTmxUrl), g_szUrlTmx, g_szHttp, szSubDomain, g_szParamInfo, lpszUid);
 
 	if (!ReadInternetFile(hwndCtl, szTmxUrl, lpszData, dwSize))
 	{
@@ -310,7 +312,7 @@ BOOL ProcessTmx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 	}
 
 	// Request additional TMX data by TMX track ID
-	_sntprintf(szTmxUrl, _countof(szTmxUrl), g_szUrlTmx, szSubDomain, g_szParamSearch, szTrackId);
+	_sntprintf(szTmxUrl, _countof(szTmxUrl), g_szUrlTmx, g_szHttp, szSubDomain, g_szParamSearch, szTrackId);
 
 	if (!ReadInternetFile(hwndCtl, szTmxUrl, lpszData, dwSize))
 	{
@@ -348,7 +350,7 @@ BOOL ProcessTmx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 	}
 
 	// Request additional TMX data (Replays) via TMX track ID
-	_sntprintf(szTmxUrl, _countof(szTmxUrl), g_szUrlTmx, szSubDomain, g_szParamRecord, szTrackId);
+	_sntprintf(szTmxUrl, _countof(szTmxUrl), g_szUrlTmx, g_szHttp, szSubDomain, g_szParamRecord, szTrackId);
 
 	if (!ReadInternetFile(hwndCtl, szTmxUrl, lpszData, dwSize))
 	{
@@ -460,7 +462,7 @@ BOOL ProcessMx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 	// Request, parse and output MX data (TrackInfo) via map UID
 	TCHAR szMxUrl[512];
 	_sntprintf(szMxUrl, _countof(szMxUrl),
-		nGame == GAME_TM2020 ? g_szUrlMxMaps : g_szUrlMpMaps, szSubDomain, lpszUid);
+		nGame == GAME_TM2020 ? g_szUrlMxMaps : g_szUrlMpMaps, g_szHttps, szSubDomain, lpszUid);
 	
 	if (!RequestMxData(hwndCtl, szMxUrl, &nTrackId))
 		return FALSE;
@@ -473,7 +475,7 @@ BOOL ProcessMx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 
 	// Request, parse and output additional MX data (TrackObject) via MX track ID
 	_sntprintf(szMxUrl, _countof(szMxUrl),
-		nGame == GAME_TM2020 ? g_szUrlMxItems : g_szUrlMpItems, szSubDomain, nTrackId);
+		nGame == GAME_TM2020 ? g_szUrlMxItems : g_szUrlMpItems, g_szHttps, szSubDomain, nTrackId);
 	
 	if (!RequestMxData(hwndCtl, szMxUrl))
 		return FALSE;
@@ -484,7 +486,7 @@ BOOL ProcessMx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 
 	// Request, parse and output additional MX data (Replay) via MX track ID
 	_sntprintf(szMxUrl, _countof(szMxUrl),
-		nGame == GAME_TM2020 ? g_szUrlMxRepl : g_szUrlMpRepl, szSubDomain, nTrackId);
+		nGame == GAME_TM2020 ? g_szUrlMxRepl : g_szUrlMpRepl, g_szHttps, szSubDomain, nTrackId);
 	
 	if (!RequestMxData(hwndCtl, szMxUrl, &nTrackId))
 		return FALSE;
