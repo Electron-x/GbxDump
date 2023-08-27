@@ -100,7 +100,7 @@
     <Image Include="GbxDump.ico">
       <Filter>Ressourcendateien</Filter>
     </Image>
-    <Image Include="Thumb.jpg">
+    <Image Include="Thumb.bmp">
       <Filter>Ressourcendateien</Filter>
     </Image>
   </ItemGroup>
