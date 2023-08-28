@@ -401,7 +401,7 @@
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:1.73.0"
+        "ProductVersion" = "8:1.74"
         "Manufacturer" = "8:Electron"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:http://www.wolfgang-rolke.de/gbxdump/"
