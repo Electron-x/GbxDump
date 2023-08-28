@@ -393,7 +393,7 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:GbxDump"
-        "ProductCode" = "8:{02198109-4E9A-4323-907F-AC3811A2A382}"
+        "ProductCode" = "8:{01179853-EFEB-424A-A3BB-BE998277E702}"
         "PackageCode" = "8:{7BECE4B4-84A8-46B9-B868-375D5A74C253}"
         "UpgradeCode" = "8:{27EEECFA-0807-4728-A6A4-843278BFDEDB}"
         "AspNetVersion" = "8:4.0.30319.0"
