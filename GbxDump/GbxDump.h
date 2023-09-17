@@ -22,6 +22,8 @@
 
 #define WMU_FILEOPEN WM_APP + 42
 
+#define MY_OFN_MAX_PATH 2048
+
 #define OUTPUT_LEN  1024
 
 #define UID_LENGTH  64
