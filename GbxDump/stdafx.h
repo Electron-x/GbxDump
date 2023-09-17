@@ -40,6 +40,7 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <wininet.h>
+#include <cderr.h>
 #include <commdlg.h>
 #include <commctrl.h>
 #include <shellapi.h>
