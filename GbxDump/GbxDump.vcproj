@@ -81,7 +81,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
-				AdditionalManifestFiles="GbxDump.exe.manifest;TrustInfo.manifest;DeclareDPIAware.manifest;Compatibility.manifest"
+				AdditionalManifestFiles="GbxDump.exe.manifest;TrustInfo.manifest;Compatibility.manifest;DeclareDPIAware.manifest;DeclareLongPathAware.manifest"
 				EmbedManifest="true"
 			/>
 			<Tool
@@ -167,7 +167,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
-				AdditionalManifestFiles="GbxDump64.exe.manifest;TrustInfo.manifest;DeclareDPIAware.manifest;Compatibility.manifest"
+				AdditionalManifestFiles="GbxDump64.exe.manifest;TrustInfo.manifest;Compatibility.manifest;DeclareDPIAware.manifest;DeclareLongPathAware.manifest"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -257,7 +257,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
-				AdditionalManifestFiles="GbxDump.exe.manifest;TrustInfo.manifest;DeclareDPIAware.manifest;Compatibility.manifest"
+				AdditionalManifestFiles="GbxDump.exe.manifest;TrustInfo.manifest;Compatibility.manifest;DeclareDPIAware.manifest;DeclareLongPathAware.manifest"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -347,7 +347,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
-				AdditionalManifestFiles="GbxDump64.exe.manifest;TrustInfo.manifest;DeclareDPIAware.manifest;Compatibility.manifest"
+				AdditionalManifestFiles="GbxDump64.exe.manifest;TrustInfo.manifest;Compatibility.manifest;DeclareDPIAware.manifest;DeclareLongPathAware.manifest"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -370,6 +370,18 @@
 		</Configuration>
 	</Configurations>
 	<References>
+		<ProjectReference
+			ReferencedProjectIdentifier="{7BABB96F-3AC9-4F1C-9ADB-9FD0AA550C59}"
+			RelativePathToProject=".\libjpeg\libjpeg.vcproj"
+		/>
+		<ProjectReference
+			ReferencedProjectIdentifier="{CF2E70E8-7133-4D96-92C7-68BB406C0664}"
+			RelativePathToProject=".\crunch\crnlib\crnlib.vcproj"
+		/>
+		<ProjectReference
+			ReferencedProjectIdentifier="{7512C46F-88A6-40C0-8EA4-DD523BA0F21F}"
+			RelativePathToProject=".\libwebp\libwebpdecoder.vcproj"
+		/>
 	</References>
 	<Files>
 		<Filter

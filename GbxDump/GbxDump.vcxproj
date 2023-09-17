@@ -116,7 +116,7 @@
     </Link>
     <Manifest>
       <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
-      <AdditionalManifestFiles>$(ProjectDir)GbxDump.exe.manifest; $(ProjectDir)Compatibility.manifest; %(AdditionalManifestFiles)</AdditionalManifestFiles>
+      <AdditionalManifestFiles>$(ProjectDir)GbxDump.exe.manifest; $(ProjectDir)Compatibility.manifest; $(ProjectDir)DeclareLongPathAware.manifest; %(AdditionalManifestFiles)</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -145,7 +145,7 @@
     </Link>
     <Manifest>
       <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
-      <AdditionalManifestFiles>$(ProjectDir)GbxDump64.exe.manifest; $(ProjectDir)Compatibility.manifest; %(AdditionalManifestFiles)</AdditionalManifestFiles>
+      <AdditionalManifestFiles>$(ProjectDir)GbxDump64.exe.manifest; $(ProjectDir)Compatibility.manifest; $(ProjectDir)DeclareLongPathAware.manifest; %(AdditionalManifestFiles)</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -178,7 +178,7 @@
     </Link>
     <Manifest>
       <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
-      <AdditionalManifestFiles>$(ProjectDir)GbxDump.exe.manifest; $(ProjectDir)Compatibility.manifest; %(AdditionalManifestFiles)</AdditionalManifestFiles>
+      <AdditionalManifestFiles>$(ProjectDir)GbxDump.exe.manifest; $(ProjectDir)Compatibility.manifest; $(ProjectDir)DeclareLongPathAware.manifest; %(AdditionalManifestFiles)</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -212,7 +212,7 @@
     </Link>
     <Manifest>
       <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
-      <AdditionalManifestFiles>$(ProjectDir)GbxDump64.exe.manifest; $(ProjectDir)Compatibility.manifest; %(AdditionalManifestFiles)</AdditionalManifestFiles>
+      <AdditionalManifestFiles>$(ProjectDir)GbxDump64.exe.manifest; $(ProjectDir)Compatibility.manifest; $(ProjectDir)DeclareLongPathAware.manifest; %(AdditionalManifestFiles)</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -258,9 +258,14 @@
     <ResourceCompile Include="GbxDump.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\crunch\crnlib\crnlib.vcxproj">
+      <Project>{cf2e70e8-7133-4d96-92c7-68bb406c0664}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\libjpeg\libjpeg.vcxproj">
       <Project>{7babb96f-3ac9-4f1c-9adb-9fd0aa550c59}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\libwebp\libwebpdecoder.vcxproj">
+      <Project>{7512c46f-88a6-40c0-8ea4-dd523ba0f21f}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
