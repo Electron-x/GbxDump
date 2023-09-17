@@ -185,7 +185,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		if (llBitsSize <= 0 || llBitsSize > 0x80000000L)
 			bIsDibSupported = FALSE;
 
-		// lpbih->bV5Compression &= ~BI_SRCPREROTATE;
+		//lpbih->bV5Compression &= ~BI_SRCPREROTATE;
 		DWORD dwCompression = lpbih->bV5Compression;
 		OutputText(hwndCtl, TEXT("Compression:\t"));
 		if (dwDibHeaderSize == sizeof(BITMAPINFOHEADER2))
@@ -921,10 +921,9 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 				return FALSE;
 			}
 
-			// The private tag 'ICC5' indicates that an iccMAX profile (tag
-			// type signature: 'ICCp') is embedded in an ICC v2 or v4 profile,
-			// and the private tag 'MS00' indicates that WCS profile data
-			// (type signature: 'MS10') is embedded in an output ICC profile
+			// Note: The private tag 'ICC5' indicates that an iccMAX profile (tag type signature: 'ICCp') is
+			// embedded in an ICC v2 or v4 profile, and the private tag 'MS00' indicates that WCS profile data
+			// (type signature: 'MS10') is embedded in an (output) ICC profile
 
 			OutputText(hwndCtl, g_szSep1);
 			OutputText(hwndCtl, TEXT("Sig. | Element Offset | Element Size |\r\n"));
@@ -1009,7 +1008,7 @@ void PrintProfileSignature(HWND hwndCtl, LPCTSTR lpszName, DWORD dwSignature, BO
 			isprint((dwSignature >>  8) & 0xff) &&
 			isprint((dwSignature >> 16) & 0xff) &&
 			isprint((dwSignature >> 24) & 0xff))
-		{
+		{ // Sequence of four characters
 			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput),
 				TEXT("%hc%hc%hc%hc"),
 				(char)(dwSignature & 0xff),
@@ -1020,7 +1019,7 @@ void PrintProfileSignature(HWND hwndCtl, LPCTSTR lpszName, DWORD dwSignature, BO
 		else
 			if (isprint(dwSignature & 0xff) &&
 				isprint((dwSignature >> 8) & 0xff))
-			{
+			{ // Extended colour space signature
 				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput),
 					TEXT("%hc%hc%02X%02X"),
 					(char)(dwSignature & 0xff),
