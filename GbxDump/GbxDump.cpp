@@ -239,7 +239,6 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 {
 	static int      s_nDpi = USER_DEFAULT_SCREEN_DPI;
 	static POINT    s_ptMinTrackSize = {0};
-	static BOOL     s_bAboutBox = FALSE;
 	static BOOL     s_bWordWrap = FALSE;
 	static HBRUSH   s_hbrBkgnd = NULL;
 	static HFONT    s_hfontDlgOrig = NULL;
@@ -250,7 +249,7 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 	static DWORD    s_dwSaveFilterIndex = 1;
 	static char     s_szUid[UID_LENGTH];
 	static char     s_szEnvi[ENVI_LENGTH];
-	static TCHAR    s_szFileName[MAX_PATH];
+	static TCHAR    s_szFileName[MY_OFN_MAX_PATH];
 
 	switch (message)
 	{
@@ -720,7 +719,7 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 
 				case IDC_THUMB_SAVE:
 					{ // Save the current thumbnail as a PNG or BMP file
-						TCHAR szFileName[MAX_PATH];
+						TCHAR szFileName[MY_OFN_MAX_PATH];
 						MyStrNCpy(szFileName, s_szFileName, _countof(szFileName));
 
 						if (GetFileName(hDlg, szFileName, _countof(szFileName), &s_dwSaveFilterIndex, TRUE))
@@ -888,22 +887,25 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 			return FALSE;
 
 		case WM_HELP:
-			if (!s_bAboutBox)
 			{
-				MSGBOXPARAMS mbp = {0};
-				mbp.cbSize = sizeof(MSGBOXPARAMS);
-				mbp.hwndOwner = hDlg;
-				mbp.hInstance = g_hInstance;
-				mbp.lpszText = g_szAbout;
-				mbp.lpszCaption = g_szTitle;
-				mbp.dwStyle = MB_OK | MB_USERICON;
-				mbp.lpszIcon = MAKEINTRESOURCE(IDI_GBXDUMP);
-				mbp.lpfnMsgBoxCallback = NULL;
-				mbp.dwLanguageId = MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL);
+				static BOOL bAboutBox = FALSE;
+				if (!bAboutBox)
+				{
+					MSGBOXPARAMS mbp = {0};
+					mbp.cbSize = sizeof(MSGBOXPARAMS);
+					mbp.hwndOwner = hDlg;
+					mbp.hInstance = g_hInstance;
+					mbp.lpszText = g_szAbout;
+					mbp.lpszCaption = g_szTitle;
+					mbp.dwStyle = MB_OK | MB_USERICON;
+					mbp.lpszIcon = MAKEINTRESOURCE(IDI_GBXDUMP);
+					mbp.lpfnMsgBoxCallback = NULL;
+					mbp.dwLanguageId = MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL);
 
-				s_bAboutBox = TRUE;
-				MessageBoxIndirect(&mbp);
-				s_bAboutBox = FALSE;
+					bAboutBox = TRUE;
+					MessageBoxIndirect(&mbp);
+					bAboutBox = FALSE;
+				}
 			}
 			return TRUE;
 
@@ -1054,7 +1056,7 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 
 				if ((LPCTSTR)lParam != NULL && ((LPCTSTR)lParam)[0] != TEXT('\0'))
 				{ // Open a GBX file passed by program argument
-					MyStrNCpy(s_szFileName, (LPCTSTR)lParam, _countof(s_szFileName));
+					ShortenPath((LPCTSTR)lParam, s_szFileName, _countof(s_szFileName));
 					PostMessage(hDlg, WMU_FILEOPEN, 0, lParam);
 				}
 				else
@@ -1140,7 +1142,7 @@ LRESULT CALLBACK OutputWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 			return FALSE;
 		}
 
-		// CTRL+V and SHIFT+INS to paste a list of files from the clipboard.
+		// CTRL+V and SHIFT+INS to paste a list of files from the clipboard
 		if ((wParam == 'V' && IsKeyDown(VK_CONTROL)) ||
 			(wParam == VK_INSERT && IsKeyDown(VK_SHIFT)))
 		{
@@ -1197,6 +1199,8 @@ BOOL DumpFile(HWND hwndCtl, LPCTSTR lpszFileName, LPSTR lpszUid, LPSTR lpszEnvi)
 
 	// Output file name
 	LPCTSTR lpsz = _tcsrchr(lpszFileName, TEXT('\\'));
+	if (lpsz == NULL)
+		lpsz = _tcsrchr(lpszFileName, TEXT('/'));
 	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("File Name:\t%s\r\n"),
 		lpsz != NULL && *(lpsz + 1) != TEXT('\0') ? lpsz + 1 : lpszFileName);
 

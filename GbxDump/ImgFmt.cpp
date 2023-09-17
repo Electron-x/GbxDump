@@ -47,47 +47,49 @@ BOOL GetFileName(HWND hDlg, LPTSTR lpszFileName, SIZE_T cchStringLen, LPDWORD lp
 
 	// Filter string
 	TCHAR szFilter[1024] = {0};
+	UINT uID = g_bGerUI ? IDS_GER_FILTER_GBX : IDS_ENG_FILTER_GBX;
 	if (bSave)
-		LoadString(g_hInstance, g_bGerUI ? IDS_GER_FILTER_PNG : IDS_ENG_FILTER_PNG, szFilter, _countof(szFilter));
-	else
-		LoadString(g_hInstance, g_bGerUI ? IDS_GER_FILTER_GBX : IDS_ENG_FILTER_GBX, szFilter, _countof(szFilter));
+		uID = g_bGerUI ? IDS_GER_FILTER_PNG : IDS_ENG_FILTER_PNG;
+	LoadString(g_hInstance, uID, szFilter, _countof(szFilter));
 	TCHAR* psz = szFilter;
 	while (psz = _tcschr(psz, TEXT('|')))
 		*psz++ = TEXT('\0');
 
 	// Initial directory
-	TCHAR szInitialDir[MAX_PATH] = {0};
-	TCHAR* pszInitialDir = szInitialDir;
+	TCHAR* pszInitialDir = NULL;
+	TCHAR szInitialDir[MY_OFN_MAX_PATH] = {0};
 	if (lpszFileName[0] != TEXT('\0'))
 	{
-		MyStrNCpy(pszInitialDir, lpszFileName, _countof(szInitialDir));
-		TCHAR* token = _tcsrchr(pszInitialDir, TEXT('\\'));
-		if (token != NULL)
-			pszInitialDir[token - szInitialDir] = TEXT('\0');
-		else
-			pszInitialDir = NULL;
+		MyStrNCpy(szInitialDir, lpszFileName, _countof(szInitialDir));
+		if ((psz = _tcsrchr(szInitialDir, TEXT('\\'))) == NULL)
+			psz = _tcsrchr(szInitialDir, TEXT('/'));
+		if (psz != NULL)
+		{
+			pszInitialDir = szInitialDir;
+			szInitialDir[psz - pszInitialDir] = TEXT('\0');
+		}
 	}
-	else
-		pszInitialDir = NULL;
 
 	// File name
-	TCHAR szFile[MAX_PATH];
+	TCHAR szFile[MY_OFN_MAX_PATH] = {0};
 	if (bSave)
 	{
 		if (lpszFileName[0] != TEXT('\0'))
-			MyStrNCpy(szFile, lpszFileName, _countof(szFile));
+		{
+			if ((psz = _tcsrchr(lpszFileName, TEXT('\\'))) == NULL)
+				psz = _tcsrchr(lpszFileName, TEXT('/'));
+			psz = (psz != NULL ? (*(psz + 1) != TEXT('\0') ? psz + 1 : TEXT("*")) : lpszFileName);
+			MyStrNCpy(szFile, psz, _countof(szFile));
+		}
 		else
 			_tcscpy(szFile, TEXT("*"));
-		TCHAR* token = _tcsrchr(szFile, TEXT('.'));
-		if (token != NULL)
-			szFile[token - szFile] = TEXT('\0');
+		if ((psz = _tcsrchr(szFile, TEXT('.'))) != NULL)
+			szFile[psz - szFile] = TEXT('\0');
 		_tcsncat(szFile, *lpdwFilterIndex == 1 ? TEXT(".png") : TEXT(".bmp"),
 			_countof(szFile) - _tcslen(szFile) - 1);
 	}
-	else
-		szFile[0] = TEXT('\0');
 
-	OPENFILENAME of = {0};
+	OPENFILENAME of    = {0};
 	of.lStructSize     = sizeof(OPENFILENAME);
 	of.hwndOwner       = hDlg;
 	of.Flags           = OFN_HIDEREADONLY | OFN_PATHMUSTEXIST;
@@ -119,6 +121,12 @@ BOOL GetFileName(HWND hDlg, LPTSTR lpszFileName, SIZE_T cchStringLen, LPDWORD lp
 	{
 		MyStrNCpy(lpszFileName, szFile, (int)cchStringLen);
 		*lpdwFilterIndex = of.nFilterIndex;
+	}
+	else
+	{
+		DWORD dwErr = CommDlgExtendedError();
+		if (dwErr == FNERR_INVALIDFILENAME || dwErr == FNERR_BUFFERTOOSMALL)
+			MessageBeep(MB_ICONEXCLAMATION);
 	}
 
 	return bRet;
