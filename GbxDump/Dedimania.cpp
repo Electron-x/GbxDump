@@ -171,7 +171,7 @@ BOOL PrintDedimaniaData(HWND hwndCtl, LPCSTR lpszUid, BOOL bIsManiaPlanet, LPBOO
 	// Check for existing records
 	if (*lpsz == '\0')
 	{
-		TCHAR szText[MAX_PATH];
+		TCHAR szText[OUTPUT_LEN];
 		if (LoadString(g_hInstance, g_bGerUI ? IDP_GER_ERR_RECORDS : IDP_ENG_ERR_RECORDS, szText, _countof(szText)) > 0)
 			OutputText(hwndCtl, szText);
 	}
