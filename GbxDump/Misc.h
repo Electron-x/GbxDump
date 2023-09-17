@@ -56,4 +56,6 @@ BOOL CleanupString(LPCTSTR lpszInput, LPTSTR lpszOutput, SIZE_T cchLenOutput);
 LPTSTR AllocReplaceString(LPCTSTR lpszOriginal, LPCTSTR lpszPattern, LPCTSTR lpszReplacement);
 LPTSTR AllocCleanupString(LPCTSTR lpszOriginal);
 
+SIZE_T ShortenPath(LPCTSTR lpszLongPath, LPTSTR lpszShortPath, SIZE_T cchBuffer);
+
 ////////////////////////////////////////////////////////////////////////////////////////////////

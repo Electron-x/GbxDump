@@ -484,4 +484,46 @@ LPTSTR AllocCleanupString(LPCTSTR lpszOriginal)
 	return lpszReturn;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Creates a form of the specified path with a length smaller than cchBuffer. For this purpose
+// the short path form is retrieved. If this is not successful, only the filename is returned.
+
+SIZE_T ShortenPath(LPCTSTR lpszLongPath, LPTSTR lpszShortPath, SIZE_T cchBuffer)
+{
+	if (lpszShortPath == NULL || lpszLongPath == NULL || cchBuffer == 0)
+		return 0;
+
+	SIZE_T cchPath = _tcslen(lpszLongPath);
+	if (cchPath < cchBuffer)
+	{
+		MyStrNCpy(lpszShortPath, lpszLongPath, (int)cchBuffer);
+
+		return cchPath;
+	}
+
+	cchPath = GetShortPathName(lpszLongPath, lpszShortPath, (DWORD)cchBuffer);
+	if (cchPath > 0 && cchPath < cchBuffer)
+		return cchPath;
+
+	LPCTSTR lpszFile = _tcsrchr(lpszLongPath, TEXT('\\'));
+	if (lpszFile == NULL)
+		lpszFile = _tcsrchr(lpszLongPath, TEXT('/'));
+	if (lpszFile != NULL)
+	{
+		lpszFile++;
+
+		cchPath = _tcslen(lpszFile);
+		if (cchPath > 0 && cchPath < cchBuffer)
+		{
+			MyStrNCpy(lpszShortPath, lpszFile, (int)cchBuffer);
+
+			return cchPath;
+		}
+	}
+
+	lpszShortPath[0] = TEXT('\0');
+
+	return 0;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
