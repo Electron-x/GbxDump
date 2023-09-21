@@ -274,6 +274,9 @@
     <ClCompile Include="src\utils\utils.c">
       <Filter>src\utils</Filter>
     </ClCompile>
+    <ClCompile Include="src\utils\palette.c">
+      <Filter>src\utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\dec\alphai_dec.h">
@@ -367,6 +370,9 @@
       <Filter>src\utils</Filter>
     </ClInclude>
     <ClInclude Include="src\utils\utils.h">
+      <Filter>src\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\palette.h">
       <Filter>src\utils</Filter>
     </ClInclude>
   </ItemGroup>

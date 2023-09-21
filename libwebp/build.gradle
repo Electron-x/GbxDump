@@ -107,8 +107,10 @@ model {
           source {
             srcDir "sharpyuv"
             include "sharpyuv.c"
+            include "sharpyuv_cpu.c"
             include "sharpyuv_csp.c"
             include "sharpyuv_dsp.c"
+            include "sharpyuv_gamma.c"
             include "sharpyuv_neon.c"
             include "sharpyuv_sse2.c"
             srcDir "src/dec"
@@ -171,6 +173,7 @@ model {
             include "color_cache_utils.c"
             include "filters_utils.c"
             include "huffman_utils.c"
+            include "palette.c"
             include "quant_levels_dec_utils.c"
             include "random_utils.c"
             include "rescaler_utils.c"

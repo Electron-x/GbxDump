@@ -27,6 +27,7 @@
 #include "../imageio/webpdec.h"
 #include "./stopwatch.h"
 #include "./unicode.h"
+#include "sharpyuv/sharpyuv.h"
 #include "webp/encode.h"
 
 #ifndef WEBP_DLL
@@ -305,6 +306,7 @@ static int MyWriter(const uint8_t* data, size_t data_size,
 // Dumps a picture as a PGM file using the IMC4 layout.
 static int DumpPicture(const WebPPicture* const picture, const char* PGM_name) {
   int y;
+  int ok = 0;
   const int uv_width = (picture->width + 1) / 2;
   const int uv_height = (picture->height + 1) / 2;
   const int stride = (picture->width + 1) & ~1;
@@ -319,23 +321,26 @@ static int DumpPicture(const WebPPicture* const picture, const char* PGM_name) {
   if (f == NULL) return 0;
   fprintf(f, "P5\n%d %d\n255\n", stride, height);
   for (y = 0; y < picture->height; ++y) {
-    if (fwrite(src_y, picture->width, 1, f) != 1) return 0;
+    if (fwrite(src_y, picture->width, 1, f) != 1) goto Error;
     if (picture->width & 1) fputc(0, f);  // pad
     src_y += picture->y_stride;
   }
   for (y = 0; y < uv_height; ++y) {
-    if (fwrite(src_u, uv_width, 1, f) != 1) return 0;
-    if (fwrite(src_v, uv_width, 1, f) != 1) return 0;
+    if (fwrite(src_u, uv_width, 1, f) != 1) goto Error;
+    if (fwrite(src_v, uv_width, 1, f) != 1) goto Error;
     src_u += picture->uv_stride;
     src_v += picture->uv_stride;
   }
   for (y = 0; y < alpha_height; ++y) {
-    if (fwrite(src_a, picture->width, 1, f) != 1) return 0;
+    if (fwrite(src_a, picture->width, 1, f) != 1) goto Error;
     if (picture->width & 1) fputc(0, f);  // pad
     src_a += picture->a_stride;
   }
+  ok = 1;
+
+ Error:
   fclose(f);
-  return 1;
+  return ok;
 }
 
 // -----------------------------------------------------------------------------
@@ -591,9 +596,8 @@ static void HelpLong(void) {
          "                           green=0xe0 and blue=0xd0\n");
   printf("  -noalpha ............... discard any transparency information\n");
   printf("  -lossless .............. encode image losslessly, default=off\n");
-  printf("  -near_lossless <int> ... use near-lossless image\n"
-         "                           preprocessing (0..100=off), "
-         "default=100\n");
+  printf("  -near_lossless <int> ... use near-lossless image preprocessing\n"
+         "                           (0..100=off), default=100\n");
   printf("  -hint <string> ......... specify image characteristics hint,\n");
   printf("                           one of: photo, picture or graph\n");
 
@@ -832,8 +836,12 @@ int main(int argc, const char* argv[]) {
 #endif
     } else if (!strcmp(argv[c], "-version")) {
       const int version = WebPGetEncoderVersion();
+      const int sharpyuv_version = SharpYuvGetVersion();
       printf("%d.%d.%d\n",
              (version >> 16) & 0xff, (version >> 8) & 0xff, version & 0xff);
+      printf("libsharpyuv: %d.%d.%d\n",
+             (sharpyuv_version >> 24) & 0xff, (sharpyuv_version >> 16) & 0xffff,
+             sharpyuv_version & 0xff);
       FREE_WARGV_AND_RETURN(0);
     } else if (!strcmp(argv[c], "-progress")) {
       show_progress = 1;
@@ -1140,9 +1148,10 @@ int main(int argc, const char* argv[]) {
       }
 
       picture.use_argb = 1;
-      if (!ReadWebP(memory_writer.mem, memory_writer.size, &picture,
-                    /*keep_alpha=*/WebPPictureHasTransparency(&picture),
-                    /*metadata=*/NULL)) {
+      if (!ReadWebP(
+              memory_writer.mem, memory_writer.size, &picture,
+              /*keep_alpha=*/WebPPictureHasTransparency(&original_picture),
+              /*metadata=*/NULL)) {
         fprintf(stderr, "Error! Cannot decode encoded WebP bitstream\n");
         fprintf(stderr, "Error code: %d (%s)\n", picture.error_code,
                 kErrorMessages[picture.error_code]);

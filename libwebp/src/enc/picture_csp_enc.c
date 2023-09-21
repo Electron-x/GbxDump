@@ -69,10 +69,12 @@ static int CheckNonOpaque(const uint8_t* alpha, int width, int height,
 int WebPPictureHasTransparency(const WebPPicture* picture) {
   if (picture == NULL) return 0;
   if (picture->use_argb) {
-    const int alpha_offset = ALPHA_OFFSET;
-    return CheckNonOpaque((const uint8_t*)picture->argb + alpha_offset,
-                          picture->width, picture->height,
-                          4, picture->argb_stride * sizeof(*picture->argb));
+    if (picture->argb != NULL) {
+      return CheckNonOpaque((const uint8_t*)picture->argb + ALPHA_OFFSET,
+                            picture->width, picture->height,
+                            4, picture->argb_stride * sizeof(*picture->argb));
+    }
+    return 0;
   }
   return CheckNonOpaque(picture->a, picture->width, picture->height,
                         1, picture->a_stride);
@@ -83,30 +85,31 @@ int WebPPictureHasTransparency(const WebPPicture* picture) {
 
 #if defined(USE_GAMMA_COMPRESSION)
 
-// gamma-compensates loss of resolution during chroma subsampling
-#define kGamma 0.80      // for now we use a different gamma value than kGammaF
-#define kGammaFix 12     // fixed-point precision for linear values
-#define kGammaScale ((1 << kGammaFix) - 1)
-#define kGammaTabFix 7   // fixed-point fractional bits precision
-#define kGammaTabScale (1 << kGammaTabFix)
-#define kGammaTabRounder (kGammaTabScale >> 1)
-#define kGammaTabSize (1 << (kGammaFix - kGammaTabFix))
+// Gamma correction compensates loss of resolution during chroma subsampling.
+#define GAMMA_FIX 12      // fixed-point precision for linear values
+#define GAMMA_TAB_FIX 7   // fixed-point fractional bits precision
+#define GAMMA_TAB_SIZE (1 << (GAMMA_FIX - GAMMA_TAB_FIX))
+static const double kGamma = 0.80;
+static const int kGammaScale = ((1 << GAMMA_FIX) - 1);
+static const int kGammaTabScale = (1 << GAMMA_TAB_FIX);
+static const int kGammaTabRounder = (1 << GAMMA_TAB_FIX >> 1);
 
-static int kLinearToGammaTab[kGammaTabSize + 1];
+static int kLinearToGammaTab[GAMMA_TAB_SIZE + 1];
 static uint16_t kGammaToLinearTab[256];
 static volatile int kGammaTablesOk = 0;
 static void InitGammaTables(void);
+extern VP8CPUInfo VP8GetCPUInfo;
 
 WEBP_DSP_INIT_FUNC(InitGammaTables) {
   if (!kGammaTablesOk) {
     int v;
-    const double scale = (double)(1 << kGammaTabFix) / kGammaScale;
+    const double scale = (double)(1 << GAMMA_TAB_FIX) / kGammaScale;
     const double norm = 1. / 255.;
     for (v = 0; v <= 255; ++v) {
       kGammaToLinearTab[v] =
           (uint16_t)(pow(norm * v, kGamma) * kGammaScale + .5);
     }
-    for (v = 0; v <= kGammaTabSize; ++v) {
+    for (v = 0; v <= GAMMA_TAB_SIZE; ++v) {
       kLinearToGammaTab[v] = (int)(255. * pow(scale * v, 1. / kGamma) + .5);
     }
     kGammaTablesOk = 1;
@@ -118,12 +121,12 @@ static WEBP_INLINE uint32_t GammaToLinear(uint8_t v) {
 }
 
 static WEBP_INLINE int Interpolate(int v) {
-  const int tab_pos = v >> (kGammaTabFix + 2);    // integer part
+  const int tab_pos = v >> (GAMMA_TAB_FIX + 2);    // integer part
   const int x = v & ((kGammaTabScale << 2) - 1);  // fractional part
   const int v0 = kLinearToGammaTab[tab_pos];
   const int v1 = kLinearToGammaTab[tab_pos + 1];
   const int y = v1 * x + v0 * ((kGammaTabScale << 2) - x);   // interpolate
-  assert(tab_pos + 1 < kGammaTabSize + 1);
+  assert(tab_pos + 1 < GAMMA_TAB_SIZE + 1);
   return y;
 }
 
@@ -131,7 +134,7 @@ static WEBP_INLINE int Interpolate(int v) {
 // U/V value, suitable for RGBToU/V calls.
 static WEBP_INLINE int LinearToGamma(uint32_t base_value, int shift) {
   const int y = Interpolate(base_value << shift);   // final uplifted value
-  return (y + kGammaTabRounder) >> kGammaTabFix;    // descale
+  return (y + kGammaTabRounder) >> GAMMA_TAB_FIX;    // descale
 }
 
 #else
@@ -167,33 +170,8 @@ static int RGBToV(int r, int g, int b, VP8Random* const rg) {
 
 static const int kMinDimensionIterativeConversion = 4;
 
-// We could use SFIX=0 and only uint8_t for fixed_y_t, but it produces some
-// banding sometimes. Better use extra precision.
-#define SFIX 2                // fixed-point precision of RGB and Y/W
-typedef int16_t fixed_t;      // signed type with extra SFIX precision for UV
-typedef uint16_t fixed_y_t;   // unsigned type with extra SFIX precision for W
-
-#define SHALF (1 << SFIX >> 1)
-#define MAX_Y_T ((256 << SFIX) - 1)
-#define SROUNDER (1 << (YUV_FIX + SFIX - 1))
-
 //------------------------------------------------------------------------------
 // Main function
-
-extern void SharpYuvInit(VP8CPUInfo cpu_info_func);
-
-static void SafeInitSharpYuv(void) {
-#if defined(WEBP_USE_THREAD) && !defined(_WIN32)
-  static pthread_mutex_t initsharpyuv_lock = PTHREAD_MUTEX_INITIALIZER;
-  if (pthread_mutex_lock(&initsharpyuv_lock)) return;
-#endif
-
-  SharpYuvInit(VP8GetCPUInfo);
-
-#if defined(WEBP_USE_THREAD) && !defined(_WIN32)
-  (void)pthread_mutex_unlock(&initsharpyuv_lock);
-#endif
-}
 
 static int PreprocessARGB(const uint8_t* r_ptr,
                           const uint8_t* g_ptr,
@@ -201,10 +179,10 @@ static int PreprocessARGB(const uint8_t* r_ptr,
                           int step, int rgb_stride,
                           WebPPicture* const picture) {
   const int ok = SharpYuvConvert(
-      r_ptr, g_ptr, b_ptr, step, rgb_stride, picture->y, picture->y_stride,
-      picture->u, picture->uv_stride, picture->v, picture->uv_stride,
-      picture->width, picture->height,
-      SharpYuvGetConversionMatrix(kSharpYuvMatrixWebp));
+      r_ptr, g_ptr, b_ptr, step, rgb_stride, /*rgb_bit_depth=*/8,
+      picture->y, picture->y_stride, picture->u, picture->uv_stride, picture->v,
+      picture->uv_stride, /*yuv_bit_depth=*/8, picture->width,
+      picture->height, SharpYuvGetConversionMatrix(kSharpYuvMatrixWebp));
   if (!ok) {
     return WebPEncodingSetError(picture, VP8_ENC_ERROR_OUT_OF_MEMORY);
   }
@@ -234,8 +212,8 @@ static const int kAlphaFix = 19;
 // and constant are adjusted very tightly to fit 32b arithmetic.
 // In particular, they use the fact that the operands for 'v / a' are actually
 // derived as v = (a0.p0 + a1.p1 + a2.p2 + a3.p3) and a = a0 + a1 + a2 + a3
-// with ai in [0..255] and pi in [0..1<<kGammaFix). The constraint to avoid
-// overflow is: kGammaFix + kAlphaFix <= 31.
+// with ai in [0..255] and pi in [0..1<<GAMMA_FIX). The constraint to avoid
+// overflow is: GAMMA_FIX + kAlphaFix <= 31.
 static const uint32_t kInvAlpha[4 * 0xff + 1] = {
   0,  /* alpha = 0 */
   524288, 262144, 174762, 131072, 104857, 87381, 74898, 65536,
@@ -461,11 +439,20 @@ static WEBP_INLINE void AccumulateRGB(const uint8_t* const r_ptr,
     dst[0] = SUM4(r_ptr + j, step);
     dst[1] = SUM4(g_ptr + j, step);
     dst[2] = SUM4(b_ptr + j, step);
+    // MemorySanitizer may raise false positives with data that passes through
+    // RGBA32PackedToPlanar_16b_SSE41() due to incorrect modeling of shuffles.
+    // See https://crbug.com/webp/573.
+#ifdef WEBP_MSAN
+    dst[3] = 0;
+#endif
   }
   if (width & 1) {
     dst[0] = SUM2(r_ptr + j);
     dst[1] = SUM2(g_ptr + j);
     dst[2] = SUM2(b_ptr + j);
+#ifdef WEBP_MSAN
+    dst[3] = 0;
+#endif
   }
 }
 
@@ -481,6 +468,8 @@ static WEBP_INLINE void ConvertRowsToUV(const uint16_t* rgb,
     dst_v[i] = RGBToV(r, g, b, rg);
   }
 }
+
+extern void SharpYuvInit(VP8CPUInfo cpu_info_func);
 
 static int ImportYUVAFromRGBA(const uint8_t* r_ptr,
                               const uint8_t* g_ptr,
@@ -506,18 +495,18 @@ static int ImportYUVAFromRGBA(const uint8_t* r_ptr,
     use_iterative_conversion = 0;
   }
 
-  if (!WebPPictureAllocYUVA(picture, width, height)) {
+  if (!WebPPictureAllocYUVA(picture)) {
     return 0;
   }
   if (has_alpha) {
     assert(step == 4);
 #if defined(USE_GAMMA_COMPRESSION) && defined(USE_INVERSE_ALPHA_TABLE)
-    assert(kAlphaFix + kGammaFix <= 31);
+    assert(kAlphaFix + GAMMA_FIX <= 31);
 #endif
   }
 
   if (use_iterative_conversion) {
-    SafeInitSharpYuv();
+    SharpYuvInit(VP8GetCPUInfo);
     if (!PreprocessARGB(r_ptr, g_ptr, b_ptr, step, rgb_stride, picture)) {
       return 0;
     }
@@ -546,7 +535,9 @@ static int ImportYUVAFromRGBA(const uint8_t* r_ptr,
     WebPInitConvertARGBToYUV();
     InitGammaTables();
 
-    if (tmp_rgb == NULL) return 0;  // malloc error
+    if (tmp_rgb == NULL) {
+      return WebPEncodingSetError(picture, VP8_ENC_ERROR_OUT_OF_MEMORY);
+    }
 
     // Downsample Y/U/V planes, two rows at a time
     for (y = 0; y < (height >> 1); ++y) {
@@ -687,7 +678,7 @@ int WebPPictureYUVAToARGB(WebPPicture* picture) {
     return WebPEncodingSetError(picture, VP8_ENC_ERROR_INVALID_CONFIGURATION);
   }
   // Allocate a new argb buffer (discarding the previous one).
-  if (!WebPPictureAllocARGB(picture, picture->width, picture->height)) return 0;
+  if (!WebPPictureAllocARGB(picture)) return 0;
   picture->use_argb = 1;
 
   // Convert
@@ -749,6 +740,8 @@ static int Import(WebPPicture* const picture,
   const int width = picture->width;
   const int height = picture->height;
 
+  if (abs(rgb_stride) < (import_alpha ? 4 : 3) * width) return 0;
+
   if (!picture->use_argb) {
     const uint8_t* a_ptr = import_alpha ? rgb + 3 : NULL;
     return ImportYUVAFromRGBA(r_ptr, g_ptr, b_ptr, a_ptr, step, rgb_stride,
@@ -806,24 +799,24 @@ static int Import(WebPPicture* const picture,
 #if !defined(WEBP_REDUCE_CSP)
 
 int WebPPictureImportBGR(WebPPicture* picture,
-                         const uint8_t* rgb, int rgb_stride) {
-  return (picture != NULL && rgb != NULL)
-             ? Import(picture, rgb, rgb_stride, 3, 1, 0)
+                         const uint8_t* bgr, int bgr_stride) {
+  return (picture != NULL && bgr != NULL)
+             ? Import(picture, bgr, bgr_stride, 3, 1, 0)
              : 0;
 }
 
 int WebPPictureImportBGRA(WebPPicture* picture,
-                          const uint8_t* rgba, int rgba_stride) {
-  return (picture != NULL && rgba != NULL)
-             ? Import(picture, rgba, rgba_stride, 4, 1, 1)
+                          const uint8_t* bgra, int bgra_stride) {
+  return (picture != NULL && bgra != NULL)
+             ? Import(picture, bgra, bgra_stride, 4, 1, 1)
              : 0;
 }
 
 
 int WebPPictureImportBGRX(WebPPicture* picture,
-                          const uint8_t* rgba, int rgba_stride) {
-  return (picture != NULL && rgba != NULL)
-             ? Import(picture, rgba, rgba_stride, 4, 1, 0)
+                          const uint8_t* bgrx, int bgrx_stride) {
+  return (picture != NULL && bgrx != NULL)
+             ? Import(picture, bgrx, bgrx_stride, 4, 1, 0)
              : 0;
 }
 
@@ -844,9 +837,9 @@ int WebPPictureImportRGBA(WebPPicture* picture,
 }
 
 int WebPPictureImportRGBX(WebPPicture* picture,
-                          const uint8_t* rgba, int rgba_stride) {
-  return (picture != NULL && rgba != NULL)
-             ? Import(picture, rgba, rgba_stride, 4, 0, 0)
+                          const uint8_t* rgbx, int rgbx_stride) {
+  return (picture != NULL && rgbx != NULL)
+             ? Import(picture, rgbx, rgbx_stride, 4, 0, 0)
              : 0;
 }
 

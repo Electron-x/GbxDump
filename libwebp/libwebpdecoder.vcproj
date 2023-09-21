@@ -723,6 +723,14 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\utils\palette.c"
+					>
+				</File>
+				<File
+					RelativePath=".\src\utils\palette.h"
+					>
+				</File>
+				<File
 					RelativePath=".\src\utils\quant_levels_dec_utils.c"
 					>
 				</File>
