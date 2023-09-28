@@ -645,7 +645,14 @@ namespace crnlib
                dxt_fmt = cDXT5;
                break;
             }
+            case PIXEL_FMT_DXT5_A2D5:
+            {
+                m_format = PIXEL_FMT_DXT5_xGxR;
+                dxt_fmt = cDXT5;
+                break;
+            }
             case PIXEL_FMT_3DC:
+            case PIXEL_FMT_BC5U:
             {
                if (desc.ddpfPixelFormat.dwRGBBitCount == CRNLIB_PIXEL_FMT_FOURCC('A', '2', 'X', 'Y'))
                {
@@ -661,6 +668,7 @@ namespace crnlib
                break;
             }
             case PIXEL_FMT_DXT5A:
+            case PIXEL_FMT_BC4U:
             {
                m_format = PIXEL_FMT_DXT5A;
                dxt_fmt = cDXT5A;
@@ -670,6 +678,56 @@ namespace crnlib
             {
                m_format = PIXEL_FMT_ETC1;
                dxt_fmt = cETC1;
+               break;
+            }
+            case CRNLIB_PIXEL_FMT_FOURCC('D', 'X', '1', '0'):
+            {
+               DDSURFACEDX10 dx10;
+               if (!serializer.read(&dx10, sizeof(dx10)))
+                  return false;
+
+               if (!c_crnlib_little_endian_platform)
+                  utils::endian_switch_dwords(reinterpret_cast<uint32*>(&dx10), sizeof(dx10) / sizeof(uint32));
+
+               switch (dx10.dxgiFormat)
+               {
+                  case 71: // DXGI_FORMAT_BC1_UNORM
+                  {
+                     m_format = PIXEL_FMT_DXT1;
+                     dxt_fmt = cDXT1;
+                     break;
+                  }
+                  case 74: // DXGI_FORMAT_BC2_UNORM
+                  {
+                     m_format = PIXEL_FMT_DXT3;
+                     dxt_fmt = cDXT3;
+                     break;
+                  }
+                  case 77: // DXGI_FORMAT_BC3_UNORM
+                  {
+                     m_format = PIXEL_FMT_DXT5;
+                     dxt_fmt = cDXT5;
+                     break;
+                  }
+                  case 80: // DXGI_FORMAT_BC4_UNORM
+                  {
+                     m_format = PIXEL_FMT_DXT5A;
+                     dxt_fmt = cDXT5A;
+                     break;
+                  }
+                  case 83: // DXGI_FORMAT_BC5_UNORM
+                  {
+                     m_format = PIXEL_FMT_3DC;
+                     dxt_fmt = cDXN_YX;
+                     break;
+                  }
+                  default:
+                  {
+                     dynamic_string err_msg(cVarArg, "Unsupported DX10 DXGI format: %u", dx10.dxgiFormat);
+                     set_last_error(err_msg.get_ptr());
+                     return false;
+                  }
+               }
                break;
             }
             default:

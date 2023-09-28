@@ -21,12 +21,15 @@ namespace crnlib
       PIXEL_FMT_3DC                   = CRNLIB_PIXEL_FMT_FOURCC('A', 'T', 'I', '2'), // DXN_YX
       PIXEL_FMT_DXN                   = CRNLIB_PIXEL_FMT_FOURCC('A', '2', 'X', 'Y'), // DXN_XY
       PIXEL_FMT_DXT5A                 = CRNLIB_PIXEL_FMT_FOURCC('A', 'T', 'I', '1'), // ATI1N, http://developer.amd.com/media/gpu_assets/Radeon_X1x00_Programming_Guide.pdf
+      PIXEL_FMT_BC4U                  = CRNLIB_PIXEL_FMT_FOURCC('B', 'C', '4', 'U'), // ATI1N
+      PIXEL_FMT_BC5U                  = CRNLIB_PIXEL_FMT_FOURCC('B', 'C', '5', 'U'), // ATI2N
 
       // Non-standard, crnlib-specific pixel formats (some of these are supported by ATI's Compressonator)
       PIXEL_FMT_DXT5_CCxY             = CRNLIB_PIXEL_FMT_FOURCC('C', 'C', 'x', 'Y'),
       PIXEL_FMT_DXT5_xGxR             = CRNLIB_PIXEL_FMT_FOURCC('x', 'G', 'x', 'R'),
       PIXEL_FMT_DXT5_xGBR             = CRNLIB_PIXEL_FMT_FOURCC('x', 'G', 'B', 'R'),
       PIXEL_FMT_DXT5_AGBR             = CRNLIB_PIXEL_FMT_FOURCC('A', 'G', 'B', 'R'),
+      PIXEL_FMT_DXT5_A2D5             = CRNLIB_PIXEL_FMT_FOURCC('A', '2', 'D', '5'), // ATI2N_DXT5
 
       PIXEL_FMT_DXT1A                 = CRNLIB_PIXEL_FMT_FOURCC('D', 'X', '1', 'A'),
       PIXEL_FMT_ETC1                  = CRNLIB_PIXEL_FMT_FOURCC('E', 'T', 'C', '1'),
@@ -96,7 +99,16 @@ namespace crnlib
       DDSCAPS2 ddsCaps;
       crn_uint32 dwUnused1;
    };
-   
+
+   struct DDSURFACEDX10
+   {
+      crn_uint32 dxgiFormat;
+      crn_uint32 resourceDimension;
+      crn_uint32 miscFlag;
+      crn_uint32 arraySize;
+      crn_uint32 miscFlags2;
+   };
+
    const crn_uint32 DDSD_CAPS                   = 0x00000001;
    const crn_uint32 DDSD_HEIGHT                 = 0x00000002;
    const crn_uint32 DDSD_WIDTH                  = 0x00000004;
