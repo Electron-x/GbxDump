@@ -515,8 +515,8 @@ namespace crnlib
             continue;
 
          CRNLIB_ASSERT((min_color_weight > 0) && (max_color_weight > 0));
-         const uint error_to_beat_div_min_color_weight = min_color_weight ? ((error_to_beat + min_color_weight - 1) / min_color_weight) : 0;
-         const uint error_to_beat_div_max_color_weight = max_color_weight ? ((error_to_beat + max_color_weight - 1) / max_color_weight) : 0;
+         const uint error_to_beat_div_min_color_weight = (uint)(min_color_weight ? ((error_to_beat + min_color_weight - 1) / min_color_weight) : 0);
+         const uint error_to_beat_div_max_color_weight = (uint)(max_color_weight ? ((error_to_beat + max_color_weight - 1) / max_color_weight) : 0);
 
          const uint m = (comp_index == 1) ? 63 : 31;
          const uint m_shift = (comp_index == 1) ? 3 : 2;

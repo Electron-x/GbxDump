@@ -89,7 +89,7 @@ namespace crnlib
          ::printf(m_crlf ? "%s\n" : "%s", buf);
       }
 
-      uint n = strlen(buf);
+      uint n = (uint)strlen(buf);
       m_at_beginning_of_line = (m_crlf) || ((n) && (buf[n - 1] == '\n'));
 
       if ((type != cProgressConsoleMessage) && (m_pLog_stream))

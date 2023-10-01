@@ -66,7 +66,9 @@
 */
 
 #ifdef _MSC_VER
+#pragma warning (disable: 4312) //  conversion to type of greater size
 #pragma warning (disable: 4793) //  function compiled as native
+#pragma warning (disable: 4838) //  conversion requires a narrowing conversion
 #endif
 
 #ifndef STBI_INCLUDE_STB_IMAGE_H

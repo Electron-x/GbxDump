@@ -101,7 +101,7 @@ namespace crnlib
       {
          CRNLIB_ASSERT((ofs + num) <= 64U);
          CRNLIB_ASSERT(num && (num < 32U));
-         return (utils::read_be64(&m_uint64) >> ofs) & ((1UL << num) - 1UL);
+         return static_cast<uint>((utils::read_be64(&m_uint64) >> ofs) & ((1UL << num) - 1UL));
       }
 
       inline void set_general_bits(uint ofs, uint num, uint bits)
