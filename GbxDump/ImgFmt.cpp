@@ -466,8 +466,6 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDib)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // JPEG decoder using the Independent JPEG Group's JPEG software
-// Based on code by Thomas W. Lipp from german Microsoft Systems Journal Nov./Dec. 1993
-// Note: The arrangement of the color components must be changed in jmorecfg.h from RGB to BGR
 
 // Data Types
 typedef struct jpeg_decompress_struct j_decompress;
@@ -476,20 +474,11 @@ typedef struct jpeg_error_mgr         j_error_mgr;
 // JPEG decompression structure (overloads jpeg_decompress_struct)
 typedef struct _JPEG_DECOMPRESS
 {
-	j_decompress    jInfo;              // Decompression structure
-	j_error_mgr     jError;             // Error manager
-	BOOL            bNeedDestroy;       // jInfo must be destroyed
-	UINT            uWidth;             // Width
-	UINT            uHeight;            // Height
-	UINT            uBPP;               // Bit per pixel
-	UINT            uColors;            // Number of colours in the palette
-	UINT            uWinColors;         // Number of colors after optimization
-	DWORD           dwXPelsPerMeter;	// Horizontal resolution
-	DWORD           dwYPelsPerMeter;    // Vertical Resolution
-	DWORD           dwIncrement;        // Size of a picture row
-	DWORD           dwSize;             // Size of the image
-	LPBYTE          lpProfileData;      // Pointer to ICC profile data
-	INT             nTraceLevel;        // Max. message level that will be displayed
+	j_decompress    jInfo;          // Decompression structure
+	j_error_mgr     jError;         // Error manager
+	INT             nTraceLevel;    // Max. message level that will be displayed
+	BOOL            bNeedDestroy;   // jInfo must be destroyed
+	LPBYTE          lpProfileData;  // Pointer to ICC profile data
 } JPEG_DECOMPRESS, *LPJPEG_DECOMPRESS;
 
 static jmp_buf JmpBuffer;  // Buffer for processor status
@@ -499,16 +488,16 @@ void cleanup_jpeg_to_dib(LPJPEG_DECOMPRESS lpJpegDecompress, HANDLE hDib);
 void set_error_manager(j_common_ptr pjInfo, j_error_mgr *pjError);
 
 // Callback functions
-METHODDEF(void my_error_exit(j_common_ptr pjInfo));
-METHODDEF(void my_output_message(j_common_ptr pjInfo));
-METHODDEF(void my_emit_message(j_common_ptr pjInfo, int nMessageLevel));
+static void my_error_exit(j_common_ptr pjInfo);
+static void my_output_message(j_common_ptr pjInfo);
+static void my_emit_message(j_common_ptr pjInfo, int nMessageLevel);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // JPEG decoder: Converts a JPEG image to a DIB
 
 HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData, BOOL bFlipImage, INT nTraceLevel)
 {
-	HANDLE hDib = NULL;  // Handle of the DIB
+	HANDLE hDib = NULL;
 
 	// Initialize the JPEG decompression object
 	JPEG_DECOMPRESS JpegDecompress = {0};
@@ -541,82 +530,34 @@ HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData, BOOL bFlipImage, INT nTrace
 	BOOL bHasProfile = read_icc_profile(pjInfo, &JpegDecompress.lpProfileData, &uProfileLen);
 
 	// Image resolution
-	JpegDecompress.dwXPelsPerMeter = 0;
-	JpegDecompress.dwYPelsPerMeter = 0;
+	LONG lXPelsPerMeter = 0;
+	LONG lYPelsPerMeter = 0;
 	if (pjInfo->saw_JFIF_marker)
-		switch (pjInfo->density_unit)
-		{
-			case 1:  // Pixel per inch
-				JpegDecompress.dwXPelsPerMeter = ((DWORD)pjInfo->X_density * 5000ul) / 127ul;
-				if (JpegDecompress.dwXPelsPerMeter == (DWORD)-1)
-					JpegDecompress.dwXPelsPerMeter = 0;
-				JpegDecompress.dwYPelsPerMeter = ((DWORD)pjInfo->Y_density * 5000ul) / 127ul;
-				if (JpegDecompress.dwYPelsPerMeter == (DWORD)-1)
-					JpegDecompress.dwYPelsPerMeter = 0;
-				break;
-			case 2:  // Pixel per cm
-				JpegDecompress.dwXPelsPerMeter = (DWORD)pjInfo->X_density * 100ul;
-				JpegDecompress.dwYPelsPerMeter = (DWORD)pjInfo->Y_density * 100ul;
-				break;
-			default: // No unit of measurement (image ratio only) or undefined
-				break;
+	{
+		if (pjInfo->density_unit == 1)
+		{  // Pixel per inch
+			lXPelsPerMeter = pjInfo->X_density * 5000 / 127;
+			lYPelsPerMeter = pjInfo->Y_density * 5000 / 127;
 		}
-
-	// Decompression settings
-	if (JpegDecompress.jInfo.jpeg_color_space == JCS_GRAYSCALE)
-	{
-		JpegDecompress.jInfo.out_color_space   = JCS_GRAYSCALE;
-		JpegDecompress.jInfo.quantize_colors   = (boolean)FALSE;
-		JpegDecompress.jInfo.two_pass_quantize = (boolean)FALSE;
-		JpegDecompress.jInfo.dither_mode       = JDITHER_NONE;
+		else if (pjInfo->density_unit == 2)
+		{  // Pixel per cm
+			lXPelsPerMeter = pjInfo->X_density * 100;
+			lYPelsPerMeter = pjInfo->Y_density * 100;
+		}
 	}
-	else
-	{
-		JpegDecompress.jInfo.out_color_space   = JCS_RGB;
-		JpegDecompress.jInfo.quantize_colors   = (boolean)FALSE;
-		JpegDecompress.jInfo.two_pass_quantize = (boolean)FALSE;
-		JpegDecompress.jInfo.dither_mode       = JDITHER_NONE;
-		JpegDecompress.jInfo.desired_number_of_colors = 236;
-	}
-
-	// Set parameters for decompression
-	pjInfo->dct_method = JDCT_FLOAT;  // Quality
 
 	// Start decompression in the JPEG library
 	jpeg_start_decompress(pjInfo);
 
 	// Determine output image format
-	JpegDecompress.uWidth  = pjInfo->output_width;
-	JpegDecompress.uHeight = pjInfo->output_height;
-	if (pjInfo->output_components == 3)
-	{  // RGB image
-		JpegDecompress.uBPP       = 24;
-		JpegDecompress.uColors    = 0;
-		JpegDecompress.uWinColors = 0;
-	}
-	else
-	{  // Grayscale or palette image
-		JpegDecompress.uBPP = 8;
-		if (pjInfo->out_color_space == JCS_GRAYSCALE)
-		{
-			JpegDecompress.uColors    = 256;
-			JpegDecompress.uWinColors = 256;
-		}
-		else
-		{
-			JpegDecompress.uColors = pjInfo->actual_number_of_colors;
-			JpegDecompress.uWinColors = min(JpegDecompress.uColors + 20, 256);
-		}
-	}
+	WORD wBitDepth = pjInfo->output_components << 3;
+	UINT uNumColors = wBitDepth == 8 ? (pjInfo->out_color_space == JCS_GRAYSCALE ? 256 : pjInfo->actual_number_of_colors) : 0;
+	UINT uIncrement = WIDTHBYTES(pjInfo->output_width * wBitDepth);
+	DWORD dwImageSize = uIncrement * pjInfo->output_height;
+	DWORD dwHeaderSize = bHasProfile ? sizeof(BITMAPV5HEADER) : sizeof(BITMAPINFOHEADER);
 
-	// Size of one DIB row
-	JpegDecompress.dwIncrement = WIDTHBYTES(JpegDecompress.uWidth * JpegDecompress.uBPP);
-	// Size of the DIB data
-	JpegDecompress.dwSize = JpegDecompress.dwIncrement * JpegDecompress.uHeight;
-
-	// Create a Windows Bitmap
-	hDib = GlobalAlloc(GHND, (bHasProfile ? sizeof(BITMAPV5HEADER) : sizeof(BITMAPINFOHEADER)) +
-		JpegDecompress.uWinColors * sizeof(RGBQUAD) + JpegDecompress.dwSize + uProfileLen);
+	// Allocate memory for the DIB
+	hDib = GlobalAlloc(GHND, dwHeaderSize + uNumColors * sizeof(RGBQUAD) + dwImageSize + uProfileLen);
 	if (hDib == NULL)
 	{
 		cleanup_jpeg_to_dib(&JpegDecompress, hDib);
@@ -625,31 +566,29 @@ HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData, BOOL bFlipImage, INT nTrace
 
 	// Fill bitmap information block
 	LPBITMAPINFO lpBMI = (LPBITMAPINFO)GlobalLock(hDib);
-	LPBITMAPINFOHEADER lpBI = (LPBITMAPINFOHEADER)lpBMI;
 	LPBITMAPV5HEADER lpBIV5 = (LPBITMAPV5HEADER)lpBMI;
-	if (lpBI == NULL)
+	if (lpBIV5 == NULL)
 	{
 		cleanup_jpeg_to_dib(&JpegDecompress, hDib);
 		return NULL;
 	}
 
-	lpBI->biSize          = bHasProfile ? sizeof(BITMAPV5HEADER) : sizeof(BITMAPINFOHEADER);
-	lpBI->biWidth         = JpegDecompress.uWidth;
-	lpBI->biHeight        = JpegDecompress.uHeight;
-	lpBI->biPlanes        = 1;
-	lpBI->biBitCount      = (WORD)JpegDecompress.uBPP;
-	lpBI->biCompression   = BI_RGB;
-	lpBI->biXPelsPerMeter = JpegDecompress.dwXPelsPerMeter;
-	lpBI->biYPelsPerMeter = JpegDecompress.dwYPelsPerMeter;
-	lpBI->biClrUsed       = JpegDecompress.uWinColors;
+	lpBIV5->bV5Size = dwHeaderSize;
+	lpBIV5->bV5Width = pjInfo->output_width;
+	lpBIV5->bV5Height = pjInfo->output_height;
+	lpBIV5->bV5Planes = 1;
+	lpBIV5->bV5BitCount = wBitDepth;
+	lpBIV5->bV5Compression = BI_RGB;
+	lpBIV5->bV5XPelsPerMeter = lXPelsPerMeter;
+	lpBIV5->bV5YPelsPerMeter = lYPelsPerMeter;
+	lpBIV5->bV5ClrUsed = uNumColors;
 
 	// Create palette
-	if (JpegDecompress.uBPP == 8)
+	if (wBitDepth == 8)
 	{
 		if (pjInfo->out_color_space == JCS_GRAYSCALE)
-		{
-			// Grayscale image
-			for (UINT u = 0; u < JpegDecompress.uColors; u++)
+		{  // Grayscale image
+			for (UINT u = 0; u < uNumColors; u++)
 			{  // Create grayscale
 				lpBMI->bmiColors[u].rgbRed      = (BYTE)u;
 				lpBMI->bmiColors[u].rgbGreen    = (BYTE)u;
@@ -658,76 +597,57 @@ HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData, BOOL bFlipImage, INT nTrace
 			}
 		}
 		else
-		{
-			// Palette image
-			for (UINT u = 0; u < JpegDecompress.uColors; u++)
+		{  // Palette image
+			for (UINT u = 0; u < uNumColors; u++)
 			{  // Copy palette
 				lpBMI->bmiColors[u].rgbRed      = pjInfo->colormap[0][u];
 				lpBMI->bmiColors[u].rgbGreen    = pjInfo->colormap[1][u];
 				lpBMI->bmiColors[u].rgbBlue     = pjInfo->colormap[2][u];
 				lpBMI->bmiColors[u].rgbReserved = 0;
 			}
-
-			// Fill up palette with system colors
-			if (JpegDecompress.uWinColors > JpegDecompress.uColors)
-			{
-				RGBQUAD SystemPalette[] =
-				{
-					{ 0x00, 0x00, 0x00, 0x00 },
-					{ 0xFF, 0xFF, 0xFF, 0x00 },
-
-					{ 0x00, 0x00, 0xFF, 0x00 },
-					{ 0x00, 0xFF, 0x00, 0x00 },
-					{ 0x00, 0xFF, 0xFF, 0x00 },
-					{ 0xFF, 0x00, 0x00, 0x00 },
-					{ 0xFF, 0x00, 0xFF, 0x00 },
-					{ 0xFF, 0xFF, 0x00, 0x00 },
-
-					{ 0x00, 0x00, 0x80, 0x00 },
-					{ 0x00, 0x80, 0x00, 0x00 },
-					{ 0x00, 0x80, 0x80, 0x00 },
-					{ 0x80, 0x00, 0x00, 0x00 },
-					{ 0x80, 0x00, 0x80, 0x00 },
-					{ 0x80, 0x80, 0x00, 0x00 },
-					{ 0x80, 0x80, 0x80, 0x00 },
-					{ 0xC0, 0xC0, 0xC0, 0x00 },
-
-					{ 0xA4, 0xA0, 0xA0, 0x00 },
-					{ 0xC0, 0xDC, 0xC0, 0x00 },
-					{ 0xF0, 0xCA, 0xA6, 0x00 },
-					{ 0xF0, 0xFB, 0xFF, 0x00 }
-				};
-
-				CopyMemory(&(lpBMI->bmiColors[JpegDecompress.uColors]), SystemPalette, min(sizeof(SystemPalette),
-					(JpegDecompress.uWinColors - JpegDecompress.uColors) * sizeof(RGBQUAD)));
-			}
 		}
 	}
 
 	// Determine pointer to start of image data
-	LPBYTE lpDIB = FindDibBits((LPCSTR)lpBI);
+	LPBYTE lpDIB = FindDibBits((LPCSTR)lpBIV5);
 	LPBYTE lpBits = NULL;           // Pointer to a DIB image row
 	JSAMPROW lpScanlines[1] = {0};  // Pointer to a scanline
 	JDIMENSION uScanline = 0;       // Row index
+	BYTE cKey, cRed, cBlue;         // Color components
 
-	// Copy image rows (scanlines)
+	// Copy image rows (scanlines). The arrangement of the color
+	// components must be changed in jmorecfg.h from RGB to BGR.
 	while (pjInfo->output_scanline < pjInfo->output_height)
 	{
-		uScanline = bFlipImage ? pjInfo->output_scanline : JpegDecompress.uHeight-1 - pjInfo->output_scanline;
-		lpBits = lpDIB + (UINT_PTR)uScanline * JpegDecompress.dwIncrement;
+		uScanline = bFlipImage ? pjInfo->output_scanline : pjInfo->output_height-1 - pjInfo->output_scanline;
+		lpBits = lpDIB + (UINT_PTR)uScanline * uIncrement;
 		lpScanlines[0] = lpBits;
 		jpeg_read_scanlines(pjInfo, lpScanlines, 1);  // Decompress one line
+
+		if (pjInfo->out_color_space == JCS_CMYK)
+		{  // Convert from inverted CMYK to RGB
+			for (UINT u = 0; u < (pjInfo->output_width * 4); u += 4)
+			{
+				cKey  = lpBits[u+3];
+				cRed  = Mul8Bit(lpBits[u+0], cKey);
+				cBlue = Mul8Bit(lpBits[u+2], cKey);
+				lpBits[u+1] = Mul8Bit(lpBits[u+1], cKey);
+				lpBits[u+0] = cBlue;
+				lpBits[u+2] = cRed;
+				lpBits[u+3] = 0xFF;
+			}
+		}
 	}
 
+	// Embed an existing ICC profile into the DIB
 	if (bHasProfile)
 	{
 		lpBIV5->bV5CSType = PROFILE_EMBEDDED;
 		lpBIV5->bV5Intent = LCS_GM_IMAGES;
 		lpBIV5->bV5ProfileSize = uProfileLen;
-		lpBIV5->bV5ProfileData = (DWORD)(lpDIB - (LPBYTE)lpBI) + JpegDecompress.dwSize;
+		lpBIV5->bV5ProfileData = (DWORD)(lpDIB - (LPBYTE)lpBIV5) + dwImageSize;
 
-		// Embed the ICC profile into the DIB
-		CopyMemory(lpDIB + JpegDecompress.dwSize, JpegDecompress.lpProfileData, uProfileLen);
+		CopyMemory(lpDIB + dwImageSize, JpegDecompress.lpProfileData, uProfileLen);
 	}
 
 	// Finish decompression
@@ -738,7 +658,6 @@ HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData, BOOL bFlipImage, INT nTrace
 	cleanup_jpeg_to_dib(&JpegDecompress, NULL);
 	JpegDecompress.bNeedDestroy = FALSE;
 
-	// Return the DIB handle
 	return hDib;
 }
 
