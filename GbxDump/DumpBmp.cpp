@@ -26,6 +26,7 @@
 
 BOOL IsDibSupported(LPCSTR lpbi);
 DWORD QueryDibSupport(LPCSTR lpbi);
+BOOL GetColorName(COLORREF rgbColor, LPCTSTR* lpszName);
 void PrintProfileSignature(HWND hwndCtl, LPCTSTR lpszName, DWORD dwSignature, BOOL bAddCrLf = TRUE);
 float Half2Float(WORD h);
 
@@ -166,7 +167,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		
 		// Perform some sanity checks
 		UINT64 ullBitsSize = WIDTHBYTES((UINT64)lpbch->bcWidth * lpbch->bcPlanes * lpbch->bcBitCount) * lpbch->bcHeight;
-		if (ullBitsSize == 0 || ullBitsSize > 0x80000000 || lpbch->bcBitCount > 64)
+		if (ullBitsSize == 0 || ullBitsSize > 0x80000000 || lpbch->bcBitCount > 32)
 			bIsDibSupported = FALSE;
 	}
 
@@ -532,6 +533,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		}
 
 		OutputText(hwndCtl, g_szSep1);
+		LPCTSTR lpszColorName = TEXT("");
 		int nWidthDec = uNumColors > 1000 ? 4 : (uNumColors > 100 ? 3 : (uNumColors > 10 ? 2 : 1));
 		int nWidthHex = uNumColors > 0x100 ? 3 : (uNumColors > 0x10 ? 2 : 1);
 
@@ -544,7 +546,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 			for (UINT i = 0; i < uNumColors; i++)
 			{
 				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput),
-					TEXT("%*u| %3u %3u %3u |%0*X| %02X %02X %02X |\r\n"),
+					TEXT("%*u| %3u %3u %3u |%0*X| %02X %02X %02X |"),
 					nWidthDec, i,
 					lpbmc->bmciColors[i].rgbtBlue,
 					lpbmc->bmciColors[i].rgbtGreen,
@@ -553,6 +555,15 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 					lpbmc->bmciColors[i].rgbtBlue,
 					lpbmc->bmciColors[i].rgbtGreen,
 					lpbmc->bmciColors[i].rgbtRed);
+
+				if (GetColorName(RGB(
+					lpbmc->bmciColors[i].rgbtRed,
+					lpbmc->bmciColors[i].rgbtGreen,
+					lpbmc->bmciColors[i].rgbtBlue),
+					&lpszColorName))
+					OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT(" %s"), lpszColorName);
+
+				OutputText(hwndCtl, TEXT("\r\n"));
 			}
 		}
 		else
@@ -564,7 +575,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 			for (UINT i = 0; i < uNumColors; i++)
 			{
 				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput),
-					TEXT("%*u| %3u %3u %3u %3u |%0*X| %02X %02X %02X %02X |\r\n"),
+					TEXT("%*u| %3u %3u %3u %3u |%0*X| %02X %02X %02X %02X |"),
 					nWidthDec, i,
 					lprgbqColors[i].rgbBlue,
 					lprgbqColors[i].rgbGreen,
@@ -574,7 +585,17 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 					lprgbqColors[i].rgbBlue,
 					lprgbqColors[i].rgbGreen,
 					lprgbqColors[i].rgbRed,
-					lprgbqColors[i].rgbReserved);
+					lprgbqColors[i].rgbReserved,
+					lpszColorName);
+
+				if (GetColorName(RGB(
+					lprgbqColors[i].rgbRed,
+					lprgbqColors[i].rgbGreen,
+					lprgbqColors[i].rgbBlue),
+					&lpszColorName))
+					OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT(" %s"), lpszColorName);
+
+				OutputText(hwndCtl, TEXT("\r\n"));
 			}
 		}
 	}
@@ -986,6 +1007,29 @@ static DWORD QueryDibSupport(LPCSTR lpbi)
 	ReleaseDC(NULL, hdc);
 
 	return dwFlags;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Returns the color name if the color passed is one of the 20 standard system palette colors
+
+BOOL GetColorName(COLORREF rgbColor, LPCTSTR* lpszName)
+{
+	if (lpszName == NULL)
+		return FALSE;
+
+	*lpszName = TEXT("");
+	size_t count = sizeof(g_aColorNames) / sizeof(ColorName);
+
+	for (size_t i = 0; i < count; i++)
+	{
+		if (g_aColorNames[i].rgbColor == rgbColor)
+		{
+			*lpszName = g_aColorNames[i].lpszName;
+			return TRUE;
+		}
+	}
+
+	return FALSE;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////

@@ -191,6 +191,39 @@ typedef struct _PROFILEHEADER
 } PROFILEHEADER, FAR* LPPROFILEHEADER, *PPROFILEHEADER;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
+// System palette color names
+
+struct ColorName
+{
+    COLORREF rgbColor;
+    LPCTSTR lpszName;
+};
+
+const ColorName g_aColorNames[] =
+{
+    { RGB(0x00, 0x00, 0x00), TEXT("black") },
+    { RGB(0x80, 0x00, 0x00), TEXT("dark red") },
+    { RGB(0x00, 0x80, 0x00), TEXT("dark green") },
+    { RGB(0x80, 0x80, 0x00), TEXT("dark yellow") },
+    { RGB(0x00, 0x00, 0x80), TEXT("dark blue") },
+    { RGB(0x80, 0x00, 0x80), TEXT("dark magenta") },
+    { RGB(0x00, 0x80, 0x80), TEXT("dark cyan") },
+    { RGB(0xC0, 0xC0, 0xC0), TEXT("light gray") },
+    { RGB(0xC0, 0xDC, 0xC0), TEXT("money green") },
+    { RGB(0xA6, 0xCA, 0xF0), TEXT("sky blue") },
+    { RGB(0xFF, 0xFB, 0xF0), TEXT("cream") },
+    { RGB(0xA0, 0xA0, 0xA4), TEXT("light gray") },
+    { RGB(0x80, 0x80, 0x80), TEXT("medium gray") },
+    { RGB(0xFF, 0x00, 0x00), TEXT("red") },
+    { RGB(0x00, 0xFF, 0x00), TEXT("green") },
+    { RGB(0xFF, 0xFF, 0x00), TEXT("yellow") },
+    { RGB(0x00, 0x00, 0xFF), TEXT("blue") },
+    { RGB(0xFF, 0x00, 0xFF), TEXT("magenta") },
+    { RGB(0x00, 0xFF, 0xFF), TEXT("cyan") },
+    { RGB(0xFF, 0xFF, 0xFF), TEXT("white") }
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma pack(pop)
 
