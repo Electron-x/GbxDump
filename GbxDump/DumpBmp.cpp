@@ -189,8 +189,21 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		//lpbih->bV5Compression &= ~BI_SRCPREROTATE;
 		DWORD dwCompression = lpbih->bV5Compression;
 		OutputText(hwndCtl, TEXT("Compression:\t"));
-		if (dwDibHeaderSize == sizeof(BITMAPINFOHEADER2))
-		{ // All unsupported, see special handling of OS/2 2.0 bitmaps below
+		if (isprint(dwCompression & 0xff) &&
+			isprint((dwCompression >> 8) & 0xff) &&
+			isprint((dwCompression >> 16) & 0xff) &&
+			isprint((dwCompression >> 24) & 0xff))
+		{ // biCompression contains a FourCC code
+			// Not supported by GDI, but may be rendered by VfW DrawDibDraw
+			bIsDibSupported = TRUE;
+			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%hc%hc%hc%hc"),
+				(char)(dwCompression & 0xff),
+				(char)((dwCompression >> 8) & 0xff),
+				(char)((dwCompression >> 16) & 0xff),
+				(char)((dwCompression >> 24) & 0xff));
+		}
+		else if (dwDibHeaderSize == sizeof(BITMAPINFOHEADER2))
+		{ // OS/2 2.0 bitmap
 			switch (dwCompression)
 			{
 				case BCA_UNCOMP:
@@ -214,59 +227,43 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		}
 		else
 		{
-			if (isprint(dwCompression & 0xff) &&
-				isprint((dwCompression >>  8) & 0xff) &&
-				isprint((dwCompression >> 16) & 0xff) &&
-				isprint((dwCompression >> 24) & 0xff))
-			{ // biCompression contains a FourCC code
-				// Not supported by GDI, but may be rendered by VfW DrawDibDraw
-				bIsDibSupported = TRUE;
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%hc%hc%hc%hc"),
-					(char)(dwCompression & 0xff),
-					(char)((dwCompression >>  8) & 0xff),
-					(char)((dwCompression >> 16) & 0xff),
-					(char)((dwCompression >> 24) & 0xff));
-			}
-			else
+			switch (dwCompression)
 			{
-				switch (dwCompression)
-				{
-					case BI_RGB:
-						OutputText(hwndCtl, TEXT("RGB"));
-						break;
-					case BI_RLE8:
-						OutputText(hwndCtl, TEXT("RLE8"));
-						break;
-					case BI_RLE4:
-						OutputText(hwndCtl, TEXT("RLE4"));
-						break;
-					case BI_BITFIELDS:
-						OutputText(hwndCtl, TEXT("BITFIELDS"));
-						break;
-					case BI_JPEG:
-						OutputText(hwndCtl, TEXT("JPEG"));
-						break;
-					case BI_PNG:
-						OutputText(hwndCtl, TEXT("PNG"));
-						break;
-					case BI_ALPHABITFIELDS:
-						OutputText(hwndCtl, TEXT("ALPHABITFIELDS"));
-						break;
-					case BI_FOURCC:
-						OutputText(hwndCtl, TEXT("FOURCC"));
-						break;
-					case BI_CMYK:
-						OutputText(hwndCtl, TEXT("CMYK"));
-						break;
-					case BI_CMYKRLE8:
-						OutputText(hwndCtl, TEXT("CMYKRLE8"));
-						break;
-					case BI_CMYKRLE4:
-						OutputText(hwndCtl, TEXT("CMYKRLE4"));
-						break;
-					default:
-						OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%u"), dwCompression);
-				}
+				case BI_RGB:
+					OutputText(hwndCtl, TEXT("RGB"));
+					break;
+				case BI_RLE8:
+					OutputText(hwndCtl, TEXT("RLE8"));
+					break;
+				case BI_RLE4:
+					OutputText(hwndCtl, TEXT("RLE4"));
+					break;
+				case BI_BITFIELDS:
+					OutputText(hwndCtl, TEXT("BITFIELDS"));
+					break;
+				case BI_JPEG:
+					OutputText(hwndCtl, TEXT("JPEG"));
+					break;
+				case BI_PNG:
+					OutputText(hwndCtl, TEXT("PNG"));
+					break;
+				case BI_ALPHABITFIELDS:
+					OutputText(hwndCtl, TEXT("ALPHABITFIELDS"));
+					break;
+				case BI_FOURCC:
+					OutputText(hwndCtl, TEXT("FOURCC"));
+					break;
+				case BI_CMYK:
+					OutputText(hwndCtl, TEXT("CMYK"));
+					break;
+				case BI_CMYKRLE8:
+					OutputText(hwndCtl, TEXT("CMYKRLE8"));
+					break;
+				case BI_CMYKRLE4:
+					OutputText(hwndCtl, TEXT("CMYKRLE4"));
+					break;
+				default:
+					OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%u"), dwCompression);
 			}
 		}
 		OutputText(hwndCtl, TEXT("\r\n"));
@@ -293,10 +290,9 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 	// 64 bytes down to 16 bytes. Omitted members are assumed to have a value
 	// of zero. However, we only support bitmaps with full header here.
 	if (dwDibHeaderSize == sizeof(BITMAPINFOHEADER2))
-	{ // OS/2 Version 2.0 Bit-map
+	{ // OS/2 Version 2.0 Bit-map (extensions to BITMAPINFOHEADER)
 		LPBITMAPINFOHEADER2 lpbih2 = (LPBITMAPINFOHEADER2)lpbi;
 
-		// Extensions to BITMAPINFOHEADER
 		OutputText(hwndCtl, TEXT("Units:\t\t"));
 		if (lpbih2->usUnits == BRU_METRIC)
 			OutputText(hwndCtl, TEXT("METRIC"));
@@ -357,43 +353,11 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 
 		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Identifier:\t%u\r\n"), lpbih2->ulIdentifier);
 
-		if (lpbih->bV5Compression != BCA_UNCOMP)
-		{
-			GlobalUnlock(hDib);
-			GlobalFree(hDib);
-			MarkAsUnsupported(hDlg);
-			return TRUE;
-		}
-
-		// An uncompressed OS/2 2.0 bitmap can be converted to a
-		// DIBv3 simply by removing the additional header members
-		MoveMemory(lpbi + sizeof(BITMAPINFOHEADER), lpbi + dwDibHeaderSize, dwDibSize - dwDibHeaderSize);
-
-		DWORD dwDiff = dwDibHeaderSize - sizeof(BITMAPINFOHEADER);
-		dwDibSize -= dwDiff;
-		dwDibHeaderSize -= dwDiff;
-		lpbih->bV5Size = dwDibHeaderSize;
-		if (bfh.bfOffBits > dwDiff)
-			bfh.bfOffBits -= dwDiff;
-
+		// GDI doesn't support OS/2 2.0 bitmaps
 		GlobalUnlock(hDib);
-		HANDLE hTemp = GlobalReAlloc(hDib, dwDibSize, GHND);
-		if (hTemp == NULL)
-		{
-			GlobalFree(hDib);
-			return FALSE;
-		}
-
-		hDib = hTemp;
-		lpbi = (LPSTR)GlobalLock(hDib);
-		lpbih = (LPBITMAPV5HEADER)lpbi;
-		if (lpbi == NULL)
-		{
-			GlobalFree(hDib);
-			return FALSE;
-		}
-
-		bIsDibSupported = TRUE;
+		GlobalFree(hDib);
+		MarkAsUnsupported(hDlg);
+		return TRUE;
 	}
 
 	if (dwDibHeaderSize == sizeof(BITMAPINFOHEADER))
@@ -1010,7 +974,7 @@ static DWORD QueryDibSupport(LPCSTR lpbi)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Returns the color name if the color passed is one of the 20 standard system palette colors
+// Returns the color name if the color passed is one of the 20 static system palette colors
 
 BOOL GetColorName(COLORREF rgbColor, LPCTSTR* lpszName)
 {
