@@ -527,7 +527,9 @@ HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData, BOOL bFlipImage, INT nTrace
 
 	// Read an existing ICC profile
 	UINT uProfileLen = 0;
-	BOOL bHasProfile = read_icc_profile(pjInfo, &JpegDecompress.lpProfileData, &uProfileLen);
+	BOOL bHasProfile = FALSE;
+	if (pjInfo->out_color_space != JCS_CMYK)  // We convert CMYK rudimentary to RGB and discard an existing ICC profile
+		bHasProfile = read_icc_profile(pjInfo, &JpegDecompress.lpProfileData, &uProfileLen);
 
 	// Image resolution
 	LONG lXPelsPerMeter = 0;
@@ -997,7 +999,7 @@ BOOL FreeDib(HANDLE hDib)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Creates a 32-bit DIB of a 16-/32-bit DIB with premultiplied alpha
+// Creates a 32-bit DIB with pre-multiplied alpha from a translucent 16/32-bit DIB
 
 HBITMAP CreatePremultipliedBitmap(HANDLE hDib)
 {
@@ -1140,7 +1142,7 @@ HBITMAP CreatePremultipliedBitmap(HANDLE hDib)
 	GlobalUnlock(hDib);
 
 	if (!bHasVisiblePixels || !bHasTransparentPixels)
-	{
+	{ // The image is completely transparent or completely opaque
 		DeleteBitmap(hbmpDib);
 		return NULL;
 	}
