@@ -290,9 +290,10 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 	// 64 bytes down to 16 bytes. Omitted members are assumed to have a value
 	// of zero. However, we only support bitmaps with full header here.
 	if (dwDibHeaderSize == sizeof(BITMAPINFOHEADER2))
-	{ // OS/2 Version 2.0 Bit-map (extensions to BITMAPINFOHEADER)
+	{ // OS/2 Version 2.0 Bit-map
 		LPBITMAPINFOHEADER2 lpbih2 = (LPBITMAPINFOHEADER2)lpbi;
 
+		// Extensions to BITMAPINFOHEADER
 		OutputText(hwndCtl, TEXT("Units:\t\t"));
 		if (lpbih2->usUnits == BRU_METRIC)
 			OutputText(hwndCtl, TEXT("METRIC"));
@@ -362,28 +363,25 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 
 	if (dwDibHeaderSize == sizeof(BITMAPINFOHEADER))
 	{ // Windows Version 3.0 Bitmap with Windows NT extension
-		if (lpbih->bV5BitCount == 16 || lpbih->bV5BitCount == 32)
+		if (lpbih->bV5Compression == BI_BITFIELDS || lpbih->bV5Compression == BI_ALPHABITFIELDS)
 		{
-			if (lpbih->bV5Compression == BI_BITFIELDS || lpbih->bV5Compression == BI_ALPHABITFIELDS)
+			if ((dwDibHeaderSize + ColorMasksSize(lpbi)) > dwDibSize)
 			{
-				if ((dwDibHeaderSize + ColorMasksSize(lpbi)) > dwDibSize)
-				{
-					GlobalUnlock(hDib);
-					GlobalFree(hDib);
-					return FALSE;
-				}
-
-				LPDWORD lpdwMasks = (LPDWORD)(lpbi + sizeof(BITMAPINFOHEADER));
-
-				OutputText(hwndCtl, g_szSep1);
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("RedMask:\t%08X\r\n"), lpdwMasks[0]);
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("GreenMask:\t%08X\r\n"), lpdwMasks[1]);
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("BlueMask:\t%08X\r\n"), lpdwMasks[2]);
-
-				// Windows CE extension
-				if (lpbih->bV5Compression == BI_ALPHABITFIELDS)
-					OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("AlphaMask:\t%08X\r\n"), lpdwMasks[3]);
+				GlobalUnlock(hDib);
+				GlobalFree(hDib);
+				return FALSE;
 			}
+
+			LPDWORD lpdwMasks = (LPDWORD)(lpbi + sizeof(BITMAPINFOHEADER));
+
+			OutputText(hwndCtl, g_szSep1);
+			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("RedMask:\t%08X\r\n"), lpdwMasks[0]);
+			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("GreenMask:\t%08X\r\n"), lpdwMasks[1]);
+			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("BlueMask:\t%08X\r\n"), lpdwMasks[2]);
+
+			// Windows CE extension
+			if (lpbih->bV5Compression == BI_ALPHABITFIELDS)
+				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("AlphaMask:\t%08X\r\n"), lpdwMasks[3]);
 		}
 	}
 

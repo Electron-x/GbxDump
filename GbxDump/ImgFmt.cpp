@@ -1591,9 +1591,7 @@ UINT DibNumColors(LPCSTR lpbi)
 
 UINT ColorMasksSize(LPCSTR lpbi)
 {
-	if (lpbi == NULL || !IS_WIN30_DIB(lpbi) ||
-		(((LPBITMAPINFOHEADER)lpbi)->biBitCount != 16 &&
-		((LPBITMAPINFOHEADER)lpbi)->biBitCount != 32))
+	if (lpbi == NULL || !IS_WIN30_DIB(lpbi))
 		return 0;
 
 	if (((LPBITMAPINFOHEADER)lpbi)->biCompression == BI_BITFIELDS)
