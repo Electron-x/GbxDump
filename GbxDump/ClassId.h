@@ -138,4 +138,7 @@
 #define CLSID_BLOCKITEM_MP       0x2E025000
 #define CLSID_BLOCKMODEL_MP      0x2E028000
 
+// Meta (0x2F)
+#define CLSID_PAINTERLAYER       0x2F08D000
+
 ////////////////////////////////////////////////////////////////////////////////////////////////
