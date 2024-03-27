@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// DumpBmp.h - Copyright (c) 2023 by Electron.
+// DumpBmp.h - Copyright (c) 2023, 2024 by Electron.
 //
 // Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -16,21 +16,21 @@
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
+// Parses a Windows Bitmap file and displays its metadata
 BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Constants and structures
 
 #pragma pack(push,1)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define BI_BGRA             5L          // Windows NT 5 only
-#define BI_ALPHABITFIELDS   6L          // Windows CE 3.0+
+#define BI_BGRA             5L          // Windows NT 5 Beta only
+#define BI_ALPHABITFIELDS   6L          // Unlike documented, this value is valid under Windows CE 3.0+
 #define BI_FOURCC           7L          // Windows Mobile 5.0+, Windows CE 6.0+
-#define BI_CMYK             10L         // GDI internal
-#define BI_CMYKRLE8         11L         // GDI internal
-#define BI_CMYKRLE4         12L         // GDI internal
+#define BI_CMYK             10L         // GDI internal. The value in [MS-WMF] appears to be incorrect.
+#define BI_CMYKRLE8         11L         // GDI internal. The value in [MS-WMF] appears to be incorrect.
+#define BI_CMYKRLE4         12L         // GDI internal. The value in [MS-WMF] appears to be incorrect.
 
 #define BI_SRCPREROTATE     0x8000      // Windows Mobile 5.0+, Windows CE 6.0+
 
@@ -191,7 +191,7 @@ typedef struct _PROFILEHEADER
 } PROFILEHEADER, FAR* LPPROFILEHEADER, *PPROFILEHEADER;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// System palette color names
+// Names of the 20 static system palette colors
 
 struct ColorName
 {

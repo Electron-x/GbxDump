@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Dedimania.cpp - Copyright (c) 2010-2023 by Electron.
+// Dedimania.cpp - Copyright (c) 2010-2024 by Electron.
 //
 // Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -24,13 +24,15 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Forward declarations of functions included in this code module
-//
-BOOL PrintDedimaniaData(HWND hwndCtl, LPCSTR lpszUid, BOOL bIsManiaPlanet, LPBOOL lpbTrackFound);
+
+// Request, parse and output data from Dedimania
+BOOL RequestAndOutputDediData(HWND hwndCtl, LPCSTR lpszUid, BOOL bIsManiaPlanet, LPBOOL lpbTrackFound);
+// Converts a UTF-8 string to Unicode and removes the Nadeo formatting characters
 BOOL ConvertDediString(LPVOID lpData, SIZE_T cbLenData, LPTSTR lpszOutput, SIZE_T cchLenOutput);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // String Constants
-//
+
 const char g_szTm1Envis[] = "Stadium,Coast,Bay,Island,Desert,Rally,Snow,Alpine,Speed";
 
 const TCHAR g_szDedimania[] = TEXT("Dedimania Records System:\r\n");
@@ -38,10 +40,9 @@ const TCHAR g_szUrlDedi[]   = TEXT("%s://dedimania.net:%u/%s?uid=%hs");
 const TCHAR g_szErrOom[]    = TEXT("Out of memory.\r\n");
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
+
 // strtok replacement that also supports empty tokens
-// Source: http://codepad.org/JO8LWGdW
-//
-char *estrtok(char *str, const char *delim)
+static char *estrtok(char *str, const char *delim)
 {
 	static char *last = NULL;
 	char *ret;
@@ -76,7 +77,7 @@ char *estrtok(char *str, const char *delim)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL GetDedimaniaData(HWND hwndCtl, LPCSTR lpszUid, LPCSTR lpszEnvi)
+BOOL DumpDedimania(HWND hwndCtl, LPCSTR lpszUid, LPCSTR lpszEnvi)
 {
 	if (hwndCtl == NULL || lpszUid == NULL || lpszEnvi == NULL)
 		return FALSE;
@@ -96,9 +97,9 @@ BOOL GetDedimaniaData(HWND hwndCtl, LPCSTR lpszUid, LPCSTR lpszEnvi)
 		bIsManiaPlanet = FALSE;
 
 	// Retrieve and display the data
-	BOOL bSuccess = PrintDedimaniaData(hwndCtl, lpszUid, bIsManiaPlanet, &bTrackFound);
+	BOOL bSuccess = RequestAndOutputDediData(hwndCtl, lpszUid, bIsManiaPlanet, &bTrackFound);
 	if (bSuccess && !bTrackFound && bIsTwice)
-		bSuccess = PrintDedimaniaData(hwndCtl, lpszUid, !bIsManiaPlanet, &bTrackFound);
+		bSuccess = RequestAndOutputDediData(hwndCtl, lpszUid, !bIsManiaPlanet, &bTrackFound);
 
 	if (bSuccess && !bTrackFound)
 	{ // Track not found
@@ -113,7 +114,7 @@ BOOL GetDedimaniaData(HWND hwndCtl, LPCSTR lpszUid, LPCSTR lpszEnvi)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL PrintDedimaniaData(HWND hwndCtl, LPCSTR lpszUid, BOOL bIsManiaPlanet, LPBOOL lpbTrackFound)
+BOOL RequestAndOutputDediData(HWND hwndCtl, LPCSTR lpszUid, BOOL bIsManiaPlanet, LPBOOL lpbTrackFound)
 {
 	if (hwndCtl == NULL || lpszUid == NULL || lpbTrackFound == NULL)
 		return FALSE;

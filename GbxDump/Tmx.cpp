@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Tmx.cpp - Copyright (c) 2010-2023 by Electron.
+// Tmx.cpp - Copyright (c) 2010-2024 by Electron.
 //
 // Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -15,14 +15,14 @@
 // limitations under the Licence.
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////
-//
+
 #include "stdafx.h"
 #include "internet.h"
 #include "tmx.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Constants
-//
+
 #define GAME_TMNF   1
 #define GAME_TMU    2
 #define GAME_TMN    3
@@ -38,7 +38,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Data Types
-//
+
 typedef enum XmlArrayType
 {
 	XmlArrayType_None = 0,
@@ -51,17 +51,24 @@ typedef enum XmlArrayType
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Forward declarations of functions included in this code module
-//
+
+// Retrieves and prints TMX information for a specific map
 BOOL ProcessTmx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound);
+// Retrieves and prints MX information for a specific map
 BOOL ProcessMx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound);
+// Request, parse and output data from Mania Exchange
 BOOL RequestMxData(HWND hwndCtl, LPCTSTR lpszMxUrl, PINT pnTrackId = NULL);
-HRESULT ParseAndPrintXml(HWND hwndCtl, HGLOBAL hXml, PINT pnTrackId = NULL);
+// Parse XML using Microsoft XmlLite.
+// Supports the array types TrackInfo, TrackObject, Replay and Item.
+HRESULT ParseAndOutputXml(HWND hwndCtl, HGLOBAL hXml, PINT pnTrackId = NULL);
+// Converts a time value into a formatted string (tchar.h version)
 BOOL FormatTimeT(int nTime, TCHAR* pszTime, SIZE_T cchStringLen);
+// Converts a time value into a formatted string (wide-character version for XmlLite)
 BOOL FormatTimeW(int nTime, WCHAR* pwszTime, SIZE_T cchStringLen);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // String Constants
-//
+
 const TCHAR g_szTmx[]         = TEXT("Track-/Mania Exchange:\r\n");
 const TCHAR g_szHttp[]        = TEXT("http");
 const TCHAR g_szHttps[]       = TEXT("https");
@@ -88,7 +95,7 @@ const TCHAR g_szErrOom[]      = TEXT("Out of memory.\r\n");
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL GetTmxData(HWND hwndCtl, LPCSTR lpszUid, LPCSTR lpszEnvi)
+BOOL DumpTmx(HWND hwndCtl, LPCSTR lpszUid, LPCSTR lpszEnvi)
 {
 	if (hwndCtl == NULL || lpszUid == NULL || lpszEnvi == NULL)
 		return FALSE;
@@ -100,7 +107,7 @@ BOOL GetTmxData(HWND hwndCtl, LPCSTR lpszUid, LPCSTR lpszEnvi)
 	BOOL bSuccess = TRUE;
 	BOOL bTrackFound = FALSE;
 
-	// Specify the T/MX subdomain according to the environment
+	// Selection of API endpoints based on the environment
 	if ((strcmp(lpszEnvi, "Canyon") == 0) || (strcmp(lpszEnvi, "Valley") == 0) ||
 		(strcmp(lpszEnvi, "Lagoon") == 0) || (strcmp(lpszEnvi, "Arena") == 0))
 		bSuccess = ProcessMx(hwndCtl, lpszUid, GAME_TM2, &bTrackFound);
@@ -495,7 +502,6 @@ BOOL ProcessMx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Request, parse and output data from Mania Exchange
 
 BOOL RequestMxData(HWND hwndCtl, LPCTSTR lpszMxUrl, PINT pnTrackId)
 {
@@ -543,7 +549,7 @@ BOOL RequestMxData(HWND hwndCtl, LPCTSTR lpszMxUrl, PINT pnTrackId)
 	OutputText(hwndCtl, g_szSep1);
 
 	HRESULT hr = S_FALSE;
-	if (FAILED(hr = ParseAndPrintXml(hwndCtl, hXml, pnTrackId)))
+	if (FAILED(hr = ParseAndOutputXml(hwndCtl, hXml, pnTrackId)))
 	{
 		GlobalFree(hXml);
 		return FALSE;
@@ -554,10 +560,8 @@ BOOL RequestMxData(HWND hwndCtl, LPCTSTR lpszMxUrl, PINT pnTrackId)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Parse XML using Microsoft XmlLite.
-// Supports the array types TrackInfo, TrackObject, Replay and Item.
 
-HRESULT ParseAndPrintXml(HWND hwndCtl, HGLOBAL hXml, PINT pnTrackId)
+HRESULT ParseAndOutputXml(HWND hwndCtl, HGLOBAL hXml, PINT pnTrackId)
 {
 	if (hwndCtl == NULL || hXml == NULL)
 		return E_INVALIDARG;
@@ -606,106 +610,106 @@ HRESULT ParseAndPrintXml(HWND hwndCtl, HGLOBAL hXml, PINT pnTrackId)
 	{
 		switch (nodeType)
 		{
-		case XmlNodeType_Element:
-			if (FAILED(hr = pReader->GetLocalName(&pwszElement, NULL)))
-				goto CleanUp;
-			if (pwszElement == NULL)
-				break;
-
-			if (_wcsicmp(pwszElement, L"TrackInfo") == 0)
-				arrayType = XmlArrayType_TrackInfo;
-			else if (_wcsicmp(pwszElement, L"TrackObject") == 0)
-				arrayType = XmlArrayType_TrackObject;
-			else if (_wcsicmp(pwszElement, L"Replay") == 0)
-				arrayType = XmlArrayType_Replay;
-			else if (_wcsicmp(pwszElement, L"Item") == 0)
-				arrayType = XmlArrayType_Item;
-
-			if (arrayType != XmlArrayType_None)
-				MyStrNCpyW(wszElement, pwszElement, _countof(wszElement));
-
-			break;
-
-		case XmlNodeType_Text:
-			if (FAILED(hr = pReader->GetValue(&pwszValue, NULL)))
-				goto CleanUp;
-			if (pwszValue == NULL)
-				break;
-
-			if (arrayType == XmlArrayType_TrackInfo)
-			{
-				if (_wcsicmp(wszElement, L"Comments") == 0)
+			case XmlNodeType_Element:
+				if (FAILED(hr = pReader->GetLocalName(&pwszElement, NULL)))
+					goto CleanUp;
+				if (pwszElement == NULL)
 					break;
 
-				if (pnTrackId != NULL &&
-					(_wcsicmp(wszElement, L"TrackID") == 0 || _wcsicmp(wszElement, L"MapID") == 0))
-					*pnTrackId = _wtoi(pwszValue);
+				if (_wcsicmp(pwszElement, L"TrackInfo") == 0)
+					arrayType = XmlArrayType_TrackInfo;
+				else if (_wcsicmp(pwszElement, L"TrackObject") == 0)
+					arrayType = XmlArrayType_TrackObject;
+				else if (_wcsicmp(pwszElement, L"Replay") == 0)
+					arrayType = XmlArrayType_Replay;
+				else if (_wcsicmp(pwszElement, L"Item") == 0)
+					arrayType = XmlArrayType_Item;
 
-				wcsncat(wszElement, L":", _countof(wszElement) - wcslen(wszElement) - 1);
-				OutputTextFmt(hwndCtl, wszOutput, _countof(wszOutput), L"%-23s %s\r\n", wszElement, pwszValue);
-			}
-			else if (arrayType == XmlArrayType_TrackObject)
-			{
-				if (_wcsicmp(wszElement, L"ObjectPath") == 0)
-					MyStrNCpyW(wszObjectPath, pwszValue, _countof(wszObjectPath));
-				if (_wcsicmp(wszElement, L"ObjectAuthor") == 0)
-				{
-					wszUsername[0] = L'\0';	// Username element can be empty or missing
-					MyStrNCpyW(wszObjectAuthor, pwszValue, _countof(wszObjectAuthor));
-				}
-				if (_wcsicmp(wszElement, L"Username") == 0)
-					MyStrNCpyW(wszUsername, pwszValue, _countof(wszUsername));
-			}
-			else if (arrayType == XmlArrayType_Replay)
-			{
-				if (_wcsicmp(wszElement, L"Username") == 0)
-					MyStrNCpyW(wszUsername, pwszValue, _countof(wszUsername));
-				if (_wcsicmp(wszElement, L"ReplayTime") == 0)
-					nReplayTime = _wtoi(pwszValue);
-				if (_wcsicmp(wszElement, L"StuntScore") == 0)
-					MyStrNCpyW(wszStuntScore, pwszValue, _countof(wszStuntScore));
-				if (_wcsicmp(wszElement, L"Position") == 0)
-					nReplayPos = _wtoi(pwszValue);
-			}
-			else if (arrayType == XmlArrayType_Item)
-			{
-				wcsncat(wszElement, L":", _countof(wszElement) - wcslen(wszElement) - 1);
-				OutputTextFmt(hwndCtl, wszOutput, _countof(wszOutput), L"%-15s %s\r\n", wszElement, pwszValue);
-			}
+				if (arrayType != XmlArrayType_None)
+					MyStrNCpyW(wszElement, pwszElement, _countof(wszElement));
 
-			break;
-
-		case XmlNodeType_EndElement:
-			if (FAILED(hr = pReader->GetLocalName(&pwszElement, NULL)))
-				goto CleanUp;
-			if (pwszElement == NULL)
 				break;
 
-			if (_wcsicmp(pwszElement, L"TrackInfo") == 0)
-				arrayType = XmlArrayType_None;
-			else if (_wcsicmp(pwszElement, L"TrackObject") == 0)
-			{
-				OutputTextFmt(hwndCtl, wszOutput, _countof(wszOutput), L"%02d. %s (%s",
-					++nObjectNumber, wszObjectPath, wszObjectAuthor);
-				if (wcsncmp(wszUsername, wszObjectAuthor, wcslen(wszUsername)) != 0)
-					OutputTextFmt(hwndCtl, wszOutput, _countof(wszOutput), L"/%s", wszUsername);
-				OutputText(hwndCtl, L")\r\n");
-				arrayType = XmlArrayType_None;
-			}
-			else if (_wcsicmp(pwszElement, L"Replay") == 0)
-			{
-				FormatTimeW(nReplayTime, wszReplayTime, _countof(wszReplayTime));
-				OutputTextFmt(hwndCtl, wszOutput, _countof(wszOutput), L"%02d. %s (%s)",
-					nReplayPos, wszUsername, wszReplayTime);
-				if (wcsncmp(wszStuntScore, L"0", wcslen(wszStuntScore)) != 0)
-					OutputTextFmt(hwndCtl, wszOutput, _countof(wszOutput), L" %s pt.", wszStuntScore);
-				OutputText(hwndCtl, L"\r\n");
-				arrayType = XmlArrayType_None;
-			}
-			else if (_wcsicmp(pwszElement, L"Item") == 0)
-				arrayType = XmlArrayType_None;
+			case XmlNodeType_Text:
+				if (FAILED(hr = pReader->GetValue(&pwszValue, NULL)))
+					goto CleanUp;
+				if (pwszValue == NULL)
+					break;
 
-			break;
+				if (arrayType == XmlArrayType_TrackInfo)
+				{
+					if (_wcsicmp(wszElement, L"Comments") == 0)
+						break;
+
+					if (pnTrackId != NULL &&
+						(_wcsicmp(wszElement, L"TrackID") == 0 || _wcsicmp(wszElement, L"MapID") == 0))
+						*pnTrackId = _wtoi(pwszValue);
+
+					wcsncat(wszElement, L":", _countof(wszElement) - wcslen(wszElement) - 1);
+					OutputTextFmt(hwndCtl, wszOutput, _countof(wszOutput), L"%-23s %s\r\n", wszElement, pwszValue);
+				}
+				else if (arrayType == XmlArrayType_TrackObject)
+				{
+					if (_wcsicmp(wszElement, L"ObjectPath") == 0)
+						MyStrNCpyW(wszObjectPath, pwszValue, _countof(wszObjectPath));
+					if (_wcsicmp(wszElement, L"ObjectAuthor") == 0)
+					{
+						wszUsername[0] = L'\0';	// Username element can be empty or missing
+						MyStrNCpyW(wszObjectAuthor, pwszValue, _countof(wszObjectAuthor));
+					}
+					if (_wcsicmp(wszElement, L"Username") == 0)
+						MyStrNCpyW(wszUsername, pwszValue, _countof(wszUsername));
+				}
+				else if (arrayType == XmlArrayType_Replay)
+				{
+					if (_wcsicmp(wszElement, L"Username") == 0)
+						MyStrNCpyW(wszUsername, pwszValue, _countof(wszUsername));
+					if (_wcsicmp(wszElement, L"ReplayTime") == 0)
+						nReplayTime = _wtoi(pwszValue);
+					if (_wcsicmp(wszElement, L"StuntScore") == 0)
+						MyStrNCpyW(wszStuntScore, pwszValue, _countof(wszStuntScore));
+					if (_wcsicmp(wszElement, L"Position") == 0)
+						nReplayPos = _wtoi(pwszValue);
+				}
+				else if (arrayType == XmlArrayType_Item)
+				{
+					wcsncat(wszElement, L":", _countof(wszElement) - wcslen(wszElement) - 1);
+					OutputTextFmt(hwndCtl, wszOutput, _countof(wszOutput), L"%-15s %s\r\n", wszElement, pwszValue);
+				}
+
+				break;
+
+			case XmlNodeType_EndElement:
+				if (FAILED(hr = pReader->GetLocalName(&pwszElement, NULL)))
+					goto CleanUp;
+				if (pwszElement == NULL)
+					break;
+
+				if (_wcsicmp(pwszElement, L"TrackInfo") == 0)
+					arrayType = XmlArrayType_None;
+				else if (_wcsicmp(pwszElement, L"TrackObject") == 0)
+				{
+					OutputTextFmt(hwndCtl, wszOutput, _countof(wszOutput), L"%02d. %s (%s",
+						++nObjectNumber, wszObjectPath, wszObjectAuthor);
+					if (wcsncmp(wszUsername, wszObjectAuthor, wcslen(wszUsername)) != 0)
+						OutputTextFmt(hwndCtl, wszOutput, _countof(wszOutput), L"/%s", wszUsername);
+					OutputText(hwndCtl, L")\r\n");
+					arrayType = XmlArrayType_None;
+				}
+				else if (_wcsicmp(pwszElement, L"Replay") == 0)
+				{
+					FormatTimeW(nReplayTime, wszReplayTime, _countof(wszReplayTime));
+					OutputTextFmt(hwndCtl, wszOutput, _countof(wszOutput), L"%02d. %s (%s)",
+						nReplayPos, wszUsername, wszReplayTime);
+					if (wcsncmp(wszStuntScore, L"0", wcslen(wszStuntScore)) != 0)
+						OutputTextFmt(hwndCtl, wszOutput, _countof(wszOutput), L" %s pt.", wszStuntScore);
+					OutputText(hwndCtl, L"\r\n");
+					arrayType = XmlArrayType_None;
+				}
+				else if (_wcsicmp(pwszElement, L"Item") == 0)
+					arrayType = XmlArrayType_None;
+
+				break;
 		}
 	}
 
@@ -725,7 +729,6 @@ CleanUp:
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Converts a time value into a formatted string (tchar.h version)
 
 static BOOL FormatTimeT(int nTime, TCHAR* pszTime, SIZE_T cchStringLen)
 {
@@ -761,7 +764,6 @@ static BOOL FormatTimeT(int nTime, TCHAR* pszTime, SIZE_T cchStringLen)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Converts a time value into a formatted string (wide-character version for XmlLite)
 
 static BOOL FormatTimeW(int nTime, WCHAR* pwszTime, SIZE_T cchStringLen)
 {

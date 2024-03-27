@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Internet.cpp - Copyright (c) 2010-2023 by Electron.
+// Internet.cpp - Copyright (c) 2010-2024 by Electron.
 //
 // Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -23,12 +23,13 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Forward declarations of functions included in this code module
-//
+
+// Determines whether the system is globally offline
 BOOL IsGlobalOffline(HINTERNET hInternet = NULL);
+// Retrieves error messages from the WinINet module
 void LastInternetError(HWND hwndCtl, DWORD dwError);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Retrieves data from an Internet address
 
 BOOL ReadInternetFile(HWND hwndCtl, LPCTSTR lpszUrl, LPSTR lpszData, DWORD dwSize)
 {
@@ -101,11 +102,9 @@ BOOL ReadInternetFile(HWND hwndCtl, LPCTSTR lpszUrl, LPSTR lpszData, DWORD dwSiz
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Determines whether the system is globally offline.
-// Note: NULL is a valid value for HINTERNET.
 
 BOOL IsGlobalOffline(HINTERNET hInternet)
-{
+{ // NULL is a valid value for HINTERNET
 	BOOL bRet = FALSE;
 	INTERNET_CONNECTED_INFO ici = {0};
 	DWORD dwBufferLength = sizeof(INTERNET_CONNECTED_INFO);
@@ -118,7 +117,6 @@ BOOL IsGlobalOffline(HINTERNET hInternet)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Retrieves error messages from the WinINet module
 
 void LastInternetError(HWND hwndCtl, DWORD dwError)
 {

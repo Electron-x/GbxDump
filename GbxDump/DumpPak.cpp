@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// DumpPak.cpp - Copyright (c) 2010-2023 by Electron.
+// DumpPak.cpp - Copyright (c) 2010-2024 by Electron.
 //
 // Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -27,7 +27,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Data Types
-//
+
 typedef struct SHeaderFlagsUncrypt
 {
 	UINT IsHeaderPrivate		: 1;
@@ -54,7 +54,7 @@ typedef struct SFileDescFlags
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Forward declarations of functions included in this code module
-//
+
 BOOL DumpChecksum(HWND hwndCtl, HANDLE hFile, SIZE_T cbLen);
 BOOL DumpAuthorInfo(HWND hwndCtl, HANDLE hFile);
 BOOL DumpIncludedPacksHeaders(HWND hwndCtl, HANDLE hFile, DWORD dwVersion);
@@ -62,7 +62,7 @@ BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderM
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // String Constants
-//
+
 const TCHAR g_chNil        = TEXT('\0');
 const TCHAR g_szAsterisk[] = TEXT("*");
 const TCHAR g_szCRLF[]     = TEXT("\r\n");
@@ -495,14 +495,9 @@ BOOL DumpAuthorInfo(HWND hwndCtl, HANDLE hFile)
 	if (!ReadNat32(hFile, &dwAuthorVer))
 		return FALSE;
 
-#ifndef _DEBUG
-	if (dwAuthorVer > 0)
-#endif
-	{ // Display only if changed
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Author Version:\t%d"), dwAuthorVer);
-		if (dwAuthorVer > 0) OutputText(hwndCtl, g_szAsterisk);
-		OutputText(hwndCtl, g_szCRLF);
-	}
+	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Author Version:\t%d"), dwAuthorVer);
+	if (dwAuthorVer > 0) OutputText(hwndCtl, g_szAsterisk);
+	OutputText(hwndCtl, g_szCRLF);
 
 	// Login
 	if ((nRet = ReadString(hFile, szRead, _countof(szRead))) < 0)

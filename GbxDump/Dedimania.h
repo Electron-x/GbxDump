@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Dedimania.h - Copyright (c) 2010-2019 by Electron.
+// Dedimania.h - Copyright (c) 2010-2024 by Electron.
 //
 // Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -16,6 +16,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL GetDedimaniaData(HWND hwndCtl, LPCSTR lpszUid, LPCSTR lpszEnvi);
+// Retrieves and prints Dedimania information for a specific map
+BOOL DumpDedimania(HWND hwndCtl, LPCSTR lpszUid, LPCSTR lpszEnvi);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////

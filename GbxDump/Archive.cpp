@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Archive.cpp - Copyright (c) 2010-2023 by Electron.
+// Archive.cpp - Copyright (c) 2010-2024 by Electron.
 //
 // Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -25,11 +25,11 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Forward declarations of functions included in this code module
-//
+
+// Gets the name of a collection ID. Returns the length of this name.
 SIZE_T GetCollectionString(DWORD dwId, LPSTR lpszCollection, SIZE_T cchStringLen);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Reads data from a file and checks whether the desired number of bytes has been read
 
 BOOL ReadData(HANDLE hFile, LPVOID lpBuffer, SIZE_T cbSize)
 {
@@ -44,10 +44,8 @@ BOOL ReadData(HANDLE hFile, LPVOID lpBuffer, SIZE_T cbSize)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Reads a line of text from a file and returns it without the terminating newline characters.
-// Note: A input line ends with a CR LF combination. A single LF is part of a string.
 
-BOOL ReadLine(HANDLE hFile, LPSTR lpszString, SIZE_T cchStringLen)
+BOOL ReadLine(HANDLE hFile, PSTR pszString, SIZE_T cchStringLen)
 {
 	if (hFile == NULL)
 		return FALSE;
@@ -69,21 +67,20 @@ BOOL ReadLine(HANDLE hFile, LPSTR lpszString, SIZE_T cchStringLen)
 			if (ch != 0xA)	// LF
 				return FALSE;
 
-			if (lpszString != NULL && uPos < cchStringLen)
-				lpszString[uPos] = '\0';
+			if (pszString != NULL && uPos < cchStringLen)
+				pszString[uPos] = '\0';
 
 			return TRUE;
 		}
 
-		if (lpszString != NULL && uPos < cchStringLen)
-			lpszString[uPos++] = ch;
+		if (pszString != NULL && uPos < cchStringLen)
+			pszString[uPos++] = ch;
 	}
 
 	return FALSE;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Reads a boolean 32-bit number
 
 BOOL ReadBool(HANDLE hFile, LPBOOL lpbBool, BOOL bIsText)
 {
@@ -103,7 +100,6 @@ BOOL ReadBool(HANDLE hFile, LPBOOL lpbBool, BOOL bIsText)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Reads a 32 bit hexadecimal number
 
 BOOL ReadMask(HANDLE hFile, LPDWORD lpdwMask, BOOL bIsText)
 {
@@ -125,7 +121,6 @@ BOOL ReadMask(HANDLE hFile, LPDWORD lpdwMask, BOOL bIsText)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Reads a natural 8 bit number
 
 BOOL ReadNat8(HANDLE hFile, LPBYTE lpcNat8, BOOL bIsText)
 {
@@ -150,7 +145,6 @@ BOOL ReadNat8(HANDLE hFile, LPBYTE lpcNat8, BOOL bIsText)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Reads a natural 16 bit number
 
 BOOL ReadNat16(HANDLE hFile, LPWORD lpwNat16, BOOL bIsText)
 {
@@ -172,7 +166,6 @@ BOOL ReadNat16(HANDLE hFile, LPWORD lpwNat16, BOOL bIsText)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Reads a natural 32 bit number
 
 BOOL ReadNat32(HANDLE hFile, LPDWORD lpdwNat32, BOOL bIsText)
 {
@@ -194,7 +187,6 @@ BOOL ReadNat32(HANDLE hFile, LPDWORD lpdwNat32, BOOL bIsText)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Reads a natural 64 bit number
 
 BOOL ReadNat64(HANDLE hFile, PULARGE_INTEGER pullNat64, BOOL bIsText)
 {
@@ -216,7 +208,6 @@ BOOL ReadNat64(HANDLE hFile, PULARGE_INTEGER pullNat64, BOOL bIsText)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Reads a 128 bit data structure
 
 BOOL ReadNat128(HANDLE hFile, LPVOID lpdwNat128, BOOL bIsText)
 {
@@ -226,7 +217,6 @@ BOOL ReadNat128(HANDLE hFile, LPVOID lpdwNat128, BOOL bIsText)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Reads a 256 bit data structure
 
 BOOL ReadNat256(HANDLE hFile, LPVOID lpdwNat256, BOOL bIsText)
 {
@@ -236,7 +226,6 @@ BOOL ReadNat256(HANDLE hFile, LPVOID lpdwNat256, BOOL bIsText)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Reads a 32 bit integer
 
 BOOL ReadInteger(HANDLE hFile, LPINT lpnInteger, BOOL bIsText)
 {
@@ -258,7 +247,6 @@ BOOL ReadInteger(HANDLE hFile, LPINT lpnInteger, BOOL bIsText)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Reads a 32 bit real number
 
 BOOL ReadReal(HANDLE hFile, PFLOAT pfReal, BOOL bIsText)
 {
@@ -281,8 +269,6 @@ BOOL ReadReal(HANDLE hFile, PFLOAT pfReal, BOOL bIsText)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Reads a Nadeo string from a file and copies it to the passed variable.
-// Returns the number of characters read or -1 in case of a read error.
 
 SSIZE_T ReadString(HANDLE hFile, PSTR pszString, SIZE_T cchStringLen, BOOL bIsText)
 {
@@ -332,23 +318,20 @@ SSIZE_T ReadString(HANDLE hFile, PSTR pszString, SIZE_T cchStringLen, BOOL bIsTe
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Reads an identifier from a file and adds the corresponding string to the given list.
-// Returns the number of characters read or -1 in case of a read error.
-// Supports version 2 and 3 identifiers.
 
-SSIZE_T ReadIdentifier(HANDLE hFile, PIDENTIFIER pIdList, PSTR pszString, SIZE_T cchStringLen, PDWORD pdwId)
+SSIZE_T ReadIdentifier(HANDLE hFile, PIDENTIFIER pIdTable, PSTR pszString, SIZE_T cchStringLen, PDWORD pdwId)
 {
-	if (hFile == NULL || pIdList == NULL || pszString == NULL || cchStringLen == 0)
+	if (hFile == NULL || pIdTable == NULL || pszString == NULL || cchStringLen == 0)
 		return -1;
 
-	if (pIdList->dwVersion < 3)
+	if (pIdTable->dwVersion < 3)
 	{
 		// Identifier version
-		if (!ReadNat32(hFile, &pIdList->dwVersion))
+		if (!ReadNat32(hFile, &pIdTable->dwVersion))
 			return -1;
 
 		// Check identifier version
-		if (pIdList->dwVersion < 2)
+		if (pIdTable->dwVersion < 2)
 			return -1;
 	}
 
@@ -371,7 +354,7 @@ SSIZE_T ReadIdentifier(HANDLE hFile, PIDENTIFIER pIdList, PSTR pszString, SIZE_T
 		return GetCollectionString(dwId, pszString, cchStringLen);
 
 	// In version 2, the identifier is always available as a string
-	if (pIdList->dwVersion == 2)
+	if (pIdTable->dwVersion == 2)
 		return ReadString(hFile, pszString, cchStringLen);
 
 	// Is the identifier available as a string?
@@ -380,11 +363,11 @@ SSIZE_T ReadIdentifier(HANDLE hFile, PIDENTIFIER pIdList, PSTR pszString, SIZE_T
 		// Read the string
 		SSIZE_T CONST cchLen = ReadString(hFile, pszString, cchStringLen);
 
-		// Copy the string to the ID list and increment the index
-		if (cchLen > 0 && pIdList->dwIndex < ID_DIM)
+		// Copy the string to the ID name table and increment the index
+		if (cchLen > 0 && pIdTable->dwIndex < ID_DIM)
 		{
-			MyStrNCpyA(pIdList->aszList[pIdList->dwIndex], pszString, _countof(pIdList->aszList[pIdList->dwIndex]));
-			pIdList->dwIndex++;
+			MyStrNCpyA(pIdTable->aszName[pIdTable->dwIndex], pszString, _countof(pIdTable->aszName[pIdTable->dwIndex]));
+			pIdTable->dwIndex++;
 		}
 
 		return cchLen;
@@ -398,14 +381,13 @@ SSIZE_T ReadIdentifier(HANDLE hFile, PIDENTIFIER pIdList, PSTR pszString, SIZE_T
 		return 0;
 	}
 
-	// Get the string from the ID list
-	MyStrNCpyA(pszString, pIdList->aszList[dwIndex-1], (int)cchStringLen);
+	// Get the string from the ID name table
+	MyStrNCpyA(pszString, pIdTable->aszName[dwIndex-1], (int)cchStringLen);
 
 	return strlen(pszString);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Determines the corresponding name for a collection ID
 
 SIZE_T GetCollectionString(DWORD dwId, LPSTR lpszCollection, SIZE_T cchStringLen)
 {

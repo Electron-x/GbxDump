@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// GbxDump.h - Copyright (c) 2010-2023 by Electron.
+// GbxDump.h - Copyright (c) 2010-2024 by Electron.
 //
 // Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -22,11 +22,15 @@
 
 #define WMU_FILEOPEN WM_APP + 42
 
+// Maximum path length for the Open or Save As dialog box
 #define MY_OFN_MAX_PATH 2048
 
+// Maximum text length for a line in an edit control
 #define OUTPUT_LEN  1024
 
+// Maximum character length of a map UID
 #define UID_LENGTH  64
+// Maximum character length of an environment name
 #define ENVI_LENGTH 64
 
 #define RGB_DARKMODE_TEXTCOLOR  RGB(255, 255, 255)
@@ -64,7 +68,10 @@ extern BOOL g_bGerUI;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
+// Sets the title of the default thumbnail to "Unsupported format"
 void MarkAsUnsupported(HWND hDlg);
+
+// Replaces the current thumbnail with the given DIB
 void ReplaceThumbnail(HWND hDlg, HANDLE hDib);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////

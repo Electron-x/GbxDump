@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// ImgFmt.cpp - Copyright (c) 2010-2023 by Electron.
+// ImgFmt.cpp - Copyright (c) 2010-2024 by Electron.
 //
 // Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -34,11 +34,13 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Forward declarations of functions included in this code module
 
+// Incorporating rounding, Mul8Bit is an approximation of a * b / 255 for values in the
+// range [0...255]. For details, see the documentation of the DrvAlphaBlend function.
 int Mul8Bit(int a, int b);
+// Determines the value of a color component using a color mask
 BYTE GetColorValue(DWORD dwPixel, DWORD dwMask);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Displays the File Open or Save As dialog box
 
 BOOL GetFileName(HWND hDlg, LPTSTR lpszFileName, SIZE_T cchStringLen, LPDWORD lpdwFilterIndex, BOOL bSave)
 {
@@ -133,7 +135,6 @@ BOOL GetFileName(HWND hDlg, LPTSTR lpszFileName, SIZE_T cchStringLen, LPDWORD lp
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Saves a DIB as a Windows Bitmap file
 
 BOOL SaveBmpFile(LPCTSTR lpszFileName, HANDLE hDib)
 {
@@ -194,8 +195,6 @@ BOOL SaveBmpFile(LPCTSTR lpszFileName, HANDLE hDib)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Saves a DIB as a PNG file using miniz. Creates images with 8-bit grayscale, 24-bit color,
-// and 32-bit color with alpha channel only. Color tables or color spaces are not supported.
 
 BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDib)
 {
@@ -467,7 +466,9 @@ BOOL SavePngFile(LPCTSTR lpszFileName, HANDLE hDib)
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // JPEG decoder using the Independent JPEG Group's JPEG software
 
+////////////////////////////////////////////////////////////////////////////////////////////////
 // Data Types
+
 typedef struct jpeg_decompress_struct j_decompress;
 typedef struct jpeg_error_mgr         j_error_mgr;
 
@@ -481,19 +482,28 @@ typedef struct _JPEG_DECOMPRESS
 	LPBYTE          lpProfileData;  // Pointer to ICC profile data
 } JPEG_DECOMPRESS, *LPJPEG_DECOMPRESS;
 
-static jmp_buf JmpBuffer;  // Buffer for processor status
+// Buffer for processor status
+static jmp_buf JmpBuffer;
 
+////////////////////////////////////////////////////////////////////////////////////////////////
 // Helper functions
+
+// Performs housekeeping
 void cleanup_jpeg_to_dib(LPJPEG_DECOMPRESS lpJpegDecompress, HANDLE hDib);
+// Registers the callback functions for the error manager
 void set_error_manager(j_common_ptr pjInfo, j_error_mgr *pjError);
 
+////////////////////////////////////////////////////////////////////////////////////////////////
 // Callback functions
+
+// Error handling
 static void my_error_exit(j_common_ptr pjInfo);
+// Text output
 static void my_output_message(j_common_ptr pjInfo);
+// Message handling
 static void my_emit_message(j_common_ptr pjInfo, int nMessageLevel);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// JPEG decoder: Converts a JPEG image to a DIB
 
 HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData, BOOL bFlipImage, INT nTraceLevel)
 {
@@ -664,7 +674,6 @@ HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData, BOOL bFlipImage, INT nTrace
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// JPEG decoder: Performs housekeeping
 
 void cleanup_jpeg_to_dib(LPJPEG_DECOMPRESS lpJpegDecompress, HANDLE hDib)
 {
@@ -692,7 +701,6 @@ void cleanup_jpeg_to_dib(LPJPEG_DECOMPRESS lpJpegDecompress, HANDLE hDib)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// JPEG decoder: Registers the callback functions for the error manager
 
 void set_error_manager(j_common_ptr pjInfo, j_error_mgr *pjError)
 {
@@ -712,8 +720,7 @@ void set_error_manager(j_common_ptr pjInfo, j_error_mgr *pjError)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// JPEG decoder: Error handling
-// If an error occurs in LIBJPEG, my_error_exit is called. In this case, a
+// If an error occurs in libjpeg, my_error_exit is called. In this case, a
 // precise error message should be displayed on the screen. Then my_error_exit
 // deletes the JPEG object and returns to the JpegToDib function using throw.
 
@@ -730,8 +737,7 @@ void my_error_exit(j_common_ptr pjInfo)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// JPEG decoder: Text output
-// This callback function formats a message and displays it on the screen.
+// This callback function formats a message and displays it on the screen
 
 void my_output_message(j_common_ptr pjInfo)
 {
@@ -756,8 +762,7 @@ void my_output_message(j_common_ptr pjInfo)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// JPEG decoder: Message handling
-// This function handles all messages (trace, debug or error printouts) generated by LIBJPEG.
+// This function handles all messages (trace, debug or error printouts) generated by libjpeg.
 // my_emit_message determines whether the message is suppressed or displayed on the screen:
 //  -1: Warning
 //   0: Important message (e.g. error)
@@ -792,7 +797,6 @@ void my_emit_message(j_common_ptr pjInfo, int nMessageLevel)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Decodes a WebP image into a DIB using libwebpdecoder (no support for ICC profiles)
 
 HANDLE WebpToDib(LPVOID lpWebpData, DWORD dwLenData, BOOL bFlipImage, BOOL bShowFeatures)
 {
@@ -897,7 +901,6 @@ HANDLE WebpToDib(LPVOID lpWebpData, DWORD dwLenData, BOOL bFlipImage, BOOL bShow
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Decodes a DDS image into a DIB using crunch/crnlib
 
 HANDLE DdsToDib(LPVOID lpDdsData, DWORD dwLenData, BOOL bFlipImage, BOOL bShowTextureDesc)
 {
@@ -986,7 +989,6 @@ HANDLE DdsToDib(LPVOID lpDdsData, DWORD dwLenData, BOOL bFlipImage, BOOL bShowTe
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Frees the memory allocated for the DIB
 
 BOOL FreeDib(HANDLE hDib)
 {
@@ -999,7 +1001,6 @@ BOOL FreeDib(HANDLE hDib)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Creates a 32-bit DIB with pre-multiplied alpha from a translucent 16/32-bit DIB
 
 HBITMAP CreatePremultipliedBitmap(HANDLE hDib)
 {
@@ -1151,7 +1152,6 @@ HBITMAP CreatePremultipliedBitmap(HANDLE hDib)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Frees the memory allocated for the DIB section
 
 BOOL FreeBitmap(HBITMAP hbmpDib)
 {
@@ -1164,7 +1164,6 @@ BOOL FreeBitmap(HBITMAP hbmpDib)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Decompresses a video compressed DIB using Video Compression Manager
 
 HANDLE DecompressDib(HANDLE hDib)
 {
@@ -1186,7 +1185,6 @@ HANDLE DecompressDib(HANDLE hDib)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Converts any DIB to a compatible bitmap and then back to a DIB with the desired bit depth
 
 HANDLE ChangeDibBitDepth(HANDLE hDib, WORD wBitCount)
 {
@@ -1238,8 +1236,6 @@ HANDLE ChangeDibBitDepth(HANDLE hDib, WORD wBitCount)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Converts a compatible bitmap to a device-independent bitmap with the desired bit depth.
-// This function takes a DC instead of a logical palette (as support for ChangeDibBitDepth).
 
 HANDLE ConvertBitmapToDib(HBITMAP hBitmap, HDC hdc, WORD wBitCount)
 {
@@ -1305,9 +1301,6 @@ HANDLE ConvertBitmapToDib(HBITMAP hBitmap, HDC hdc, WORD wBitCount)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Creates a memory object from a given DIB, which can be placed on the clipboard.
-// Depending on the source DIB, a CF_DIB or CF_DIBV5 is created. The system can then
-// create the other formats itself. puFormat returns the format for SetClipboardData.
 
 HANDLE CreateClipboardDib(HANDLE hDib, UINT *puFormat)
 {
@@ -1489,7 +1482,6 @@ HANDLE CreateClipboardDib(HANDLE hDib, UINT *puFormat)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Creates a halftone palette or a logical color palette from a given DIB
 
 HPALETTE CreateDibPalette(HANDLE hDib)
 {
@@ -1559,7 +1551,6 @@ CreateHalftonePal:
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Calculates the number of colors in the DIBs color table
 
 UINT DibNumColors(LPCSTR lpbi)
 {
@@ -1587,7 +1578,6 @@ UINT DibNumColors(LPCSTR lpbi)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Gets the size of the optional color masks of a DIBv3
 
 UINT ColorMasksSize(LPCSTR lpbi)
 {
@@ -1603,7 +1593,6 @@ UINT ColorMasksSize(LPCSTR lpbi)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Gets the size required to store the DIBs palette
 
 UINT PaletteSize(LPCSTR lpbi)
 {
@@ -1614,7 +1603,6 @@ UINT PaletteSize(LPCSTR lpbi)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Gets the size of the DIBs bitmap bits
 
 UINT DibImageSize(LPCSTR lpbi)
 {
@@ -1636,7 +1624,6 @@ UINT DibImageSize(LPCSTR lpbi)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Gets the offset from the beginning of the DIB to the bitmap bits
 
 UINT DibBitsOffset(LPCSTR lpbi)
 {
@@ -1647,7 +1634,6 @@ UINT DibBitsOffset(LPCSTR lpbi)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Returns a pointer to the DIBs color table 
 
 LPBYTE FindDibPalette(LPCSTR lpbi)
 {
@@ -1658,7 +1644,6 @@ LPBYTE FindDibPalette(LPCSTR lpbi)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Returns a pointer to the pixel bits of a packed DIB
 
 LPBYTE FindDibBits(LPCSTR lpbi)
 {
@@ -1669,7 +1654,6 @@ LPBYTE FindDibBits(LPCSTR lpbi)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Checks if the DIBv5 has a linked or embedded ICC profile
 
 BOOL DibHasColorProfile(LPCSTR lpbi)
 {
@@ -1682,7 +1666,6 @@ BOOL DibHasColorProfile(LPCSTR lpbi)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Checks if the DIB contains color space data
 
 BOOL DibHasColorSpaceData(LPCSTR lpbi)
 {
@@ -1697,7 +1680,6 @@ BOOL DibHasColorSpaceData(LPCSTR lpbi)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Checks if the biCompression member of a DIBv3 struct contains a FourCC code
 
 BOOL DibIsVideoCompressed(LPCSTR lpbi)
 {
@@ -1713,7 +1695,6 @@ BOOL DibIsVideoCompressed(LPCSTR lpbi)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Checks whether the DIB uses the CMYK color model
 
 BOOL DibIsCMYK(LPCSTR lpbi)
 {
@@ -1724,8 +1705,6 @@ BOOL DibIsCMYK(LPCSTR lpbi)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Incorporating rounding, Mul8Bit is an approximation of a * b / 255 for values in the
-// range [0...255]. For details, see the documentation of the DrvAlphaBlend function.
 
 static __inline int Mul8Bit(int a, int b)
 {
@@ -1734,7 +1713,6 @@ static __inline int Mul8Bit(int a, int b)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Calculates the value of a color component
 
 static BYTE GetColorValue(DWORD dwPixel, DWORD dwMask)
 {

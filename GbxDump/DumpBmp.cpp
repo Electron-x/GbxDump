@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// DumpBmp.cpp - Copyright (c) 2023 by Electron.
+// DumpBmp.cpp - Copyright (c) 2023, 2024 by Electron.
 //
 // Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -24,10 +24,16 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Forward declarations of functions included in this code module
 
+// Determines whether GDI can display a specific DIB image on the screen
 BOOL IsDibSupported(LPCSTR lpbi);
+// Determines whether GDI supports a specific DIB image
 DWORD QueryDibSupport(LPCSTR lpbi);
+// Returns the color name if the color passed is one of the 20 static system palette colors
 BOOL GetColorName(COLORREF rgbColor, LPCTSTR* lpszName);
+// Outputs an ICC profile signature given in big-endian format
 void PrintProfileSignature(HWND hwndCtl, LPCTSTR lpszName, DWORD dwSignature, BOOL bAddCrLf = TRUE);
+// Converts a half-precision floating-point number to a single-precision float.
+// Special values like subnormals, infinities, NaN's and -0 are not supported.
 float Half2Float(WORD h);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -859,7 +865,7 @@ BOOL DumpBitmap(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 			if (wProfileVersion >= 0x0400)
 			{
 				ZeroMemory(szOutput, sizeof(szOutput));
-				for (SIZE_T i = 0; i < sizeof(lpph->phProfileID); i++)
+				for (SIZE_T i = 0; i < _countof(lpph->phProfileID); i++)
 					_sntprintf(szOutput, _countof(szOutput), TEXT("%s%02X"), (LPTSTR)szOutput, lpph->phProfileID[i]);
 
 				OutputText(hwndCtl, TEXT("ProfileID:\t"));
@@ -972,7 +978,6 @@ static DWORD QueryDibSupport(LPCSTR lpbi)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Returns the color name if the color passed is one of the 20 static system palette colors
 
 BOOL GetColorName(COLORREF rgbColor, LPCTSTR* lpszName)
 {
@@ -995,7 +1000,6 @@ BOOL GetColorName(COLORREF rgbColor, LPCTSTR* lpszName)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Outputs an ICC profile signature given in big-endian format
 
 void PrintProfileSignature(HWND hwndCtl, LPCTSTR lpszName, DWORD dwSignature, BOOL bAddCrLf)
 {
@@ -1042,8 +1046,6 @@ void PrintProfileSignature(HWND hwndCtl, LPCTSTR lpszName, DWORD dwSignature, BO
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Converts a half-precision floating-point number to a single-precision float.
-// Special values like subnormals, infinities, NaN's and -0 are not supported.
 
 float Half2Float(WORD h)
 {

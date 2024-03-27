@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// DumpDds.cpp - Copyright (c) 2010-2023 by Electron.
+// DumpDds.cpp - Copyright (c) 2010-2024 by Electron.
 //
 // Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -25,12 +25,13 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Forward declarations of functions included in this code module
-//
+
+// Decodes the DDS file and displays it as a thumbnail
 BOOL DisplayDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize, BOOL bShowTextureDesc = FALSE);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // String Constants
-//
+
 const TCHAR chNil = TEXT('\0');
 const TCHAR szCRLF[] = TEXT("\r\n");
 
@@ -782,7 +783,6 @@ BOOL DisplayDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize, BOOL bShowTextureD
 	if (!FileSeekBegin(hFile, 0))
 		return FALSE;
 
-	// Read the file
 	LPVOID lpData = MyGlobalAllocPtr(GHND, dwFileSize);
 	if (lpData == NULL)
 		return FALSE;
@@ -793,13 +793,13 @@ BOOL DisplayDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize, BOOL bShowTextureD
 		return FALSE;
 	}
 
-	// Decode the DDS image
 	if (bShowTextureDesc)
 		OutputText(hwndCtl, g_szSep1);
 
 	HANDLE hDib = NULL;
 	HCURSOR hOldCursor = SetCursor(LoadCursor(NULL, IDC_WAIT));
 
+	// Decode the DDS image
 	__try { hDib = DdsToDib(lpData, dwFileSize, FALSE, bShowTextureDesc); }
 	__except (EXCEPTION_EXECUTE_HANDLER) { hDib = NULL; }
 
