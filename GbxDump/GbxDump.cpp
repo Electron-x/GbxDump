@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// GbxDump.cpp - Copyright (c) 2010-2023 by Electron.
+// GbxDump.cpp - Copyright (c) 2010-2024 by Electron.
 //
 // Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -28,53 +28,80 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Data Types
-//
+
 typedef HRESULT(STDAPICALLTYPE* LPFNDWMSETWINDOWATTRIBUTE)(HWND, DWORD, LPCVOID, DWORD);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Forward declarations of functions included in this code module
-//
+
+// Loads version 6 common controls and registers the window class of the main dialog box
 ATOM MyRegisterClass(HINSTANCE hInstance);
+// Loads the specified bitmap resource and converts the image to a DIB
 HANDLE MyLoadBitmap(HINSTANCE hInstance, LPCTSTR lpBitmapName, UINT fuLoad);
+// Creates a copy of the command line and returns the argument between the first two quotes
 LPTSTR AllocGetCmdLine(LPTSTR lpCmdLine, LPTSTR* lpszFilename);
 
+// Window function of the application
 INT_PTR CALLBACK GbxDumpDlgProc(HWND, UINT, WPARAM, LPARAM);
+// Subclass function of the text output edit control
 LRESULT CALLBACK OutputWndProc(HWND, UINT, WPARAM, LPARAM);
 
+// Opens and examines the passed file
 BOOL DumpFile(HWND hwndCtl, LPCTSTR lpszFileName, LPSTR lpszUid, LPSTR lpszEnvi);
+// Displays version and salt of a MUX file
 BOOL DumpMux(HWND hwndCtl, HANDLE hFile);
+// Decompresses a JPEG image and displays it as thumbnail
 BOOL DumpJpeg(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize);
+// Decompresses a WebP image and displays it as thumbnail
 BOOL DumpWebP(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize);
+// Displays a hex dump of the first 1024 bytes of a file
 BOOL DumpHex(HWND hwndCtl, HANDLE hFile, SIZE_T cbLen);
 
+// Draws the thumbnail in a owner-drawn control
 BOOL OnDrawItem(HWND hDlg, const LPDRAWITEMSTRUCT lpDrawItem);
+// Draws a DIB with StretchDIBits or DrawDibDraw
 BOOL DrawDib(HDC hdc, LPBITMAPINFOHEADER lpbi, int xDest, int yDest, int wDest,
 	int hDest, int xSrc, int ySrc, int wSrc, int hSrc);
+// Draws a DIB section with pre-multiplied alpha on a checkerboard pattern
 BOOL AlphaBlendBitmap(HDC hdc, HBITMAP hbm, int xDest, int yDest, int wDest, int hDest,
 	int xSrc, int ySrc, int wSrc, int hSrc);
+// Draws text over the thumbnail image
 BOOL DrawThumbnailText(HDC hdc, LPRECT lpRect, LPCTSTR lpszText, COLORREF color, int mode);
+// Creates a font that fits the size of a window
 HFONT CreateScaledFont(HDC hdc, LPCRECT lpRect, LPCTSTR lpszFormat);
 
+// Selects the complete URL in which the cursor is located
 int SelectText(HWND hwndCtl);
+// Activates or deactivates line break of an edit control
 BOOL SetWordWrap(HWND hDlg, BOOL bWordWrap);
 
+// Loads the dialog placement and the font height of the edit control from the registry
 BOOL LoadSettings(LPWINDOWPLACEMENT lpWindowPlacement, LPLONG lpFontHeight);
+// Saves the dialog placement and the font height of the edit control to the registry
 void SaveSettings(HWND hDlg, HFONT hFont);
 
+// Replacement for SetWindowPlacement, which allows not to call ShowWindow
 BOOL MySetWindowPlacement(HWND hWnd, const LPWINDOWPLACEMENT lpwndpl, BOOL bUseShowWindow);
 
+// Saves the size of a window in the property list of the window
 void StoreWindowRect(HWND hwnd, LPRECT lprc);
+// Retrieves a saved window size from the property list of a window
 void RetrieveWindowRect(HWND hwnd, LPRECT lprc);
+// Removes previously created entries from the property list of a window
 void DeleteWindowRect(HWND hwnd);
 
+// Determines whether a high contrast theme is enabled
 BOOL IsHighContrast();
+// Determines if Windows 10 1809+ dark mode is enabled
 BOOL ShouldAppsUseDarkMode();
+// Draws a dark mode title bar
 HRESULT UseImmersiveDarkMode(HWND hwndMain, BOOL bUse);
+// Activates dark mode for all controls of a window
 BOOL AllowDarkModeForWindow(HWND hwndParent, BOOL bAllow);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Global Variables
-//
+
 #define VERSION TEXT("1.75")
 #if defined(_WIN64)
 #define PLATFORM TEXT("64-bit")
@@ -84,7 +111,7 @@ BOOL AllowDarkModeForWindow(HWND hwndParent, BOOL bAllow);
 
 const TCHAR g_szTitle[]     = TEXT("GbxDump");
 const TCHAR g_szAbout[]     = TEXT("Gbx File Dumper ") VERSION TEXT(" (") PLATFORM TEXT(")\r\n")
-                              TEXT("Copyright © 2010-2023 by Electron\r\n");
+                              TEXT("Copyright © 2010-2024 by Electron\r\n");
 const TCHAR g_szUserAgent[] = TEXT("GbxDump") TEXT("/") VERSION;
 const TCHAR g_szRegPath[]   = TEXT("Software\\Electron\\GbxDump");
 const TCHAR g_szPlacement[] = TEXT("WindowPlacement");
@@ -131,7 +158,7 @@ int APIENTRY _tWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstanc
 	// Set the language of the user interface and error messages
 	g_bGerUI = (PRIMARYLANGID(GetUserDefaultLangID()) == LANG_GERMAN);
 	// Use light or dark mode
-	g_bUseDarkMode = ShouldAppsUseDarkMode() && !IsHighContrast();
+	g_bUseDarkMode = IsAppThemed() && ShouldAppsUseDarkMode() && !IsHighContrast();
 	// Load the default thumbnail from the resources
 	g_hDibDefault = MyLoadBitmap(hInstance, MAKEINTRESOURCE(IDB_THUMB), LR_CREATEDIBSECTION);
 
@@ -159,8 +186,7 @@ int APIENTRY _tWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstanc
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Loads version 6 common controls and registers the window class of the main dialog box
-//
+
 ATOM MyRegisterClass(HINSTANCE hInstance)
 {
 	INITCOMMONCONTROLSEX iccex = {0};
@@ -186,8 +212,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Loads the specified bitmap resource and converts the image to a DIB
-//
+
 HANDLE MyLoadBitmap(HINSTANCE hInstance, LPCTSTR lpBitmapName, UINT fuLoad)
 {
 	HBITMAP hBitmap = (HBITMAP)LoadImage(hInstance, lpBitmapName, IMAGE_BITMAP, 0, 0, fuLoad);
@@ -202,8 +227,7 @@ HANDLE MyLoadBitmap(HINSTANCE hInstance, LPCTSTR lpBitmapName, UINT fuLoad)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Creates a copy of the command line and returns the argument between the first two quotes
-//
+
 LPTSTR AllocGetCmdLine(LPTSTR lpCmdLine, LPTSTR* lpszFilename)
 {
 	if (lpCmdLine == NULL || lpCmdLine[0] == '\0')
@@ -233,8 +257,7 @@ LPTSTR AllocGetCmdLine(LPTSTR lpCmdLine, LPTSTR* lpszFilename)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Window function of the application
-//
+
 INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	static int      s_nDpi = USER_DEFAULT_SCREEN_DPI;
@@ -468,10 +491,9 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 						{
 							int cx = GetSystemMetrics(SM_CXVSCROLL);
 							int cy = GetSystemMetrics(SM_CYHSCROLL);
-							BOOL bIsVisible = IsWindowVisible(hCtl);
-							if (wParam == SIZE_MAXIMIZED && bIsVisible)
+							if (wParam == SIZE_MAXIMIZED)
 								ShowWindow(hCtl, SW_HIDE);
-							else if (!g_bUseDarkMode && !bIsVisible)
+							else if (!IsWindowVisible(hCtl))
 								ShowWindow(hCtl, SW_SHOW);
 							hWinPosInfo = DeferWindowPos(hWinPosInfo, hCtl, NULL,
 								rc.right-cx, rc.bottom-cy, cx, cy, SWP_NOZORDER | SWP_NOACTIVATE);
@@ -664,7 +686,7 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 						Edit_SetSel(hwndCtl, nLen, nLen);
 
 						Button_Enable(GetDlgItem(hDlg, IDC_TMX), FALSE);
-						if (!GetTmxData(hwndCtl, s_szUid, s_szEnvi))
+						if (!DumpTmx(hwndCtl, s_szUid, s_szEnvi))
 							Button_Enable(GetDlgItem(hDlg, IDC_TMX), TRUE);
 					}
 					return FALSE;
@@ -680,7 +702,7 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 						Edit_SetSel(hwndCtl, nLen, nLen);
 
 						Button_Enable(GetDlgItem(hDlg, IDC_DEDIMANIA), FALSE);
-						if (!GetDedimaniaData(hwndCtl, s_szUid, s_szEnvi))
+						if (!DumpDedimania(hwndCtl, s_szUid, s_szEnvi))
 							Button_Enable(GetDlgItem(hDlg, IDC_DEDIMANIA), TRUE);
 					}
 					return FALSE;
@@ -916,24 +938,13 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 					lParam != NULL && _tcscmp((LPCTSTR)lParam, TEXT("ImmersiveColorSet")) != 0)
 					return FALSE;
 
-				BOOL bShouldUseDarkMode = (ShouldAppsUseDarkMode() && !IsHighContrast());
+				BOOL bShouldUseDarkMode = (IsAppThemed() && ShouldAppsUseDarkMode() && !IsHighContrast());
 				if ((g_bUseDarkMode && !bShouldUseDarkMode) || (!g_bUseDarkMode && bShouldUseDarkMode))
 				{
 					g_bUseDarkMode = !g_bUseDarkMode;
 
 					UseImmersiveDarkMode(hDlg, g_bUseDarkMode);
 					AllowDarkModeForWindow(hDlg, g_bUseDarkMode);
-
-					if (s_hwndSizeBox != NULL)
-					{	// For safety's sake, hide the size box in undocumented dark mode. Without the
-						// "DarkMode_Explorer" theme, the size box doesn't visually match the dark mode.
-						// Also, certain compatibility and performance settings may disable themes.
-						BOOL bIsVisible = IsWindowVisible(s_hwndSizeBox);
-						if (g_bUseDarkMode && bIsVisible)
-							ShowWindow(s_hwndSizeBox, SW_HIDE);
-						else if (!IsMaximized(hDlg) && !bIsVisible)
-							ShowWindow(s_hwndSizeBox, SW_SHOW);
-					}
 				}
 			}
 			return FALSE;
@@ -989,12 +1000,8 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 				// Create size box bottom right
 				int cx = GetSystemMetrics(SM_CXVSCROLL);
 				int cy = GetSystemMetrics(SM_CYHSCROLL);
-				DWORD dwStyle = WS_CHILD | WS_CLIPSIBLINGS | WS_GROUP |
+				DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_GROUP |
 					SBS_SIZEBOX | SBS_SIZEBOXBOTTOMRIGHTALIGN | SBS_SIZEGRIP;
-				// For safety's sake, hide the size box in undocumented dark mode. Without the
-				// "DarkMode_Explorer" theme, the size box doesn't visually match the dark mode.
-				if (!g_bUseDarkMode)
-					dwStyle |= WS_VISIBLE;
 				s_hwndSizeBox = CreateWindow(TEXT("Scrollbar"), NULL, dwStyle,
 					rc.right - cx, rc.bottom - cy, cx, cy, hDlg, (HMENU)-1, g_hInstance, NULL);
 
@@ -1030,7 +1037,7 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 					// is too different from the default value
 					if (abs(lFontHeight - lf.lfHeight) > 6)
 						bShowFontScalingInfo = TRUE;
-					// Use the saved font height in any case
+					// Use the saved font height anyway
 					lf.lfHeight = lFontHeight;
 				}
 
@@ -1060,7 +1067,7 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 					PostMessage(hDlg, WMU_FILEOPEN, 0, lParam);
 				}
 				else
-				{ // Display default text
+				{ // Display the standard info text
 					s_szFileName[0] = TEXT('\0');
 					Edit_ReplaceSel(hwndCtl, g_szAbout);
 					// Show a hint to scale the font if needed
@@ -1125,7 +1132,6 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Subclass function of the text output edit control
 
 LRESULT CALLBACK OutputWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -1155,7 +1161,6 @@ LRESULT CALLBACK OutputWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Opens and examines the passed file
 
 BOOL DumpFile(HWND hwndCtl, LPCTSTR lpszFileName, LPSTR lpszUid, LPSTR lpszEnvi)
 {
@@ -1311,7 +1316,6 @@ BOOL DumpFile(HWND hwndCtl, LPCTSTR lpszFileName, LPSTR lpszUid, LPSTR lpszEnvi)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Displays version and salt of a MUX file
 
 BOOL DumpMux(HWND hwndCtl, HANDLE hFile)
 {
@@ -1344,7 +1348,6 @@ BOOL DumpMux(HWND hwndCtl, HANDLE hFile)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Decompresses a JPEG image and displays it as thumbnail
 
 BOOL DumpJpeg(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 {
@@ -1392,7 +1395,6 @@ BOOL DumpJpeg(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Decompresses a WebP image and displays it as thumbnail
 
 BOOL DumpWebP(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 {
@@ -1438,7 +1440,6 @@ BOOL DumpWebP(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Displays a hex dump of the first 1024 bytes of a file
 
 BOOL DumpHex(HWND hwndCtl, HANDLE hFile, SIZE_T cbLen)
 {
@@ -1512,7 +1513,6 @@ BOOL DumpHex(HWND hwndCtl, HANDLE hFile, SIZE_T cbLen)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Draws the thumbnail
 
 BOOL OnDrawItem(HWND hDlg, const LPDRAWITEMSTRUCT lpDrawItem)
 {
@@ -1608,7 +1608,6 @@ BOOL OnDrawItem(HWND hDlg, const LPDRAWITEMSTRUCT lpDrawItem)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Draws a DIB with StretchDIBits or DrawDibDraw
 
 BOOL DrawDib(HDC hdc, LPBITMAPINFOHEADER lpbi, int xDest, int yDest, int wDest, int hDest, int xSrc, int ySrc, int wSrc, int hSrc)
 {
@@ -1655,7 +1654,6 @@ BOOL DrawDib(HDC hdc, LPBITMAPINFOHEADER lpbi, int xDest, int yDest, int wDest, 
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Draws a DIB section with pre-multiplied alpha on a checkerboard pattern
 
 BOOL AlphaBlendBitmap(HDC hdc, HBITMAP hbm, int xDest, int yDest, int wDest, int hDest, int xSrc, int ySrc, int wSrc, int hSrc)
 {
@@ -1751,7 +1749,6 @@ BOOL AlphaBlendBitmap(HDC hdc, HBITMAP hbm, int xDest, int yDest, int wDest, int
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Draws text on the thumbnail
 
 BOOL DrawThumbnailText(HDC hdc, LPRECT lpRect, LPCTSTR lpszText, COLORREF color, int mode)
 {
@@ -1783,7 +1780,6 @@ BOOL DrawThumbnailText(HDC hdc, LPRECT lpRect, LPCTSTR lpszText, COLORREF color,
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Creates a font that fits the size of the thumbnail window
 
 HFONT CreateScaledFont(HDC hdc, LPCRECT lpRect, LPCTSTR lpszText)
 {
@@ -1838,7 +1834,6 @@ HFONT CreateScaledFont(HDC hdc, LPCRECT lpRect, LPCTSTR lpszText)
 }
 
 /////////////////////////////////////////////////////////////////////////////
-// Selects the complete URL in which the cursor is located
 
 int SelectText(HWND hwndCtl)
 {
@@ -1901,7 +1896,6 @@ int SelectText(HWND hwndCtl)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Activate or deactivate line break of the edit control
 
 BOOL SetWordWrap(HWND hDlg, BOOL bWordWrap)
 {
@@ -1998,7 +1992,6 @@ BOOL SetWordWrap(HWND hDlg, BOOL bWordWrap)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Loads the dialog placement and the font height of the edit control from the registry
 
 BOOL LoadSettings(LPWINDOWPLACEMENT lpWindowPlacement, LPLONG lpFontHeight)
 {
@@ -2034,8 +2027,6 @@ BOOL LoadSettings(LPWINDOWPLACEMENT lpWindowPlacement, LPLONG lpFontHeight)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Saves the dialog placement and the font height of the edit control to the registry.
-// The settings are saved only if the registry subkey was created by the installer.
 
 void SaveSettings(HWND hDlg, HFONT hFont)
 {
@@ -2049,6 +2040,7 @@ void SaveSettings(HWND hDlg, HFONT hFont)
 		GetObject(hFont, sizeof(LOGFONT), (LPVOID)&lf);
 
 	HKEY hKey = NULL;
+	// Only save settings if the key exists in the registry (created by the installer)
 	if (RegOpenKeyEx(HKEY_CURRENT_USER, g_szRegPath, 0, KEY_WRITE, &hKey) != ERROR_SUCCESS || hKey == NULL)
 		return;
 
@@ -2059,7 +2051,6 @@ void SaveSettings(HWND hDlg, HFONT hFont)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Rudimentary replacement for SetWindowPlacement, which allows not to call ShowWindow
 
 BOOL MySetWindowPlacement(HWND hWnd, const LPWINDOWPLACEMENT lpwndpl, BOOL bUseShowWindow)
 {
@@ -2089,7 +2080,6 @@ BOOL MySetWindowPlacement(HWND hWnd, const LPWINDOWPLACEMENT lpwndpl, BOOL bUseS
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Saves the size of a window in the property list of the window
 
 void StoreWindowRect(HWND hwnd, LPRECT lprc)
 {
@@ -2103,7 +2093,6 @@ void StoreWindowRect(HWND hwnd, LPRECT lprc)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Retrieves a saved window size from the property list of a window
 
 void RetrieveWindowRect(HWND hwnd, LPRECT lprc)
 {
@@ -2122,7 +2111,6 @@ void RetrieveWindowRect(HWND hwnd, LPRECT lprc)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Removes previously created entries from the property list of a window
 
 void DeleteWindowRect(HWND hwnd)
 {
@@ -2136,7 +2124,6 @@ void DeleteWindowRect(HWND hwnd)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Determines whether a high contrast theme is enabled
 
 BOOL IsHighContrast()
 {
@@ -2148,7 +2135,6 @@ BOOL IsHighContrast()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Determines if Windows 10 1809+ dark mode is enabled
 
 BOOL ShouldAppsUseDarkMode()
 {
@@ -2173,7 +2159,6 @@ BOOL ShouldAppsUseDarkMode()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Draws a dark mode title bar
 
 HRESULT UseImmersiveDarkMode(HWND hwndMain, BOOL bUse)
 {
@@ -2219,7 +2204,6 @@ BOOL AllowDarkModeForWindow(HWND hwndParent, BOOL bAllow)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Sets the title of the default thumbnail to "Unsupported format"
 
 void MarkAsUnsupported(HWND hDlg)
 {
@@ -2238,7 +2222,6 @@ void MarkAsUnsupported(HWND hDlg)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Replaces the current thumbnail with the given DIB
 
 void ReplaceThumbnail(HWND hDlg, HANDLE hDib)
 {
