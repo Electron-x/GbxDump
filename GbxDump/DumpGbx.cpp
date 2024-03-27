@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// DumpGbx.cpp - Copyright (c) 2010-2023 by Electron.
+// DumpGbx.cpp - Copyright (c) 2010-2024 by Electron.
 //
 // Licensed under the EUPL, Version 1.2 or - as soon they will be approved by
 // the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -28,11 +28,13 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Constants
-//
+
 #define POS_NUMBER_CHUNKS         17
 #define POS_HEADER_CHUNKS         21
 
+////////////////////////////////////////////////////////////////////////////////////////////////
 // Macros
+
 #define IS_GBX_TEXT(ach)          ((ach)[0] == 'T')
 #define IS_GBX_BINARY(ach)        ((ach)[0] == 'B')
 #define IS_REF_COMPRESSED(ach)    ((ach)[1] == 'C')
@@ -44,7 +46,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Data Types
-//
+
 typedef enum _BASECLASS
 {
 	eOther = 0,
@@ -67,7 +69,7 @@ typedef struct _CHUNK
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Forward declarations of functions included in this code module
-//
+
 BASECLASS GetBaseClass(HWND hwndCtl, DWORD dwClassId);
 DWORD ReadRefTable(HWND hwndCtl, HANDLE hFile, WORD wVersion, PBYTE achStorageSettings);
 BOOL ReadSubFolders(HWND hwndCtl, HANDLE hFile, PDWORD pdwIndex, LPCSTR lpszFolder, BOOL bIsText);
@@ -118,7 +120,7 @@ BOOL FolderDepChunk(HWND hwndCtl, HANDLE hFile, PCHUNK chunkFolder);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // String Constants
-//
+
 const TCHAR g_chNil        = TEXT('\0');
 const TCHAR g_szAsterisk[] = TEXT("*");
 const TCHAR g_szCRLF[]     = TEXT("\r\n");
@@ -643,6 +645,10 @@ BASECLASS GetBaseClass(HWND hwndCtl, DWORD dwClassId)
 
 		case CLSID_SAVELAUNCHEDCP:
 			OutputText(hwndCtl, TEXT(" (SaveLaunchedCheckpoints)"));
+			break;
+
+		case CLSID_PAINTERLAYER:
+			OutputText(hwndCtl, TEXT(" (PainterLayer)"));
 			break;
 
 		case CLSID_REGATTA_VSK:
@@ -1636,7 +1642,7 @@ DWORD ReadRefTable(HWND hwndCtl, HANDLE hFile, WORD wVersion, PBYTE achStorageSe
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Recursive; called by ReadRefTable
-//
+
 BOOL ReadSubFolders(HWND hwndCtl, HANDLE hFile, PDWORD pdwIndex, LPCSTR lpszFolder, BOOL bIsText)
 {
 	SSIZE_T nRet = 0;
@@ -1678,7 +1684,7 @@ BOOL ReadSubFolders(HWND hwndCtl, HANDLE hFile, PDWORD pdwIndex, LPCSTR lpszFold
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // ReadSkin is called by GameSkinChunk and DecorationMoodChunk
-//
+
 BOOL ReadSkin(HWND hwndCtl, HANDLE hFile)
 {
 	SSIZE_T nRet = 0;
@@ -1850,7 +1856,7 @@ BOOL ChallengeTmDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckTmDesc)
 	if (cVersion > 13) OutputText(hwndCtl, g_szAsterisk);
 	OutputText(hwndCtl, g_szCRLF);
 
-	// Read data...
+	// First, fully read the data to format the output accordingly
 	if (cVersion < 3)
 	{	// Was the data from chunk 24003003 initially stored here?
 		SSIZE_T nRet = 0;
@@ -1964,7 +1970,7 @@ BOOL ChallengeTmDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckTmDesc)
 			return FALSE;
 	}
 
-	// Output data...
+	// Now output the data in an appropriate format
 	if (cVersion >= 1)
 	{
 		// Bronze
@@ -2272,23 +2278,171 @@ BOOL ChallengeCommonChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckCommon, LPSTR lp
 	if (cVersion < 3)
 		return TRUE;
 
-	// Skip Map Coord Origin
-	if (!FileSeekCurrent(hFile, 8))
+	// Map Coord Origin
+	FLOAT fVec2X, fVec2Y;
+	if (!ReadReal(hFile, &fVec2X) || !ReadReal(hFile, &fVec2Y))
 		return FALSE;
+
+#ifdef _DEBUG
+	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Map Coord Org.:\t(%g, %g)\r\n"),
+		(double)fVec2X, (double)fVec2Y);
+#endif
 
 	if (cVersion < 4)
 		return TRUE;
 
-	// Skip Map Coord Target
-	if (!FileSeekCurrent(hFile, 8))
+	// Map Coord Target
+	if (!ReadReal(hFile, &fVec2X) || !ReadReal(hFile, &fVec2Y))
 		return FALSE;
+
+#ifdef _DEBUG
+	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Map Coord Tgt.:\t(%g, %g)\r\n"),
+		(double)fVec2X, (double)fVec2Y);
+#endif
 
 	if (cVersion < 5)
 		return TRUE;
 
-	// Skip unused Nat128 variable (16 bytes)
-	if (!FileSeekCurrent(hFile, 16))
+	// Pack Mask
+	DWORD aPackMask[4] = {0};
+	if (!ReadNat128(hFile, &aPackMask))
 		return FALSE;
+
+	OutputText(hwndCtl, TEXT("Pack Mask:\t"));
+	if (aPackMask[0] > 0x4FFFFF || aPackMask[1] || aPackMask[2] || aPackMask[3])
+	{
+		ZeroMemory(szOutput, sizeof(szOutput));
+		for (SIZE_T i = 0; i < _countof(aPackMask); i++)
+			_sntprintf(szOutput, _countof(szOutput), TEXT("%08X%s"), aPackMask[i], (LPTSTR)szOutput);
+		OutputText(hwndCtl, szOutput);
+	}
+	else
+	{
+		DWORD dwPackMask = aPackMask[0];
+		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%X"), dwPackMask);
+		if (dwPackMask != 0)
+		{
+			if (dwPackMask == 0x07)
+				MyStrNCpy(szOutput, TEXT("Original"), _countof(szOutput));
+			else if (dwPackMask == 0x38)
+				MyStrNCpy(szOutput, TEXT("Sunrise"), _countof(szOutput));
+			//else if (dwPackMask == 0x40)  // Same as Stadium
+			//	MyStrNCpy(szOutput, TEXT("Nations"), _countof(szOutput));
+			else if (dwPackMask == 0x7F)
+				MyStrNCpy(szOutput, TEXT("United"), _countof(szOutput));
+			else
+			{
+				szOutput[0] = TEXT('\0');
+				if (dwPackMask & 0x01)
+				{
+					dwPackMask ^= 0x01;
+					AppendFlagName(szOutput, _countof(szOutput), TEXT("Alpine"));
+				}
+				if (dwPackMask & 0x02)
+				{
+					dwPackMask ^= 0x02;
+					AppendFlagName(szOutput, _countof(szOutput), TEXT("Speed"));
+				}
+				if (dwPackMask & 0x04)
+				{
+					dwPackMask ^= 0x04;
+					AppendFlagName(szOutput, _countof(szOutput), TEXT("Rally"));
+				}
+				if (dwPackMask & 0x08)
+				{
+					dwPackMask ^= 0x08;
+					AppendFlagName(szOutput, _countof(szOutput), TEXT("Island"));
+				}
+				if (dwPackMask & 0x10)
+				{
+					dwPackMask ^= 0x10;
+					AppendFlagName(szOutput, _countof(szOutput), TEXT("Coast"));
+				}
+				if (dwPackMask & 0x20)
+				{
+					dwPackMask ^= 0x20;
+					AppendFlagName(szOutput, _countof(szOutput), TEXT("Bay"));
+				}
+				if (dwPackMask & 0x40)
+				{
+					dwPackMask ^= 0x40;
+					AppendFlagName(szOutput, _countof(szOutput), TEXT("Stadium"));
+				}
+				if (dwPackMask & 0x80)
+				{
+					dwPackMask ^= 0x80;
+					AppendFlagName(szOutput, _countof(szOutput), TEXT("Valley"));
+				}
+				if (dwPackMask & 0x100)
+				{
+					dwPackMask ^= 0x100;
+					AppendFlagName(szOutput, _countof(szOutput), TEXT("Canyon"));
+				}
+				if (dwPackMask & 0x200)
+				{ // Initially "Mountain"
+					dwPackMask ^= 0x200;
+					AppendFlagName(szOutput, _countof(szOutput), TEXT("Lagoon"));
+				}
+				if (dwPackMask & 0x1000)
+				{
+					dwPackMask ^= 0x1000;
+					AppendFlagName(szOutput, _countof(szOutput), TEXT("Gothic"));
+				}
+				if (dwPackMask & 0x2000)
+				{
+					dwPackMask ^= 0x2000;
+					AppendFlagName(szOutput, _countof(szOutput),
+						strcmp(lpszEnvi, "Nordic") ? TEXT("Paris") : TEXT("Nordic"));
+				}
+				if (dwPackMask & 0x4000)
+				{
+					dwPackMask ^= 0x4000;
+					AppendFlagName(szOutput, _countof(szOutput), TEXT("Storm"));
+				}
+				if (dwPackMask & 0x8000)
+				{
+					dwPackMask ^= 0x8000;
+					AppendFlagName(szOutput, _countof(szOutput), TEXT("Cryo"));
+				}
+				if (dwPackMask & 0x10000)
+				{
+					dwPackMask ^= 0x10000;
+					AppendFlagName(szOutput, _countof(szOutput), TEXT("Meteor"));
+				}
+				if (dwPackMask & 0x100000)
+				{
+					dwPackMask ^= 0x100000;
+					AppendFlagName(szOutput, _countof(szOutput),
+						strcmp(lpszEnvi, "Tropical") ? TEXT("Society") : TEXT("Tropical"));
+				}
+				if (dwPackMask & 0x200000)
+				{
+					dwPackMask ^= 0x200000;
+					AppendFlagName(szOutput, _countof(szOutput), TEXT("History"));
+				}
+				if (dwPackMask & 0x400000)
+				{
+					dwPackMask ^= 0x400000;
+					AppendFlagName(szOutput, _countof(szOutput), TEXT("Future"));
+				}
+				if (dwPackMask != 0 && dwPackMask != aPackMask[0])
+				{
+					const int MASK_LEN = 32;
+					TCHAR szMask[MASK_LEN];
+					_sntprintf(szMask, _countof(szMask), TEXT("%X"), dwPackMask);
+					szMask[MASK_LEN - 1] = TEXT('\0');
+					AppendFlagName(szOutput, _countof(szOutput), szMask);
+				}
+			}
+			if (szOutput[0] != TEXT('\0'))
+			{
+				OutputText(hwndCtl, TEXT(" ("));
+				OutputText(hwndCtl, szOutput);
+				OutputText(hwndCtl, TEXT(")"));
+			}
+		}
+	}
+	OutputText(hwndCtl, g_szCRLF);
 
 	if (cVersion < 6)
 		return TRUE;
@@ -3279,14 +3433,9 @@ BOOL ChallengeReplayAuthorChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckAuthor)
 	if (!ReadNat32(hFile, &dwAuthorVer))
 		return FALSE;
 
-#ifndef _DEBUG
-	if (dwAuthorVer > 0)
-#endif
-	{ // Display only if changed
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Author Version:\t%d"), dwAuthorVer);
-		if (dwAuthorVer > 0) OutputText(hwndCtl, g_szAsterisk);
-		OutputText(hwndCtl, g_szCRLF);
-	}
+	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Author Version:\t%d"), dwAuthorVer);
+	if (dwAuthorVer > 0) OutputText(hwndCtl, g_szAsterisk);
+	OutputText(hwndCtl, g_szCRLF);
 
 	// Login
 	if ((nRet = ReadString(hFile, szRead, _countof(szRead))) < 0)
@@ -3593,7 +3742,7 @@ BOOL CollectorIconChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckIcon)
 			return FALSE;
 
 		// Read image data
-		if (!ReadData(hFile, lpData, pckIcon->dwSize - 4))
+		if (!ReadData(hFile, lpData, (SIZE_T)(pckIcon->dwSize) - 4))
 		{
 			MyGlobalFreePtr(lpData);
 			return FALSE;
@@ -4127,7 +4276,7 @@ BOOL CollectionDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckDesc)
 
 	if (cVersion <= 7)
 	{
-		// MapCoordElem
+		// Map Coord Elem
 		if (!ReadReal(hFile, &fVec2X) || !ReadReal(hFile, &fVec2Y))
 			return FALSE;
 
@@ -4136,7 +4285,7 @@ BOOL CollectionDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckDesc)
 
 		if (cVersion >= 6)
 		{
-			// MapCoordIcon
+			// Map Coord Icon
 			if (!ReadReal(hFile, &fVec2X) || !ReadReal(hFile, &fVec2Y))
 				return FALSE;
 
@@ -4162,21 +4311,21 @@ BOOL CollectionDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckDesc)
 	if (cVersion < 8)
 		return TRUE;
 
-	// MapCoordElem
+	// Map Coord Elem
 	if (!ReadReal(hFile, &fVec2X) || !ReadReal(hFile, &fVec2Y))
 		return FALSE;
 
 	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Map Coord Elem:\t(%g, %g)\r\n"),
 		(double)fVec2X, (double)fVec2Y);
 
-	// MapCoordIcon
+	// Map Coord Icon
 	if (!ReadReal(hFile, &fVec2X) || !ReadReal(hFile, &fVec2Y))
 		return FALSE;
 
 	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Map Coord Icon:\t(%g, %g)\r\n"),
 		(double)fVec2X, (double)fVec2Y);
 
-	// MapCoordDesc
+	// Map Coord Desc
 	if (!ReadReal(hFile, &fVec2X) || !ReadReal(hFile, &fVec2Y))
 		return FALSE;
 
