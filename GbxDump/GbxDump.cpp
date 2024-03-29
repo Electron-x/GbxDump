@@ -102,7 +102,7 @@ BOOL AllowDarkModeForWindow(HWND hwndParent, BOOL bAllow);
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Global Variables
 
-#define VERSION TEXT("1.75")
+#define VERSION TEXT("1.76")
 #if defined(_WIN64)
 #define PLATFORM TEXT("64-bit")
 #else
