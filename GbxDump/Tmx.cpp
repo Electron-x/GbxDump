@@ -53,14 +53,14 @@ typedef enum XmlArrayType
 // Forward declarations of functions included in this code module
 
 // Retrieves and prints TMX information for a specific map
-BOOL ProcessTmx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound);
+BOOL ProcessTmx(HWND hwndEdit, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound);
 // Retrieves and prints MX information for a specific map
-BOOL ProcessMx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound);
+BOOL ProcessMx(HWND hwndEdit, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound);
 // Request, parse and output data from Mania Exchange
-BOOL RequestMxData(HWND hwndCtl, LPCTSTR lpszMxUrl, PINT pnTrackId = NULL);
+BOOL RequestMxData(HWND hwndEdit, LPCTSTR lpszMxUrl, PINT pnTrackId = NULL);
 // Parse XML using Microsoft XmlLite.
 // Supports the array types TrackInfo, TrackObject, Replay and Item.
-HRESULT ParseAndOutputXml(HWND hwndCtl, HGLOBAL hXml, PINT pnTrackId = NULL);
+HRESULT ParseAndOutputXml(HWND hwndEdit, HGLOBAL hXml, PINT pnTrackId = NULL);
 // Converts a time value into a formatted string (tchar.h version)
 BOOL FormatTimeT(int nTime, TCHAR* pszTime, SIZE_T cchStringLen);
 // Converts a time value into a formatted string (wide-character version for XmlLite)
@@ -95,14 +95,14 @@ const TCHAR g_szErrOom[]      = TEXT("Out of memory.\r\n");
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL DumpTmx(HWND hwndCtl, LPCSTR lpszUid, LPCSTR lpszEnvi)
+BOOL DumpTmx(HWND hwndEdit, LPCSTR lpszUid, LPCSTR lpszEnvi)
 {
-	if (hwndCtl == NULL || lpszUid == NULL || lpszEnvi == NULL)
+	if (hwndEdit == NULL || lpszUid == NULL || lpszEnvi == NULL)
 		return FALSE;
 
 	HCURSOR hOldCursor = SetCursor(LoadCursor(NULL, IDC_WAIT));
 
-	OutputText(hwndCtl, g_szTmx);
+	OutputText(hwndEdit, g_szTmx);
 
 	BOOL bSuccess = TRUE;
 	BOOL bTrackFound = FALSE;
@@ -110,51 +110,51 @@ BOOL DumpTmx(HWND hwndCtl, LPCSTR lpszUid, LPCSTR lpszEnvi)
 	// Selection of API endpoints based on the environment
 	if ((strcmp(lpszEnvi, "Canyon") == 0) || (strcmp(lpszEnvi, "Valley") == 0) ||
 		(strcmp(lpszEnvi, "Lagoon") == 0) || (strcmp(lpszEnvi, "Arena") == 0))
-		bSuccess = ProcessMx(hwndCtl, lpszUid, GAME_TM2, &bTrackFound);
+		bSuccess = ProcessMx(hwndEdit, lpszUid, GAME_TM2, &bTrackFound);
 	else if ((strcmp(lpszEnvi, "Storm") == 0) || (strcmp(lpszEnvi, "Cryo") == 0) || (strcmp(lpszEnvi, "Meteor") == 0) ||
 		(strcmp(lpszEnvi, "Paris") == 0) || (strcmp(lpszEnvi, "Gothic") == 0))
-		bSuccess = ProcessMx(hwndCtl, lpszUid, GAME_SM, &bTrackFound);
+		bSuccess = ProcessMx(hwndEdit, lpszUid, GAME_SM, &bTrackFound);
 	else if ((strcmp(lpszEnvi, "Galaxy") == 0) || (strcmp(lpszEnvi, "History") == 0) ||
 		(strcmp(lpszEnvi, "Society") == 0) || (strcmp(lpszEnvi, "Future") == 0))
-		bSuccess = ProcessMx(hwndCtl, lpszUid, GAME_QM, &bTrackFound);
+		bSuccess = ProcessMx(hwndEdit, lpszUid, GAME_QM, &bTrackFound);
 	else if (strcmp(lpszEnvi, "Stadium") == 0)
 	{
-		bSuccess = ProcessMx(hwndCtl, lpszUid, GAME_TM2020, &bTrackFound);
+		bSuccess = ProcessMx(hwndEdit, lpszUid, GAME_TM2020, &bTrackFound);
 		if (bSuccess && bTrackFound == FALSE)
 		{
-			bSuccess = ProcessMx(hwndCtl, lpszUid, GAME_TM2, &bTrackFound);
+			bSuccess = ProcessMx(hwndEdit, lpszUid, GAME_TM2, &bTrackFound);
 			if (bSuccess && bTrackFound == FALSE)
 			{
-				bSuccess = ProcessTmx(hwndCtl, lpszUid, GAME_TMNF, &bTrackFound);
+				bSuccess = ProcessTmx(hwndEdit, lpszUid, GAME_TMNF, &bTrackFound);
 				if (bSuccess && bTrackFound == FALSE)
 				{
-					bSuccess = ProcessTmx(hwndCtl, lpszUid, GAME_TMU, &bTrackFound);
+					bSuccess = ProcessTmx(hwndEdit, lpszUid, GAME_TMU, &bTrackFound);
 					if (bSuccess && bTrackFound == FALSE)
-						bSuccess = ProcessTmx(hwndCtl, lpszUid, GAME_TMN, &bTrackFound);
+						bSuccess = ProcessTmx(hwndEdit, lpszUid, GAME_TMN, &bTrackFound);
 				}
 			}
 		}
 	}
 	else if ((strcmp(lpszEnvi, "Coast") == 0) || (strcmp(lpszEnvi, "Bay") == 0) || (strcmp(lpszEnvi, "Island") == 0))
 	{
-		bSuccess = ProcessTmx(hwndCtl, lpszUid, GAME_TMU, &bTrackFound);
+		bSuccess = ProcessTmx(hwndEdit, lpszUid, GAME_TMU, &bTrackFound);
 		if (bSuccess && bTrackFound == FALSE)
-			bSuccess = ProcessTmx(hwndCtl, lpszUid, GAME_TMS, &bTrackFound);
+			bSuccess = ProcessTmx(hwndEdit, lpszUid, GAME_TMS, &bTrackFound);
 	}
 	else if ((strcmp(lpszEnvi, "Desert") == 0) || (strcmp(lpszEnvi, "Snow") == 0) || (strcmp(lpszEnvi, "Rally") == 0) ||
 		(strcmp(lpszEnvi, "Alpine") == 0) || (strcmp(lpszEnvi, "Speed") == 0))
 	{
-		bSuccess = ProcessTmx(hwndCtl, lpszUid, GAME_TMU, &bTrackFound);
+		bSuccess = ProcessTmx(hwndEdit, lpszUid, GAME_TMU, &bTrackFound);
 		if (bSuccess && bTrackFound == FALSE)
-			ProcessTmx(hwndCtl, lpszUid, GAME_TMO, &bTrackFound);
+			ProcessTmx(hwndEdit, lpszUid, GAME_TMO, &bTrackFound);
 	}
 
 	if (bSuccess && !bTrackFound)
 	{ // Map not found
-		OutputTextErr(hwndCtl, g_bGerUI ? IDP_GER_ERR_TRACK : IDP_ENG_ERR_TRACK);
+		OutputTextErr(hwndEdit, g_bGerUI ? IDP_GER_ERR_TRACK : IDP_ENG_ERR_TRACK);
 	}
 
-	OutputText(hwndCtl, g_szSep2);
+	OutputText(hwndEdit, g_szSep2);
 	SetCursor(hOldCursor);
 
 	return bSuccess;
@@ -162,9 +162,9 @@ BOOL DumpTmx(HWND hwndCtl, LPCSTR lpszUid, LPCSTR lpszEnvi)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL ProcessTmx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
+BOOL ProcessTmx(HWND hwndEdit, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 {
-	if (hwndCtl == NULL || lpszUid == NULL || pbTrackFound == NULL)
+	if (hwndEdit == NULL || lpszUid == NULL || pbTrackFound == NULL)
 		return FALSE;
 
 	TCHAR szOutput[OUTPUT_LEN];
@@ -202,8 +202,8 @@ BOOL ProcessTmx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 	LPSTR lpszData = (LPSTR)MyGlobalAllocPtr(GHND, dwSize);
 	if (lpszData == NULL)
 	{
-		OutputText(hwndCtl, g_szSep1);
-		OutputText(hwndCtl, g_szErrOom);
+		OutputText(hwndEdit, g_szSep1);
+		OutputText(hwndEdit, g_szErrOom);
 		return FALSE;
 	}
 
@@ -211,7 +211,7 @@ BOOL ProcessTmx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 	TCHAR szTmxUrl[512];
 	_sntprintf(szTmxUrl, _countof(szTmxUrl), g_szUrlTmx, g_szHttp, szSubDomain, g_szParamInfo, lpszUid);
 
-	if (!ReadInternetFile(hwndCtl, szTmxUrl, lpszData, dwSize))
+	if (!ReadInternetFile(hwndEdit, szTmxUrl, lpszData, dwSize))
 	{
 		MyGlobalFreePtr((LPVOID)lpszData);
 		return FALSE;
@@ -234,9 +234,9 @@ BOOL ProcessTmx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 	strcpy(szTrackId, "0");
 
 	// Place the cursor at the end of the edit control
-	int nLen = Edit_GetTextLength(hwndCtl);
-	Edit_SetSel(hwndCtl, (WPARAM)nLen, (LPARAM)nLen);
-	OutputText(hwndCtl, g_szSep1);
+	int nLen = Edit_GetTextLength(hwndEdit);
+	Edit_SetSel(hwndEdit, (WPARAM)nLen, (LPARAM)nLen);
+	OutputText(hwndEdit, g_szSep1);
 
 	// Parse and output the TMX data
 	int i = 0;
@@ -249,63 +249,63 @@ BOOL ProcessTmx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 		{
 			case 1:
 				MyStrNCpyA(szTrackId, token, _countof(szTrackId));
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Track ID:\t%hs\r\n"), token);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Track ID:\t%hs\r\n"), token);
 				break;
 			case 2:
-				OutputText(hwndCtl, TEXT("Name:\t\t"));
+				OutputText(hwndEdit, TEXT("Name:\t\t"));
 				MultiByteToWideChar(uCodePage, 0, token, -1, szOutput, _countof(szOutput)-1);
-				OutputText(hwndCtl, szOutput);
-				OutputText(hwndCtl, TEXT("\r\n"));
+				OutputText(hwndEdit, szOutput);
+				OutputText(hwndEdit, TEXT("\r\n"));
 				break;
 			case 4:
-				OutputText(hwndCtl, TEXT("Author:\t\t"));
+				OutputText(hwndEdit, TEXT("Author:\t\t"));
 				MultiByteToWideChar(uCodePage, 0, token, -1, szOutput, _countof(szOutput)-1);
-				OutputText(hwndCtl, szOutput);
-				OutputText(hwndCtl, TEXT("\r\n"));
+				OutputText(hwndEdit, szOutput);
+				OutputText(hwndEdit, TEXT("\r\n"));
 				break;
 			case 5:
 				MyStrNCpyA(szVersion, token, _countof(szVersion));
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Uploaded:\t%hs\r\n"), token);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Uploaded:\t%hs\r\n"), token);
 				break;
 			case 6:
 				MyStrNCpyA(szVersion, token, _countof(szVersion));
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Updated:\t%hs\r\n"), token);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Updated:\t%hs\r\n"), token);
 				break;
 			case 7:
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Visible:\t%hs\r\n"), token);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Visible:\t%hs\r\n"), token);
 				break;
 			case 8:
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Type:\t\t%hs\r\n"), token);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Type:\t\t%hs\r\n"), token);
 				if (strcmp(token, "Stunts") == 0)
 					bIsStunts = TRUE;
 				break;
 			case 9:
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Environment:\t%hs\r\n"), token);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Environment:\t%hs\r\n"), token);
 				break;
 			case 10:
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Mood:\t\t%hs\r\n"), token);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Mood:\t\t%hs\r\n"), token);
 				break;
 			case 11:
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Style:\t\t%hs\r\n"), token);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Style:\t\t%hs\r\n"), token);
 				break;
 			case 12:
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Routes:\t\t%hs\r\n"), token);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Routes:\t\t%hs\r\n"), token);
 				break;
 			case 13:
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Length:\t\t%hs\r\n"), token);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Length:\t\t%hs\r\n"), token);
 				break;
 			case 14:
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Difficulty:\t%hs\r\n"), token);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Difficulty:\t%hs\r\n"), token);
 				break;
 			case 15:
-				OutputText(hwndCtl, TEXT("LB Rating:\t"));
+				OutputText(hwndEdit, TEXT("LB Rating:\t"));
 				if (strcmp(token, "0") == 0)
-					OutputText(hwndCtl, TEXT("Classic!\r\n"));
+					OutputText(hwndEdit, TEXT("Classic!\r\n"));
 				else
-					OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%hs\r\n"), token);
+					OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("%hs\r\n"), token);
 				break;
 			case 16:
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Game:\t\t%hs\r\n"), token);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Game:\t\t%hs\r\n"), token);
 				break;
 		}
 		token = strtok(NULL, "\t");
@@ -321,7 +321,7 @@ BOOL ProcessTmx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 	// Request additional TMX data by TMX track ID
 	_sntprintf(szTmxUrl, _countof(szTmxUrl), g_szUrlTmx, g_szHttp, szSubDomain, g_szParamSearch, szTrackId);
 
-	if (!ReadInternetFile(hwndCtl, szTmxUrl, lpszData, dwSize))
+	if (!ReadInternetFile(hwndEdit, szTmxUrl, lpszData, dwSize))
 	{
 		MyGlobalFreePtr((LPVOID)lpszData);
 		return FALSE;
@@ -334,8 +334,8 @@ BOOL ProcessTmx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 	}
 
 	// Place the cursor at the end of the edit control
-	nLen = Edit_GetTextLength(hwndCtl);
-	Edit_SetSel(hwndCtl, (WPARAM)nLen, (LPARAM)nLen);
+	nLen = Edit_GetTextLength(hwndEdit);
+	Edit_SetSel(hwndEdit, (WPARAM)nLen, (LPARAM)nLen);
 
 	// Parse and output TMX data
 	i = 0;
@@ -347,10 +347,10 @@ BOOL ProcessTmx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 		switch (i)
 		{
 			case 13:
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Awards:\t\t%hs\r\n"), token);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Awards:\t\t%hs\r\n"), token);
 				break;
 			case 14:
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Comments:\t%hs\r\n"), token);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Comments:\t%hs\r\n"), token);
 				break;
 		}
 		token = strtok(NULL, "\t");
@@ -359,7 +359,7 @@ BOOL ProcessTmx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 	// Request additional TMX data (Replays) via TMX track ID
 	_sntprintf(szTmxUrl, _countof(szTmxUrl), g_szUrlTmx, g_szHttp, szSubDomain, g_szParamRecord, szTrackId);
 
-	if (!ReadInternetFile(hwndCtl, szTmxUrl, lpszData, dwSize))
+	if (!ReadInternetFile(hwndEdit, szTmxUrl, lpszData, dwSize))
 	{
 		MyGlobalFreePtr((LPVOID)lpszData);
 		return FALSE;
@@ -372,9 +372,9 @@ BOOL ProcessTmx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 	}
 
 	// Place the cursor at the end of the edit control
-	nLen = Edit_GetTextLength(hwndCtl);
-	Edit_SetSel(hwndCtl, (WPARAM)nLen, (LPARAM)nLen);
-	OutputText(hwndCtl, g_szSep1);
+	nLen = Edit_GetTextLength(hwndEdit);
+	Edit_SetSel(hwndEdit, (WPARAM)nLen, (LPARAM)nLen);
+	OutputText(hwndEdit, g_szSep1);
 
 	// Parse and output the Replay data
 	UINT uRecords = 0;
@@ -401,29 +401,29 @@ BOOL ProcessTmx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 			switch (i)
 			{
 				case 2:
-					OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%02u. "), uRecords);
+					OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("%02u. "), uRecords);
 					break;
 				case 3:
 					MultiByteToWideChar(uCodePage, 0, token, -1, szOutput, _countof(szOutput)-1);
-					OutputText(hwndCtl, szOutput);
-					OutputText(hwndCtl, TEXT(" "));
+					OutputText(hwndEdit, szOutput);
+					OutputText(hwndEdit, TEXT(" "));
 					break;
 				case 4:
 					{
 						int nTime = atoi(token);
 						if (bIsStunts)
-							OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("(%d)"), nTime);
+							OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("(%d)"), nTime);
 						else
 						{
 							FormatTimeT(nTime, szOutput, _countof(szOutput));
-							OutputText(hwndCtl, szOutput);
+							OutputText(hwndEdit, szOutput);
 						}
 					}
 					break;
 				case 6:
 					if (strcmp(szVersion, token) != 0)
-						OutputText(hwndCtl, TEXT("!"));
-					OutputText(hwndCtl, TEXT("\r\n"));
+						OutputText(hwndEdit, TEXT("!"));
+					OutputText(hwndEdit, TEXT("\r\n"));
 					break;
 			}
 			token = strtok(NULL, "\t");
@@ -437,9 +437,9 @@ BOOL ProcessTmx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL ProcessMx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
+BOOL ProcessMx(HWND hwndEdit, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 {
-	if (hwndCtl == NULL || lpszUid == NULL || pbTrackFound == NULL)
+	if (hwndEdit == NULL || lpszUid == NULL || pbTrackFound == NULL)
 		return FALSE;
 
 	*pbTrackFound = FALSE;
@@ -471,7 +471,7 @@ BOOL ProcessMx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 	_sntprintf(szMxUrl, _countof(szMxUrl),
 		nGame == GAME_TM2020 ? g_szUrlMxMaps : g_szUrlMpMaps, g_szHttps, szSubDomain, lpszUid);
 	
-	if (!RequestMxData(hwndCtl, szMxUrl, &nTrackId))
+	if (!RequestMxData(hwndEdit, szMxUrl, &nTrackId))
 		return FALSE;
 
 	// Do we have a valid MX track ID?
@@ -484,7 +484,7 @@ BOOL ProcessMx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 	_sntprintf(szMxUrl, _countof(szMxUrl),
 		nGame == GAME_TM2020 ? g_szUrlMxItems : g_szUrlMpItems, g_szHttps, szSubDomain, nTrackId);
 	
-	if (!RequestMxData(hwndCtl, szMxUrl))
+	if (!RequestMxData(hwndEdit, szMxUrl))
 		return FALSE;
 
 	// Replay data is only available for TrackMania² and Trackmania 2020
@@ -495,7 +495,7 @@ BOOL ProcessMx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 	_sntprintf(szMxUrl, _countof(szMxUrl),
 		nGame == GAME_TM2020 ? g_szUrlMxRepl : g_szUrlMpRepl, g_szHttps, szSubDomain, nTrackId);
 	
-	if (!RequestMxData(hwndCtl, szMxUrl, &nTrackId))
+	if (!RequestMxData(hwndEdit, szMxUrl, &nTrackId))
 		return FALSE;
 
 	return TRUE;
@@ -503,17 +503,17 @@ BOOL ProcessMx(HWND hwndCtl, LPCSTR lpszUid, int nGame, PBOOL pbTrackFound)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL RequestMxData(HWND hwndCtl, LPCTSTR lpszMxUrl, PINT pnTrackId)
+BOOL RequestMxData(HWND hwndEdit, LPCTSTR lpszMxUrl, PINT pnTrackId)
 {
-	if (hwndCtl == NULL || lpszMxUrl == NULL)
+	if (hwndEdit == NULL || lpszMxUrl == NULL)
 		return FALSE;
 
 	DWORD dwSize = MX_MAX_DATASIZE;
 	HGLOBAL hXml = GlobalAlloc(GHND, dwSize);
 	if (hXml == NULL)
 	{
-		OutputText(hwndCtl, g_szSep1);
-		OutputText(hwndCtl, g_szErrOom);
+		OutputText(hwndEdit, g_szSep1);
+		OutputText(hwndEdit, g_szErrOom);
 		return FALSE;
 	}
 
@@ -524,7 +524,7 @@ BOOL RequestMxData(HWND hwndCtl, LPCTSTR lpszMxUrl, PINT pnTrackId)
 		return FALSE;
 	}
 
-	if (!ReadInternetFile(hwndCtl, lpszMxUrl, lpszData, dwSize))
+	if (!ReadInternetFile(hwndEdit, lpszMxUrl, lpszData, dwSize))
 	{
 		GlobalUnlock(hXml);
 		GlobalFree(hXml);
@@ -544,12 +544,12 @@ BOOL RequestMxData(HWND hwndCtl, LPCTSTR lpszMxUrl, PINT pnTrackId)
 	}
 
 	// Place the cursor at the end of the edit control
-	int nLen = Edit_GetTextLength(hwndCtl);
-	Edit_SetSel(hwndCtl, (WPARAM)nLen, (LPARAM)nLen);
-	OutputText(hwndCtl, g_szSep1);
+	int nLen = Edit_GetTextLength(hwndEdit);
+	Edit_SetSel(hwndEdit, (WPARAM)nLen, (LPARAM)nLen);
+	OutputText(hwndEdit, g_szSep1);
 
 	HRESULT hr = S_FALSE;
-	if (FAILED(hr = ParseAndOutputXml(hwndCtl, hXml, pnTrackId)))
+	if (FAILED(hr = ParseAndOutputXml(hwndEdit, hXml, pnTrackId)))
 	{
 		GlobalFree(hXml);
 		return FALSE;
@@ -561,9 +561,9 @@ BOOL RequestMxData(HWND hwndCtl, LPCTSTR lpszMxUrl, PINT pnTrackId)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-HRESULT ParseAndOutputXml(HWND hwndCtl, HGLOBAL hXml, PINT pnTrackId)
+HRESULT ParseAndOutputXml(HWND hwndEdit, HGLOBAL hXml, PINT pnTrackId)
 {
-	if (hwndCtl == NULL || hXml == NULL)
+	if (hwndEdit == NULL || hXml == NULL)
 		return E_INVALIDARG;
 
 	HRESULT hr = S_FALSE;
@@ -646,7 +646,7 @@ HRESULT ParseAndOutputXml(HWND hwndCtl, HGLOBAL hXml, PINT pnTrackId)
 						*pnTrackId = _wtoi(pwszValue);
 
 					wcsncat(wszElement, L":", _countof(wszElement) - wcslen(wszElement) - 1);
-					OutputTextFmt(hwndCtl, wszOutput, _countof(wszOutput), L"%-23s %s\r\n", wszElement, pwszValue);
+					OutputTextFmt(hwndEdit, wszOutput, _countof(wszOutput), L"%-23s %s\r\n", wszElement, pwszValue);
 				}
 				else if (arrayType == XmlArrayType_TrackObject)
 				{
@@ -674,7 +674,7 @@ HRESULT ParseAndOutputXml(HWND hwndCtl, HGLOBAL hXml, PINT pnTrackId)
 				else if (arrayType == XmlArrayType_Item)
 				{
 					wcsncat(wszElement, L":", _countof(wszElement) - wcslen(wszElement) - 1);
-					OutputTextFmt(hwndCtl, wszOutput, _countof(wszOutput), L"%-15s %s\r\n", wszElement, pwszValue);
+					OutputTextFmt(hwndEdit, wszOutput, _countof(wszOutput), L"%-15s %s\r\n", wszElement, pwszValue);
 				}
 
 				break;
@@ -689,21 +689,21 @@ HRESULT ParseAndOutputXml(HWND hwndCtl, HGLOBAL hXml, PINT pnTrackId)
 					arrayType = XmlArrayType_None;
 				else if (_wcsicmp(pwszElement, L"TrackObject") == 0)
 				{
-					OutputTextFmt(hwndCtl, wszOutput, _countof(wszOutput), L"%02d. %s (%s",
+					OutputTextFmt(hwndEdit, wszOutput, _countof(wszOutput), L"%02d. %s (%s",
 						++nObjectNumber, wszObjectPath, wszObjectAuthor);
 					if (wcsncmp(wszUsername, wszObjectAuthor, wcslen(wszUsername)) != 0)
-						OutputTextFmt(hwndCtl, wszOutput, _countof(wszOutput), L"/%s", wszUsername);
-					OutputText(hwndCtl, L")\r\n");
+						OutputTextFmt(hwndEdit, wszOutput, _countof(wszOutput), L"/%s", wszUsername);
+					OutputText(hwndEdit, L")\r\n");
 					arrayType = XmlArrayType_None;
 				}
 				else if (_wcsicmp(pwszElement, L"Replay") == 0)
 				{
 					FormatTimeW(nReplayTime, wszReplayTime, _countof(wszReplayTime));
-					OutputTextFmt(hwndCtl, wszOutput, _countof(wszOutput), L"%02d. %s (%s)",
+					OutputTextFmt(hwndEdit, wszOutput, _countof(wszOutput), L"%02d. %s (%s)",
 						nReplayPos, wszUsername, wszReplayTime);
 					if (wcsncmp(wszStuntScore, L"0", wcslen(wszStuntScore)) != 0)
-						OutputTextFmt(hwndCtl, wszOutput, _countof(wszOutput), L" %s pt.", wszStuntScore);
-					OutputText(hwndCtl, L"\r\n");
+						OutputTextFmt(hwndEdit, wszOutput, _countof(wszOutput), L" %s pt.", wszStuntScore);
+					OutputText(hwndEdit, L"\r\n");
 					arrayType = XmlArrayType_None;
 				}
 				else if (_wcsicmp(pwszElement, L"Item") == 0)

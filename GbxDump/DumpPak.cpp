@@ -55,10 +55,10 @@ typedef struct SFileDescFlags
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Forward declarations of functions included in this code module
 
-BOOL DumpChecksum(HWND hwndCtl, HANDLE hFile, SIZE_T cbLen);
-BOOL DumpAuthorInfo(HWND hwndCtl, HANDLE hFile);
-BOOL DumpIncludedPacksHeaders(HWND hwndCtl, HANDLE hFile, DWORD dwVersion);
-BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderMaxSize);
+BOOL DumpChecksum(HWND hwndEdit, HANDLE hFile, SIZE_T cbLen);
+BOOL DumpAuthorInfo(HWND hwndEdit, HANDLE hFile);
+BOOL DumpIncludedPacksHeaders(HWND hwndEdit, HANDLE hFile, DWORD dwVersion);
+BOOL DumpPackHeader(HWND hwndEdit, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderMaxSize);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // String Constants
@@ -70,7 +70,7 @@ const TCHAR g_szCRLF[]     = TEXT("\r\n");
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // DumpPack is called by DumpFile from GbxDump.cpp
 
-BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
+BOOL DumpPack(HWND hwndEdit, HANDLE hFile)
 {
 	SSIZE_T nRet = 0;
 	DWORD   dwTxtSize = 0;
@@ -80,7 +80,7 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 	CHAR    szRead[ID_LEN];
 	TCHAR   szOutput[OUTPUT_LEN];
 
-	if (hwndCtl == NULL || hFile == NULL)
+	if (hwndEdit == NULL || hFile == NULL)
 		return FALSE;
 
 	// Skip the file signature (already checked in DumpFile())
@@ -92,19 +92,19 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 	if (!ReadNat32(hFile, &dwVersion))
 		return FALSE;
 
-	OutputText(hwndCtl, g_szSep1);
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Pack Version:\t%d"), dwVersion);
-	if (dwVersion > 18) OutputText(hwndCtl, g_szAsterisk);
-	OutputText(hwndCtl, g_szCRLF);
+	OutputText(hwndEdit, g_szSep1);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Pack Version:\t%d"), dwVersion);
+	if (dwVersion > 18) OutputText(hwndEdit, g_szAsterisk);
+	OutputText(hwndEdit, g_szCRLF);
 
 	if (dwVersion < 6)
 	{ // Packs with version < 6 don't have a Pack header
-		OutputTextErr(hwndCtl, g_bGerUI ? IDP_GER_ERR_UNAVAIL : IDP_ENG_ERR_UNAVAIL);
+		OutputTextErr(hwndEdit, g_bGerUI ? IDP_GER_ERR_UNAVAIL : IDP_ENG_ERR_UNAVAIL);
 		return TRUE;
 	}
 
 	// ContentsChecksum
-	if (!DumpChecksum(hwndCtl, hFile, 32))
+	if (!DumpChecksum(hwndEdit, hFile, 32))
 		return FALSE;
 
 	// SHeaderFlagsUncrypt
@@ -112,7 +112,7 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 	if (!ReadNat32(hFile, &dwCryptFlags))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Decrypt Flags:\t%08X"), dwCryptFlags);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Decrypt Flags:\t%08X"), dwCryptFlags);
 
 	PHEADERFLAGSUNCRYPT pCryptFlags = (PHEADERFLAGSUNCRYPT)&dwCryptFlags;
 
@@ -135,12 +135,12 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 
 	if (szOutput[0] != g_chNil)
 	{
-		OutputText(hwndCtl, TEXT(" ("));
-		OutputText(hwndCtl, szOutput);
-		OutputText(hwndCtl, TEXT(")"));
+		OutputText(hwndEdit, TEXT(" ("));
+		OutputText(hwndEdit, szOutput);
+		OutputText(hwndEdit, TEXT(")"));
 	}
 
-	OutputText(hwndCtl, g_szCRLF);
+	OutputText(hwndEdit, g_szCRLF);
 
 	if (dwVersion < 7)
 		return TRUE;
@@ -152,21 +152,21 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 		if (!ReadNat32(hFile, &dwHeaderMaxSize))
 			return FALSE;
 
-		OutputText(hwndCtl, TEXT("Header Size:\t"));
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%08X"), dwHeaderMaxSize);
+		OutputText(hwndEdit, TEXT("Header Size:\t"));
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("%08X"), dwHeaderMaxSize);
 
 		if (FormatByteSize(dwHeaderMaxSize, szOutput, _countof(szOutput)))
 		{
-			OutputText(hwndCtl, TEXT(" ("));
-			OutputText(hwndCtl, szOutput);
-			OutputText(hwndCtl, TEXT(")"));
+			OutputText(hwndEdit, TEXT(" ("));
+			OutputText(hwndEdit, szOutput);
+			OutputText(hwndEdit, TEXT(")"));
 		}
 
-		OutputText(hwndCtl, g_szCRLF);
+		OutputText(hwndEdit, g_szCRLF);
 	}
 
 	// SAuthorInfo
-	if (!DumpAuthorInfo(hwndCtl, hFile))
+	if (!DumpAuthorInfo(hwndEdit, hFile))
 		return FALSE;
 
 	if (dwVersion < 9)
@@ -177,9 +177,9 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 
 		if (nRet > 0)
 		{
-			OutputText(hwndCtl, TEXT("Comment:\t"));
+			OutputText(hwndEdit, TEXT("Comment:\t"));
 			ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput), TRUE);
-			OutputText(hwndCtl, szOutput);
+			OutputText(hwndEdit, szOutput);
 		}
 
 		// Skip unused variable (16 bytes)
@@ -198,9 +198,9 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 
 		if (nRet > 0)
 		{
-			OutputText(hwndCtl, TEXT("Build Info:\t"));
+			OutputText(hwndEdit, TEXT("Build Info:\t"));
 			ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-			OutputText(hwndCtl, szOutput);
+			OutputText(hwndEdit, szOutput);
 		}
 
 		// URL
@@ -209,9 +209,9 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 
 		if (nRet > 0)
 		{
-			OutputText(hwndCtl, TEXT("URL:\t\t"));
+			OutputText(hwndEdit, TEXT("URL:\t\t"));
 			ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-			OutputText(hwndCtl, szOutput);
+			OutputText(hwndEdit, szOutput);
 		}
 
 		return TRUE;
@@ -223,9 +223,9 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Manialink:\t"));
+		OutputText(hwndEdit, TEXT("Manialink:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput), TRUE);
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	if (dwVersion >= 13)
@@ -236,9 +236,9 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 
 		if (nRet > 0)
 		{
-			OutputText(hwndCtl, TEXT("Download URL:\t"));
+			OutputText(hwndEdit, TEXT("Download URL:\t"));
 			ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-			OutputText(hwndCtl, szOutput);
+			OutputText(hwndEdit, szOutput);
 		}
 	}
 
@@ -249,7 +249,7 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 		return FALSE;
 
 	if ((ftDate.dwLowDateTime != 0 || ftDate.dwHighDateTime != 0) && FileTimeToSystemTime(&ftDate, &stDate))
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Creation Date:\t%02u-%02u-%02u %02u:%02u:%02u\r\n"),
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Creation Date:\t%02u-%02u-%02u %02u:%02u:%02u\r\n"),
 			stDate.wYear, stDate.wMonth, stDate.wDay, stDate.wHour, stDate.wMinute, stDate.wSecond);
 
 	// Comment
@@ -318,9 +318,9 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 
 		if (nRet > 0)
 		{
-			OutputText(hwndCtl, TEXT("Title ID:\t"));
+			OutputText(hwndEdit, TEXT("Title ID:\t"));
 			ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-			OutputText(hwndCtl, szOutput);
+			OutputText(hwndEdit, szOutput);
 		}
 	}
 
@@ -336,9 +336,9 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Pack Type:\t"));
+		OutputText(hwndEdit, TEXT("Pack Type:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	// CreationBuildInfo
@@ -353,9 +353,9 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Build Info:\t"));
+		OutputText(hwndEdit, TEXT("Build Info:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	// Jump to the included packages (skip unused 16 bytes)
@@ -381,13 +381,13 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 			return FALSE;
 		}
 
-		OutputText(hwndCtl, g_szSep1);
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Included Packs:\t%d\r\n"), dwNumIncludedPacks);
+		OutputText(hwndEdit, g_szSep1);
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Included Packs:\t%d\r\n"), dwNumIncludedPacks);
 
 		while (dwNumIncludedPacks--)
 		{
 			// Included Packs Headers
-			if (!DumpIncludedPacksHeaders(hwndCtl, hFile, dwVersion))
+			if (!DumpIncludedPacksHeaders(hwndEdit, hFile, dwVersion))
 			{
 				if (lpDataXml != NULL)
 					MyGlobalFreePtr(lpDataXml);
@@ -405,9 +405,9 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 		while (lpsz = strchr(lpsz, '\n'))
 			*lpsz++ = '|';
 
-		OutputText(hwndCtl, g_szSep1);
+		OutputText(hwndEdit, g_szSep1);
 		ConvertGbxString(lpDataTxt, dwTxtSize, szOutput, _countof(szOutput), TRUE);
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 
 		MyGlobalFreePtr(lpDataTxt);
 	}
@@ -426,13 +426,13 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 				// Insert line breaks
 				LPCTSTR lpszTemp = AllocReplaceString((LPCTSTR)pXmlString, TEXT("><"), TEXT(">\r\n<"));
 
-				OutputText(hwndCtl, g_szSep1);
+				OutputText(hwndEdit, g_szSep1);
 
 				if (lpszTemp == NULL)
-					OutputText(hwndCtl, (LPCTSTR)pXmlString);
+					OutputText(hwndEdit, (LPCTSTR)pXmlString);
 				else
 				{
-					OutputText(hwndCtl, lpszTemp);
+					OutputText(hwndEdit, lpszTemp);
 					MyGlobalFreePtr((LPVOID)lpszTemp);
 				}
 			}
@@ -447,12 +447,12 @@ BOOL DumpPack(HWND hwndCtl, HANDLE hFile)
 	if (pCryptFlags->IsHeaderPrivate || pCryptFlags->UseDefaultHeaderKey)
 		return TRUE;
 
-	return DumpPackHeader(hwndCtl, hFile, dwVersion, dwHeaderMaxSize);
+	return DumpPackHeader(hwndEdit, hFile, dwVersion, dwHeaderMaxSize);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL DumpChecksum(HWND hwndCtl, HANDLE hFile, SIZE_T cbLen)
+BOOL DumpChecksum(HWND hwndEdit, HANDLE hFile, SIZE_T cbLen)
 {
 	LPVOID lpData = MyGlobalAllocPtr(GHND, cbLen);
 	if (lpData == NULL)
@@ -473,9 +473,9 @@ BOOL DumpChecksum(HWND hwndCtl, HANDLE hFile, SIZE_T cbLen)
 	while (cbLen--)
 		_sntprintf(szOutput, _countof(szOutput), TEXT("%s%02X"), (LPTSTR)szOutput, (WORD)*lpByte++);
 
-	OutputText(hwndCtl, TEXT("Checksum:\t"));
-	OutputText(hwndCtl, szOutput);
-	OutputText(hwndCtl, g_szCRLF);
+	OutputText(hwndEdit, TEXT("Checksum:\t"));
+	OutputText(hwndEdit, szOutput);
+	OutputText(hwndEdit, g_szCRLF);
 
 	MyGlobalFreePtr(lpData);
 
@@ -484,7 +484,7 @@ BOOL DumpChecksum(HWND hwndCtl, HANDLE hFile, SIZE_T cbLen)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL DumpAuthorInfo(HWND hwndCtl, HANDLE hFile)
+BOOL DumpAuthorInfo(HWND hwndEdit, HANDLE hFile)
 {
 	SSIZE_T nRet = 0;
 	CHAR    szRead[ID_LEN];
@@ -495,9 +495,9 @@ BOOL DumpAuthorInfo(HWND hwndCtl, HANDLE hFile)
 	if (!ReadNat32(hFile, &dwAuthorVer))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Author Version:\t%d"), dwAuthorVer);
-	if (dwAuthorVer > 0) OutputText(hwndCtl, g_szAsterisk);
-	OutputText(hwndCtl, g_szCRLF);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Author Version:\t%d"), dwAuthorVer);
+	if (dwAuthorVer > 0) OutputText(hwndEdit, g_szAsterisk);
+	OutputText(hwndEdit, g_szCRLF);
 
 	// Login
 	if ((nRet = ReadString(hFile, szRead, _countof(szRead))) < 0)
@@ -505,9 +505,9 @@ BOOL DumpAuthorInfo(HWND hwndCtl, HANDLE hFile)
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Author Login:\t"));
+		OutputText(hwndEdit, TEXT("Author Login:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	// Nick Name
@@ -516,9 +516,9 @@ BOOL DumpAuthorInfo(HWND hwndCtl, HANDLE hFile)
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Author Nick:\t"));
+		OutputText(hwndEdit, TEXT("Author Nick:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput), TRUE);
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	// Zone
@@ -527,9 +527,9 @@ BOOL DumpAuthorInfo(HWND hwndCtl, HANDLE hFile)
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Author Zone:\t"));
+		OutputText(hwndEdit, TEXT("Author Zone:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	// Extra Info
@@ -538,9 +538,9 @@ BOOL DumpAuthorInfo(HWND hwndCtl, HANDLE hFile)
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Extra Info:\t"));
+		OutputText(hwndEdit, TEXT("Extra Info:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	return TRUE;
@@ -548,16 +548,16 @@ BOOL DumpAuthorInfo(HWND hwndCtl, HANDLE hFile)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL DumpIncludedPacksHeaders(HWND hwndCtl, HANDLE hFile, DWORD dwVersion)
+BOOL DumpIncludedPacksHeaders(HWND hwndEdit, HANDLE hFile, DWORD dwVersion)
 {
 	SSIZE_T nRet = 0;
 	CHAR    szRead[ID_LEN];
 	TCHAR   szOutput[OUTPUT_LEN];
 
-	OutputText(hwndCtl, g_szSep0);
+	OutputText(hwndEdit, g_szSep0);
 
 	// ContentsChecksum
-	if (!DumpChecksum(hwndCtl, hFile, 32))
+	if (!DumpChecksum(hwndEdit, hFile, 32))
 		return FALSE;
 
 	// Package Name
@@ -566,13 +566,13 @@ BOOL DumpIncludedPacksHeaders(HWND hwndCtl, HANDLE hFile, DWORD dwVersion)
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Pack Name:\t"));
+		OutputText(hwndEdit, TEXT("Pack Name:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput), TRUE);
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	// SAuthorInfo
-	if (!DumpAuthorInfo(hwndCtl, hFile))
+	if (!DumpAuthorInfo(hwndEdit, hFile))
 		return FALSE;
 
 	// Manialink
@@ -581,9 +581,9 @@ BOOL DumpIncludedPacksHeaders(HWND hwndCtl, HANDLE hFile, DWORD dwVersion)
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Manialink:\t"));
+		OutputText(hwndEdit, TEXT("Manialink:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput), TRUE);
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	// Creation Date
@@ -593,7 +593,7 @@ BOOL DumpIncludedPacksHeaders(HWND hwndCtl, HANDLE hFile, DWORD dwVersion)
 		return FALSE;
 
 	if ((ftDate.dwLowDateTime != 0 || ftDate.dwHighDateTime != 0) && FileTimeToSystemTime(&ftDate, &stDate))
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Creation Date:\t%02u-%02u-%02u %02u:%02u:%02u\r\n"),
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Creation Date:\t%02u-%02u-%02u %02u:%02u:%02u\r\n"),
 			stDate.wYear, stDate.wMonth, stDate.wDay, stDate.wHour, stDate.wMinute, stDate.wSecond);
 
 	// Package Name
@@ -602,9 +602,9 @@ BOOL DumpIncludedPacksHeaders(HWND hwndCtl, HANDLE hFile, DWORD dwVersion)
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Pack Name:\t"));
+		OutputText(hwndEdit, TEXT("Pack Name:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput), TRUE);
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	if (dwVersion >= 11)
@@ -614,7 +614,7 @@ BOOL DumpIncludedPacksHeaders(HWND hwndCtl, HANDLE hFile, DWORD dwVersion)
 		if (!ReadNat32(hFile, &dwIncludeDepth))
 			return FALSE;
 
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Include Depth:\t%d\r\n"), dwIncludeDepth);
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Include Depth:\t%d\r\n"), dwIncludeDepth);
 	}
 
 	return TRUE;
@@ -622,16 +622,16 @@ BOOL DumpIncludedPacksHeaders(HWND hwndCtl, HANDLE hFile, DWORD dwVersion)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderMaxSize)
+BOOL DumpPackHeader(HWND hwndEdit, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderMaxSize)
 {
 	SSIZE_T nRet = 0;
 	CHAR    szRead[ID_LEN];
 	TCHAR   szOutput[OUTPUT_LEN];
 
-	OutputText(hwndCtl, g_szSep1);
+	OutputText(hwndEdit, g_szSep1);
 
 	// Checksum
-	if (!DumpChecksum(hwndCtl, hFile, 16))
+	if (!DumpChecksum(hwndEdit, hFile, 16))
 		return FALSE;
 
 	// Gbx Headers Start
@@ -639,7 +639,7 @@ BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderM
 	if (!ReadNat32(hFile, &dwGbxHeadersStart))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Headers Start:\t%d\r\n"), dwGbxHeadersStart);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Headers Start:\t%d\r\n"), dwGbxHeadersStart);
 
 	// Data Start
 	DWORD dwDataStart = dwHeaderMaxSize;
@@ -650,7 +650,7 @@ BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderM
 			return FALSE;
 	}
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Data Start:\t%d\r\n"), dwDataStart);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Data Start:\t%d\r\n"), dwDataStart);
 
 	if (dwVersion >= 2)
 	{
@@ -659,14 +659,14 @@ BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderM
 		if (!ReadNat32(hFile, &dwGbxHeadersSize))
 			return FALSE;
 
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Headers Size:\t%d\r\n"), dwGbxHeadersSize);
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Headers Size:\t%d\r\n"), dwGbxHeadersSize);
 
 		// Gbx Headers Compressed Size
 		DWORD dwGbxHeadersComprSize = 0;
 		if (!ReadNat32(hFile, &dwGbxHeadersComprSize))
 			return FALSE;
 
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Hdr Compr Size:\t%d\r\n"), dwGbxHeadersComprSize);
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Hdr Compr Size:\t%d\r\n"), dwGbxHeadersComprSize);
 	}
 
 	if (dwVersion >= 14)
@@ -683,7 +683,7 @@ BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderM
 		if (!ReadNat32(hFile, &dwFileSize))
 			return FALSE;
 
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("File Size:\t%d\r\n"), dwFileSize);
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("File Size:\t%d\r\n"), dwFileSize);
 	}
 
 	if (dwVersion >= 3)
@@ -696,7 +696,7 @@ BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderM
 	if (dwVersion == 6)
 	{
 		// SAuthorInfo
-		if (!DumpAuthorInfo(hwndCtl, hFile))
+		if (!DumpAuthorInfo(hwndEdit, hFile))
 			return FALSE;
 	}
 
@@ -705,16 +705,16 @@ BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderM
 	if (!ReadNat32(hFile, &dwFlags))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Flags:\t\t%08X\r\n"), dwFlags);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Flags:\t\t%08X\r\n"), dwFlags);
 
 	// Num Folders
 	DWORD dwNumFolders = 0;
 	if (!ReadNat32(hFile, &dwNumFolders) || dwNumFolders > 0x10000000)
 		return FALSE;
 
-	OutputText(hwndCtl, g_szSep0);
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Num Folders:\t%d\r\n"), dwNumFolders);
-	OutputText(hwndCtl, g_szSep0);
+	OutputText(hwndEdit, g_szSep0);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Num Folders:\t%d\r\n"), dwNumFolders);
+	OutputText(hwndEdit, g_szSep0);
 
 	while (dwNumFolders--)
 	{
@@ -723,7 +723,7 @@ BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderM
 		if (!ReadNat32(hFile, &dwFolderIndex))
 			return FALSE;
 
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Folder Index:\t%d\r\n"), dwFolderIndex);
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Folder Index:\t%d\r\n"), dwFolderIndex);
 
 		// Folder Name
 		if ((nRet = ReadString(hFile, szRead, _countof(szRead))) < 0)
@@ -731,9 +731,9 @@ BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderM
 
 		if (nRet > 0)
 		{
-			OutputText(hwndCtl, TEXT("Folder Name:\t"));
+			OutputText(hwndEdit, TEXT("Folder Name:\t"));
 			ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-			OutputText(hwndCtl, szOutput);
+			OutputText(hwndEdit, szOutput);
 		}
 	}
 
@@ -742,19 +742,19 @@ BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderM
 	if (!ReadNat32(hFile, &dwNumFiles) || dwNumFiles > 0x10000000)
 		return FALSE;
 
-	OutputText(hwndCtl, g_szSep0);
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Num Files:\t%d\r\n"), dwNumFiles);
+	OutputText(hwndEdit, g_szSep0);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Num Files:\t%d\r\n"), dwNumFiles);
 
 	while (dwNumFiles--)
 	{
-		OutputText(hwndCtl, g_szSep0);
+		OutputText(hwndEdit, g_szSep0);
 
 		// Folder index
 		DWORD dwFolderIndex = 0;
 		if (!ReadNat32(hFile, &dwFolderIndex))
 			return FALSE;
 
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Folder Index:\t%d\r\n"), dwFolderIndex);
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Folder Index:\t%d\r\n"), dwFolderIndex);
 
 		// File name
 		if ((nRet = ReadString(hFile, szRead, _countof(szRead))) < 0)
@@ -762,9 +762,9 @@ BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderM
 
 		if (nRet > 0)
 		{
-			OutputText(hwndCtl, TEXT("File Name:\t"));
+			OutputText(hwndEdit, TEXT("File Name:\t"));
 			ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-			OutputText(hwndCtl, szOutput);
+			OutputText(hwndEdit, szOutput);
 		}
 
 		// Unknown
@@ -773,69 +773,69 @@ BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderM
 			return FALSE;
 
 		if (dwUnknown != UNASSIGNED) // Show only if set
-			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Unknown:\t%d\r\n"), dwUnknown);
+			OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Unknown:\t%d\r\n"), dwUnknown);
 
 		// Uncompressed Size
 		DWORD dwUncompressedSize = 0;
 		if (!ReadNat32(hFile, &dwUncompressedSize))
 			return FALSE;
 
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Uncompr Size:\t%d\r\n"), dwUncompressedSize);
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Uncompr Size:\t%d\r\n"), dwUncompressedSize);
 
 		// Compressed Size
 		DWORD dwCompressedSize = 0;
 		if (!ReadNat32(hFile, &dwCompressedSize))
 			return FALSE;
 
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Compr Size:\t%d\r\n"), dwCompressedSize);
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Compr Size:\t%d\r\n"), dwCompressedSize);
 
 		// Offset
 		DWORD dwOffset = 0;
 		if (!ReadNat32(hFile, &dwOffset))
 			return FALSE;
 
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Offset:\t\t%d\r\n"), dwOffset);
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Offset:\t\t%d\r\n"), dwOffset);
 
 		// Class ID
 		DWORD dwClassId = 0;
 		if (!ReadMask(hFile, &dwClassId))
 			return FALSE;
 
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Class ID:\t%08X"), dwClassId);
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Class ID:\t%08X"), dwClassId);
 		switch (dwClassId)
 		{
 			case CLSID_FILETEXT_TM:
-				OutputText(hwndCtl, TEXT(" (FileText)"));
+				OutputText(hwndEdit, TEXT(" (FileText)"));
 				break;
 			case CLSID_FILEDDS_TM:
-				OutputText(hwndCtl, TEXT(" (FileDds)"));
+				OutputText(hwndEdit, TEXT(" (FileDds)"));
 				break;
 			case CLSID_FILETGA_TM:
-				OutputText(hwndCtl, TEXT(" (FileTga)"));
+				OutputText(hwndEdit, TEXT(" (FileTga)"));
 				break;
 			case CLSID_FILEPNG_TM:
-				OutputText(hwndCtl, TEXT(" (FilePng)"));
+				OutputText(hwndEdit, TEXT(" (FilePng)"));
 				break;
 			case CLSID_FILEJPG_TM:
-				OutputText(hwndCtl, TEXT(" (FileJpg)"));
+				OutputText(hwndEdit, TEXT(" (FileJpg)"));
 				break;
 			case CLSID_FILEWAV_TM:
-				OutputText(hwndCtl, TEXT(" (FileWav)"));
+				OutputText(hwndEdit, TEXT(" (FileWav)"));
 				break;
 			case CLSID_FILEOGGVORBIS_TMF:
-				OutputText(hwndCtl, TEXT(" (FileOggVorbis)"));
+				OutputText(hwndEdit, TEXT(" (FileOggVorbis)"));
 				break;
 			case CLSID_FILEWEBM_MP:
-				OutputText(hwndCtl, TEXT(" (FileWebM)"));
+				OutputText(hwndEdit, TEXT(" (FileWebM)"));
 				break;
 			case CLSID_FILEPACK_TM:
-				OutputText(hwndCtl, TEXT(" (FilePack)"));
+				OutputText(hwndEdit, TEXT(" (FilePack)"));
 				break;
 			case CLSID_FILEZIP_TMF:
-				OutputText(hwndCtl, TEXT(" (FileZip)"));
+				OutputText(hwndEdit, TEXT(" (FileZip)"));
 				break;
 		}
-		OutputText(hwndCtl, g_szCRLF);
+		OutputText(hwndEdit, g_szCRLF);
 
 		if (dwVersion >= 17)
 		{
@@ -844,13 +844,13 @@ BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderM
 			if (!ReadNat32(hFile, &dwSize))
 				return FALSE;
 
-			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Size:\t\t%d\r\n"), dwSize);
+			OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Size:\t\t%d\r\n"), dwSize);
 		}
 
 		if (dwVersion >= 14)
 		{
 			// Checksum
-			if (!DumpChecksum(hwndCtl, hFile, 16))
+			if (!DumpChecksum(hwndEdit, hFile, 16))
 				return FALSE;
 		}
 
@@ -859,7 +859,7 @@ BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderM
 		if (!ReadNat64(hFile, &ullFlags))
 			return FALSE;
 
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Flags:\t\t%08X%08X"), ullFlags.HighPart, ullFlags.LowPart);
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Flags:\t\t%08X%08X"), ullFlags.HighPart, ullFlags.LowPart);
 
 		PFILEDESCFLAGS pFileFlags = (PFILEDESCFLAGS)&ullFlags;
 
@@ -897,12 +897,12 @@ BOOL DumpPackHeader(HWND hwndCtl, HANDLE hFile, DWORD dwVersion, DWORD dwHeaderM
 
 		if (szOutput[0] != g_chNil)
 		{
-			OutputText(hwndCtl, TEXT(" ("));
-			OutputText(hwndCtl, szOutput);
-			OutputText(hwndCtl, TEXT(")"));
+			OutputText(hwndEdit, TEXT(" ("));
+			OutputText(hwndEdit, szOutput);
+			OutputText(hwndEdit, TEXT(")"));
 		}
 
-		OutputText(hwndCtl, g_szCRLF);
+		OutputText(hwndEdit, g_szCRLF);
 	}
 
 	return TRUE;

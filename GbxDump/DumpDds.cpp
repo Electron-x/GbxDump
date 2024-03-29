@@ -27,7 +27,7 @@
 // Forward declarations of functions included in this code module
 
 // Decodes the DDS file and displays it as a thumbnail
-BOOL DisplayDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize, BOOL bShowTextureDesc = FALSE);
+BOOL DisplayDDS(HWND hwndEdit, HANDLE hFile, DWORD dwFileSize, BOOL bShowTextureDesc = FALSE);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // String Constants
@@ -37,222 +37,222 @@ const TCHAR szCRLF[] = TEXT("\r\n");
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void PrintD3DFormat(HWND hwndCtl, DWORD dwFourCC)
+static void PrintD3DFormat(HWND hwndEdit, DWORD dwFourCC)
 {
-	if (hwndCtl == NULL)
+	if (hwndEdit == NULL)
 		return;
 
 	switch (dwFourCC)
 	{
 		case 0:
-			OutputText(hwndCtl, TEXT(" (Unknown)"));
+			OutputText(hwndEdit, TEXT(" (Unknown)"));
 			break;
 		case 36:
-			OutputText(hwndCtl, TEXT(" (A16B16G16R16)"));
+			OutputText(hwndEdit, TEXT(" (A16B16G16R16)"));
 			break;
 		case 110:
-			OutputText(hwndCtl, TEXT(" (Q16W16V16U16)"));
+			OutputText(hwndEdit, TEXT(" (Q16W16V16U16)"));
 			break;
 		case 111:
-			OutputText(hwndCtl, TEXT(" (R16F)"));
+			OutputText(hwndEdit, TEXT(" (R16F)"));
 			break;
 		case 112:
-			OutputText(hwndCtl, TEXT(" (G16R16F)"));
+			OutputText(hwndEdit, TEXT(" (G16R16F)"));
 			break;
 		case 113:
-			OutputText(hwndCtl, TEXT(" (A16B16G16R16F)"));
+			OutputText(hwndEdit, TEXT(" (A16B16G16R16F)"));
 			break;
 		case 114:
-			OutputText(hwndCtl, TEXT(" (R32F)"));
+			OutputText(hwndEdit, TEXT(" (R32F)"));
 			break;
 		case 115:
-			OutputText(hwndCtl, TEXT(" (G32R32F)"));
+			OutputText(hwndEdit, TEXT(" (G32R32F)"));
 			break;
 		case 116:
-			OutputText(hwndCtl, TEXT(" (A32B32G32R32F)"));
+			OutputText(hwndEdit, TEXT(" (A32B32G32R32F)"));
 			break;
 		case 117:
-			OutputText(hwndCtl, TEXT(" (CxV8U8)"));
+			OutputText(hwndEdit, TEXT(" (CxV8U8)"));
 			break;
 	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void PrintDXGIFormat(HWND hwndCtl, DWORD dwDxgiFormat)
+static void PrintDXGIFormat(HWND hwndEdit, DWORD dwDxgiFormat)
 {
-	if (hwndCtl == NULL)
+	if (hwndEdit == NULL)
 		return;
 
 	switch (dwDxgiFormat)
 	{
 		case 0:
-			OutputText(hwndCtl, TEXT(" (Unknown)"));
+			OutputText(hwndEdit, TEXT(" (Unknown)"));
 			break;
 		case 2:
-			OutputText(hwndCtl, TEXT(" (R32G32B32A32 FLOAT)"));
+			OutputText(hwndEdit, TEXT(" (R32G32B32A32 FLOAT)"));
 			break;
 		case 10:
-			OutputText(hwndCtl, TEXT(" (R16G16B16A16 FLOAT)"));
+			OutputText(hwndEdit, TEXT(" (R16G16B16A16 FLOAT)"));
 			break;
 		case 11:
-			OutputText(hwndCtl, TEXT(" (R16G16B16A16 UNORM)"));
+			OutputText(hwndEdit, TEXT(" (R16G16B16A16 UNORM)"));
 			break;
 		case 13:
-			OutputText(hwndCtl, TEXT(" (R16G16B16A16 SNORM)"));
+			OutputText(hwndEdit, TEXT(" (R16G16B16A16 SNORM)"));
 			break;
 		case 16:
-			OutputText(hwndCtl, TEXT(" (R32G32 FLOAT)"));
+			OutputText(hwndEdit, TEXT(" (R32G32 FLOAT)"));
 			break;
 		case 24:
-			OutputText(hwndCtl, TEXT(" (R10G10B10A2 UNORM)"));
+			OutputText(hwndEdit, TEXT(" (R10G10B10A2 UNORM)"));
 			break;
 		case 26:
-			OutputText(hwndCtl, TEXT(" (R11G11B10 FLOAT)"));
+			OutputText(hwndEdit, TEXT(" (R11G11B10 FLOAT)"));
 			break;
 		case 28:
-			OutputText(hwndCtl, TEXT(" (R8G8B8A8 UNORM)"));
+			OutputText(hwndEdit, TEXT(" (R8G8B8A8 UNORM)"));
 			break;
 		case 29:
-			OutputText(hwndCtl, TEXT(" (R8G8B8A8 UNORM SRGB)"));
+			OutputText(hwndEdit, TEXT(" (R8G8B8A8 UNORM SRGB)"));
 			break;
 		case 31:
-			OutputText(hwndCtl, TEXT(" (R8G8B8A8 SNORM)"));
+			OutputText(hwndEdit, TEXT(" (R8G8B8A8 SNORM)"));
 			break;
 		case 34:
-			OutputText(hwndCtl, TEXT(" (R16G16 FLOAT)"));
+			OutputText(hwndEdit, TEXT(" (R16G16 FLOAT)"));
 			break;
 		case 35:
-			OutputText(hwndCtl, TEXT(" (R16G16 UNORM)"));
+			OutputText(hwndEdit, TEXT(" (R16G16 UNORM)"));
 			break;
 		case 37:
-			OutputText(hwndCtl, TEXT(" (R16G16 SNORM)"));
+			OutputText(hwndEdit, TEXT(" (R16G16 SNORM)"));
 			break;
 		case 41:
-			OutputText(hwndCtl, TEXT(" (R32 FLOAT)"));
+			OutputText(hwndEdit, TEXT(" (R32 FLOAT)"));
 			break;
 		case 49:
-			OutputText(hwndCtl, TEXT(" (R8G8 UNORM)"));
+			OutputText(hwndEdit, TEXT(" (R8G8 UNORM)"));
 			break;
 		case 51:
-			OutputText(hwndCtl, TEXT(" (R8G8 SNORM)"));
+			OutputText(hwndEdit, TEXT(" (R8G8 SNORM)"));
 			break;
 		case 54:
-			OutputText(hwndCtl, TEXT(" (R16 FLOAT)"));
+			OutputText(hwndEdit, TEXT(" (R16 FLOAT)"));
 			break;
 		case 56:
-			OutputText(hwndCtl, TEXT(" (R16 UNORM)"));
+			OutputText(hwndEdit, TEXT(" (R16 UNORM)"));
 			break;
 		case 61:
-			OutputText(hwndCtl, TEXT(" (R8 UNORM)"));
+			OutputText(hwndEdit, TEXT(" (R8 UNORM)"));
 			break;
 		case 65:
-			OutputText(hwndCtl, TEXT(" (A8 UNORM)"));
+			OutputText(hwndEdit, TEXT(" (A8 UNORM)"));
 			break;
 		case 66:
-			OutputText(hwndCtl, TEXT(" (R1 UNORM)"));
+			OutputText(hwndEdit, TEXT(" (R1 UNORM)"));
 			break;
 		case 67:
-			OutputText(hwndCtl, TEXT(" (R9G9B9E5 SHAREDEXP)"));
+			OutputText(hwndEdit, TEXT(" (R9G9B9E5 SHAREDEXP)"));
 			break;
 		case 68:
-			OutputText(hwndCtl, TEXT(" (R8G8 B8G8 UNORM)"));
+			OutputText(hwndEdit, TEXT(" (R8G8 B8G8 UNORM)"));
 			break;
 		case 69:
-			OutputText(hwndCtl, TEXT(" (G8R8 G8B8 UNORM)"));
+			OutputText(hwndEdit, TEXT(" (G8R8 G8B8 UNORM)"));
 			break;
 		case 70:
-			OutputText(hwndCtl, TEXT(" (BC1 TYPELESS)"));
+			OutputText(hwndEdit, TEXT(" (BC1 TYPELESS)"));
 			break;
 		case 71:
-			OutputText(hwndCtl, TEXT(" (BC1 UNORM)"));
+			OutputText(hwndEdit, TEXT(" (BC1 UNORM)"));
 			break;
 		case 72:
-			OutputText(hwndCtl, TEXT(" (BC1 UNORM SRGB)"));
+			OutputText(hwndEdit, TEXT(" (BC1 UNORM SRGB)"));
 			break;
 		case 73:
-			OutputText(hwndCtl, TEXT(" (BC2 TYPELESS)"));
+			OutputText(hwndEdit, TEXT(" (BC2 TYPELESS)"));
 			break;
 		case 74:
-			OutputText(hwndCtl, TEXT(" (BC2 UNORM)"));
+			OutputText(hwndEdit, TEXT(" (BC2 UNORM)"));
 			break;
 		case 75:
-			OutputText(hwndCtl, TEXT(" (BC2 UNORM SRGB)"));
+			OutputText(hwndEdit, TEXT(" (BC2 UNORM SRGB)"));
 			break;
 		case 76:
-			OutputText(hwndCtl, TEXT(" (BC3 TYPELESS)"));
+			OutputText(hwndEdit, TEXT(" (BC3 TYPELESS)"));
 			break;
 		case 77:
-			OutputText(hwndCtl, TEXT(" (BC3 UNORM)"));
+			OutputText(hwndEdit, TEXT(" (BC3 UNORM)"));
 			break;
 		case 78:
-			OutputText(hwndCtl, TEXT(" (BC3 UNORM SRGB)"));
+			OutputText(hwndEdit, TEXT(" (BC3 UNORM SRGB)"));
 			break;
 		case 79:
-			OutputText(hwndCtl, TEXT(" (BC4 TYPELESS)"));
+			OutputText(hwndEdit, TEXT(" (BC4 TYPELESS)"));
 			break;
 		case 80:
-			OutputText(hwndCtl, TEXT(" (BC4 UNORM)"));
+			OutputText(hwndEdit, TEXT(" (BC4 UNORM)"));
 			break;
 		case 81:
-			OutputText(hwndCtl, TEXT(" (BC4 SNORM)"));
+			OutputText(hwndEdit, TEXT(" (BC4 SNORM)"));
 			break;
 		case 82:
-			OutputText(hwndCtl, TEXT(" (BC5 TYPELESS)"));
+			OutputText(hwndEdit, TEXT(" (BC5 TYPELESS)"));
 			break;
 		case 83:
-			OutputText(hwndCtl, TEXT(" (BC5 UNORM)"));
+			OutputText(hwndEdit, TEXT(" (BC5 UNORM)"));
 			break;
 		case 84:
-			OutputText(hwndCtl, TEXT(" (BC5 SNORM)"));
+			OutputText(hwndEdit, TEXT(" (BC5 SNORM)"));
 			break;
 		case 85:
-			OutputText(hwndCtl, TEXT(" (B5G6R5 UNORM)"));
+			OutputText(hwndEdit, TEXT(" (B5G6R5 UNORM)"));
 			break;
 		case 86:
-			OutputText(hwndCtl, TEXT(" (B5G5R5A1 UNORM)"));
+			OutputText(hwndEdit, TEXT(" (B5G5R5A1 UNORM)"));
 			break;
 		case 87:
-			OutputText(hwndCtl, TEXT(" (B8G8R8A8 UNORM)"));
+			OutputText(hwndEdit, TEXT(" (B8G8R8A8 UNORM)"));
 			break;
 		case 88:
-			OutputText(hwndCtl, TEXT(" (B8G8R8X8 UNORM)"));
+			OutputText(hwndEdit, TEXT(" (B8G8R8X8 UNORM)"));
 			break;
 		case 89:
-			OutputText(hwndCtl, TEXT(" (R10G10B10 XR BIAS A2 UNORM)"));
+			OutputText(hwndEdit, TEXT(" (R10G10B10 XR BIAS A2 UNORM)"));
 			break;
 		case 94:
-			OutputText(hwndCtl, TEXT(" (BC6H TYPELESS)"));
+			OutputText(hwndEdit, TEXT(" (BC6H TYPELESS)"));
 			break;
 		case 95:
-			OutputText(hwndCtl, TEXT(" (BC6H UF16)"));
+			OutputText(hwndEdit, TEXT(" (BC6H UF16)"));
 			break;
 		case 96:
-			OutputText(hwndCtl, TEXT(" (BC6H SF16)"));
+			OutputText(hwndEdit, TEXT(" (BC6H SF16)"));
 			break;
 		case 97:
-			OutputText(hwndCtl, TEXT(" (BC7 TYPELESS)"));
+			OutputText(hwndEdit, TEXT(" (BC7 TYPELESS)"));
 			break;
 		case 98:
-			OutputText(hwndCtl, TEXT(" (BC7 UNORM)"));
+			OutputText(hwndEdit, TEXT(" (BC7 UNORM)"));
 			break;
 		case 99:
-			OutputText(hwndCtl, TEXT(" (BC7 UNORM SRGB)"));
+			OutputText(hwndEdit, TEXT(" (BC7 UNORM SRGB)"));
 			break;
 		case 115:
-			OutputText(hwndCtl, TEXT(" (B4G4R4A4 UNORM)"));
+			OutputText(hwndEdit, TEXT(" (B4G4R4A4 UNORM)"));
 			break;
 	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void PrintFourCC(HWND hwndCtl, DWORD dwFourCC)
+static void PrintFourCC(HWND hwndEdit, DWORD dwFourCC)
 {
 	BYTE achFourCC[4];
 	TCHAR szOutput[OUTPUT_LEN];
 
-	if (hwndCtl == NULL)
+	if (hwndEdit == NULL)
 		return;
 
 	CopyMemory(achFourCC, &dwFourCC, 4);
@@ -260,12 +260,12 @@ static void PrintFourCC(HWND hwndCtl, DWORD dwFourCC)
 	if (!isprint(achFourCC[0]) || !isprint(achFourCC[1]) ||
 		!isprint(achFourCC[2]) || !isprint(achFourCC[3]))
 	{
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%u"), dwFourCC);
-		PrintD3DFormat(hwndCtl, dwFourCC);
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("%u"), dwFourCC);
+		PrintD3DFormat(hwndEdit, dwFourCC);
 	}
 	else
 	{
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%hc%hc%hc%hc"),
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("%hc%hc%hc%hc"),
 			achFourCC[0], achFourCC[1], achFourCC[2], achFourCC[3]);
 	}
 }
@@ -273,13 +273,13 @@ static void PrintFourCC(HWND hwndCtl, DWORD dwFourCC)
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // DumpDDS is called by DumpFile from GbxDump.cpp
 
-BOOL DumpDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
+BOOL DumpDDS(HWND hwndEdit, HANDLE hFile, DWORD dwFileSize)
 {
 	DWORD dwFlags;
 	TCHAR szFlags[FLAGS_LEN];
 	TCHAR szOutput[OUTPUT_LEN];
 
-	if (hwndCtl == NULL || hFile == NULL)
+	if (hwndEdit == NULL || hFile == NULL)
 		return FALSE;
 
 	// Skip the file signature (already checked in DumpFile())
@@ -293,15 +293,15 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		return FALSE;
 
 	// Output data
-	OutputText(hwndCtl, g_szSep1);
+	OutputText(hwndEdit, g_szSep1);
 
-	OutputText(hwndCtl, TEXT("Header Size:\t"));
+	OutputText(hwndEdit, TEXT("Header Size:\t"));
 	FormatByteSize(ddsh.dwSize, szOutput, _countof(szOutput));
-	OutputText(hwndCtl, szOutput);
-	if (ddsh.dwSize != 124) OutputText(hwndCtl, TEXT("!"));
-	OutputText(hwndCtl, szCRLF);
+	OutputText(hwndEdit, szOutput);
+	if (ddsh.dwSize != 124) OutputText(hwndEdit, TEXT("!"));
+	OutputText(hwndEdit, szCRLF);
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Header Flags:\t%08X"), ddsh.dwHeaderFlags);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Header Flags:\t%08X"), ddsh.dwHeaderFlags);
 	if (ddsh.dwHeaderFlags != 0)
 	{
 		szOutput[0] = chNil;
@@ -355,35 +355,35 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 
 		if (szOutput[0] != chNil)
 		{
-			OutputText(hwndCtl, TEXT(" ("));
-			OutputText(hwndCtl, szOutput);
-			OutputText(hwndCtl, TEXT(")"));
+			OutputText(hwndEdit, TEXT(" ("));
+			OutputText(hwndEdit, szOutput);
+			OutputText(hwndEdit, TEXT(")"));
 		}
 	}
-	OutputText(hwndCtl, szCRLF);
+	OutputText(hwndEdit, szCRLF);
 
 	if ((ddsh.dwHeaderFlags & DDSD_WIDTH) || ddsh.dwWidth != 0)
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Surface Width:\t%u pixels\r\n"), ddsh.dwWidth);
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Surface Width:\t%u pixels\r\n"), ddsh.dwWidth);
 
 	if ((ddsh.dwHeaderFlags & DDSD_HEIGHT) || ddsh.dwHeight != 0)
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Surface Height:\t%u pixels\r\n"), ddsh.dwHeight);
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Surface Height:\t%u pixels\r\n"), ddsh.dwHeight);
 
 	if ((ddsh.dwHeaderFlags & DDSD_PITCH) || (ddsh.dwHeaderFlags & DDSD_LINEARSIZE))
 	{
 		if (ddsh.dwHeaderFlags & DDSD_PITCH)
-			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Pitch:\t\t%u bytes\r\n"), ddsh.dwPitchOrLinearSize);
+			OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Pitch:\t\t%u bytes\r\n"), ddsh.dwPitchOrLinearSize);
 
 		if (ddsh.dwHeaderFlags & DDSD_LINEARSIZE)
-			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Linear Size:\t%u bytes\r\n"), ddsh.dwPitchOrLinearSize);
+			OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Linear Size:\t%u bytes\r\n"), ddsh.dwPitchOrLinearSize);
 	}
 	else if (ddsh.dwPitchOrLinearSize != 0)
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Pitch Or Size:\t%u bytes\r\n"), ddsh.dwPitchOrLinearSize);
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Pitch Or Size:\t%u bytes\r\n"), ddsh.dwPitchOrLinearSize);
 
 	if ((ddsh.dwHeaderFlags & DDSD_DEPTH) || ddsh.dwDepth != 0)
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Depth:\t\t%u pixels\r\n"), ddsh.dwDepth);
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Depth:\t\t%u pixels\r\n"), ddsh.dwDepth);
 
 	if ((ddsh.dwHeaderFlags & DDSD_MIPMAPCOUNT) || ddsh.dwMipMapCount != 0)
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Mipmap Levels:\t%u\r\n"), ddsh.dwMipMapCount);
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Mipmap Levels:\t%u\r\n"), ddsh.dwMipMapCount);
 
 	if (ddsh.dwReserved1[0] == MAKEFOURCC('G', 'I', 'M', 'P') &&
 		ddsh.dwReserved1[1] == MAKEFOURCC('-', 'D', 'D', 'S'))
@@ -392,13 +392,13 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		UINT uMinor = (ddsh.dwReserved1[2] >> 8) & 0xFF;
 		UINT uRevision = ddsh.dwReserved1[2] & 0xFF;
 
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("GIMP Plug-in:\t%u.%u.%u\r\n"), uMajor, uMinor, uRevision);
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("GIMP Plug-in:\t%u.%u.%u\r\n"), uMajor, uMinor, uRevision);
 
 		if (ddsh.dwReserved1[3] != 0)
 		{
-			OutputText(hwndCtl, TEXT("Extra FourCC:\t"));
-			PrintFourCC(hwndCtl, ddsh.dwReserved1[3]);
-			OutputText(hwndCtl, szCRLF);
+			OutputText(hwndEdit, TEXT("Extra FourCC:\t"));
+			PrintFourCC(hwndEdit, ddsh.dwReserved1[3]);
+			OutputText(hwndEdit, szCRLF);
 		}
 	}
 
@@ -408,21 +408,21 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		int nMinor = (ddsh.dwReserved1[10] >> 8) & 0xFF;
 		int nRevision = ddsh.dwReserved1[10] & 0xFF;
 
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("NVTT Version:\t%d.%d.%d\r\n"), nMajor, nMinor, nRevision);
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("NVTT Version:\t%d.%d.%d\r\n"), nMajor, nMinor, nRevision);
 	}
 
 	if (ddsh.dwReserved1[7] == MAKEFOURCC('U', 'V', 'E', 'R'))
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("User Version:\t%d\r\n"), ddsh.dwReserved1[8]);
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("User Version:\t%d\r\n"), ddsh.dwReserved1[8]);
 
 	if ((ddsh.dwHeaderFlags & DDSD_PIXELFORMAT) || ddsh.ddspf.dwSize > 0)
 	{
-		OutputText(hwndCtl, TEXT("PixelFmt Size:\t"));
+		OutputText(hwndEdit, TEXT("PixelFmt Size:\t"));
 		FormatByteSize(ddsh.ddspf.dwSize, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
-		if (ddsh.ddspf.dwSize != 32) OutputText(hwndCtl, TEXT("!"));
-		OutputText(hwndCtl, szCRLF);
+		OutputText(hwndEdit, szOutput);
+		if (ddsh.ddspf.dwSize != 32) OutputText(hwndEdit, TEXT("!"));
+		OutputText(hwndEdit, szCRLF);
 
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("PixelFmt Flags:\t%08X"), ddsh.ddspf.dwFlags);
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("PixelFmt Flags:\t%08X"), ddsh.ddspf.dwFlags);
 		if (ddsh.ddspf.dwFlags != 0)
 		{
 			szOutput[0] = chNil;
@@ -496,18 +496,18 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 
 			if (szOutput[0] != chNil)
 			{
-				OutputText(hwndCtl, TEXT(" ("));
-				OutputText(hwndCtl, szOutput);
-				OutputText(hwndCtl, TEXT(")"));
+				OutputText(hwndEdit, TEXT(" ("));
+				OutputText(hwndEdit, szOutput);
+				OutputText(hwndEdit, TEXT(")"));
 			}
 		}
-		OutputText(hwndCtl, szCRLF);
+		OutputText(hwndEdit, szCRLF);
 
 		if (ddsh.ddspf.dwFlags & DDPF_FOURCC)
 		{
-			OutputText(hwndCtl, TEXT("FourCC Tag:\t"));
-			PrintFourCC(hwndCtl, ddsh.ddspf.dwFourCC);
-			OutputText(hwndCtl, szCRLF);
+			OutputText(hwndEdit, TEXT("FourCC Tag:\t"));
+			PrintFourCC(hwndEdit, ddsh.ddspf.dwFourCC);
+			OutputText(hwndEdit, szCRLF);
 		}
 
 		if (ddsh.ddspf.dwRGBBitCount > 0)
@@ -519,16 +519,16 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 				isprint(achFourCC[0]) && isprint(achFourCC[1]) &&
 				isprint(achFourCC[2]) && isprint(achFourCC[3]))
 			{
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Swizzle:\t%hc%hc%hc%hc\r\n"),
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Swizzle:\t%hc%hc%hc%hc\r\n"),
 					achFourCC[0], achFourCC[1], achFourCC[2], achFourCC[3]);
 			}
 			else
 			{
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Bit Count:\t%u bits\r\n"), ddsh.ddspf.dwRGBBitCount);
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Red Mask:\t%08X\r\n"), ddsh.ddspf.dwRBitMask);
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Green Mask:\t%08X\r\n"), ddsh.ddspf.dwGBitMask);
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Blue Mask:\t%08X\r\n"), ddsh.ddspf.dwBBitMask);
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Alpha Mask:\t%08X\r\n"), ddsh.ddspf.dwABitMask);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Bit Count:\t%u bits\r\n"), ddsh.ddspf.dwRGBBitCount);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Red Mask:\t%08X\r\n"), ddsh.ddspf.dwRBitMask);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Green Mask:\t%08X\r\n"), ddsh.ddspf.dwGBitMask);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Blue Mask:\t%08X\r\n"), ddsh.ddspf.dwBBitMask);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Alpha Mask:\t%08X\r\n"), ddsh.ddspf.dwABitMask);
 			}
 		}
 	}
@@ -536,7 +536,7 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 	if ((ddsh.dwHeaderFlags & DDSD_CAPS) ||
 		ddsh.dwCaps != 0 || ddsh.dwCaps2 != 0 || ddsh.dwCaps3 != 0 || ddsh.dwCaps4 != 0)
 	{
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Surface Flags:\t%08X"), ddsh.dwCaps);
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Surface Flags:\t%08X"), ddsh.dwCaps);
 		if (ddsh.dwCaps != 0)
 		{
 			szOutput[0] = chNil;
@@ -570,16 +570,16 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 
 			if (szOutput[0] != chNil)
 			{
-				OutputText(hwndCtl, TEXT(" ("));
-				OutputText(hwndCtl, szOutput);
-				OutputText(hwndCtl, TEXT(")"));
+				OutputText(hwndEdit, TEXT(" ("));
+				OutputText(hwndEdit, szOutput);
+				OutputText(hwndEdit, TEXT(")"));
 			}
 		}
-		OutputText(hwndCtl, szCRLF);
+		OutputText(hwndEdit, szCRLF);
 
 		if (ddsh.dwCaps2 != 0)
 		{
-			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Cubemap Flags:\t%08X"), ddsh.dwCaps2);
+			OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Cubemap Flags:\t%08X"), ddsh.dwCaps2);
 
 			szOutput[0] = chNil;
 			dwFlags = ddsh.dwCaps2;
@@ -632,19 +632,19 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 
 			if (szOutput[0] != chNil)
 			{
-				OutputText(hwndCtl, TEXT(" ("));
-				OutputText(hwndCtl, szOutput);
-				OutputText(hwndCtl, TEXT(")"));
+				OutputText(hwndEdit, TEXT(" ("));
+				OutputText(hwndEdit, szOutput);
+				OutputText(hwndEdit, TEXT(")"));
 			}
 
-			OutputText(hwndCtl, szCRLF);
+			OutputText(hwndEdit, szCRLF);
 		}
 
 		if (ddsh.dwCaps3 != 0)
-			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Caps3 Flags:\t%08X\r\n"), ddsh.dwCaps3);
+			OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Caps3 Flags:\t%08X\r\n"), ddsh.dwCaps3);
 
 		if (ddsh.dwCaps4 != 0)
-			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Caps4 Flags:\t%08X\r\n"), ddsh.dwCaps4);
+			OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Caps4 Flags:\t%08X\r\n"), ddsh.dwCaps4);
 	}
 
 	// DX10 or XBOX header present?
@@ -661,39 +661,39 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 			return FALSE;
 
 		// Output data
-		OutputText(hwndCtl, g_szSep1);
+		OutputText(hwndEdit, g_szSep1);
 
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Pixel Format:\t%u"), ddsexth.dxgiFormat);
-		PrintDXGIFormat(hwndCtl, ddsexth.dxgiFormat);
-		OutputText(hwndCtl, szCRLF);
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Pixel Format:\t%u"), ddsexth.dxgiFormat);
+		PrintDXGIFormat(hwndEdit, ddsexth.dxgiFormat);
+		OutputText(hwndEdit, szCRLF);
 
-		OutputText(hwndCtl, TEXT("Dimension:\t"));
+		OutputText(hwndEdit, TEXT("Dimension:\t"));
 		switch (ddsexth.resourceDimension)
 		{
 			case DDS_DIMENSION_UNKNOWN:
-				OutputText(hwndCtl, TEXT("Unknown"));
+				OutputText(hwndEdit, TEXT("Unknown"));
 				break;
 			case DDS_DIMENSION_BUFFER:
-				OutputText(hwndCtl, TEXT("Buffer"));
+				OutputText(hwndEdit, TEXT("Buffer"));
 				break;
 			case DDS_DIMENSION_TEXTURE1D:
-				OutputText(hwndCtl, ddsexth.arraySize > 1 ? TEXT("1D Array") : TEXT("1D"));
+				OutputText(hwndEdit, ddsexth.arraySize > 1 ? TEXT("1D Array") : TEXT("1D"));
 				break;
 			case DDS_DIMENSION_TEXTURE2D:
 				if (ddsexth.miscFlag & DDS_RESOURCE_MISC_TEXTURECUBE)
-					OutputText(hwndCtl, ddsexth.arraySize > 1 ? TEXT("Cube Array") : TEXT("Cube"));
+					OutputText(hwndEdit, ddsexth.arraySize > 1 ? TEXT("Cube Array") : TEXT("Cube"));
 				else
-					OutputText(hwndCtl, ddsexth.arraySize > 1 ? TEXT("2D Array") : TEXT("2D"));
+					OutputText(hwndEdit, ddsexth.arraySize > 1 ? TEXT("2D Array") : TEXT("2D"));
 				break;
 			case DDS_DIMENSION_TEXTURE3D:
-				OutputText(hwndCtl, TEXT("3D"));
+				OutputText(hwndEdit, TEXT("3D"));
 				break;
 			default:
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%u"), ddsexth.resourceDimension);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("%u"), ddsexth.resourceDimension);
 		}
-		OutputText(hwndCtl, szCRLF);
+		OutputText(hwndEdit, szCRLF);
 
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Resource Flags:\t%08X"), ddsexth.miscFlag);
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Resource Flags:\t%08X"), ddsexth.miscFlag);
 		if (ddsexth.miscFlag != 0)
 		{
 			szOutput[0] = chNil;
@@ -722,62 +722,62 @@ BOOL DumpDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 
 			if (szOutput[0] != chNil)
 			{
-				OutputText(hwndCtl, TEXT(" ("));
-				OutputText(hwndCtl, szOutput);
-				OutputText(hwndCtl, TEXT(")"));
+				OutputText(hwndEdit, TEXT(" ("));
+				OutputText(hwndEdit, szOutput);
+				OutputText(hwndEdit, TEXT(")"));
 			}
 		}
-		OutputText(hwndCtl, szCRLF);
+		OutputText(hwndEdit, szCRLF);
 
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Array Size:\t%u\r\n"), ddsexth.arraySize);
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Array Size:\t%u\r\n"), ddsexth.arraySize);
 
-		OutputText(hwndCtl, TEXT("Alpha Mode:\t"));
+		OutputText(hwndEdit, TEXT("Alpha Mode:\t"));
 		DWORD dwAlphaMode = ddsexth.miscFlags2 & DDS_MISC_FLAGS2_ALPHA_MODE_MASK;
 		switch (dwAlphaMode)
 		{
 			case DDS_ALPHA_MODE_UNKNOWN:
-				OutputText(hwndCtl, TEXT("Unknown"));
+				OutputText(hwndEdit, TEXT("Unknown"));
 				break;
 			case DDS_ALPHA_MODE_STRAIGHT:
-				OutputText(hwndCtl, TEXT("Straight"));
+				OutputText(hwndEdit, TEXT("Straight"));
 				break;
 			case DDS_ALPHA_MODE_PREMULTIPLIED:
-				OutputText(hwndCtl, TEXT("Premultiplied"));
+				OutputText(hwndEdit, TEXT("Premultiplied"));
 				break;
 			case DDS_ALPHA_MODE_OPAQUE:
-				OutputText(hwndCtl, TEXT("Opaque"));
+				OutputText(hwndEdit, TEXT("Opaque"));
 				break;
 			case DDS_ALPHA_MODE_CUSTOM:
-				OutputText(hwndCtl, TEXT("Custom"));
+				OutputText(hwndEdit, TEXT("Custom"));
 				break;
 			default:
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%u"), dwAlphaMode);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("%u"), dwAlphaMode);
 		}
-		OutputText(hwndCtl, szCRLF);
+		OutputText(hwndEdit, szCRLF);
 
 		if (bIsXbox)
 		{
-			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Tile Mode:\t%u\r\n"), ddsexth.tileMode);
-			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Base Alignment:\t%u\r\n"), ddsexth.baseAlignment);
-			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Data Size:\t%u\r\n"), ddsexth.dataSize);
-			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("XDK Version:\t%u\r\n"), ddsexth.xdkVer);
+			OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Tile Mode:\t%u\r\n"), ddsexth.tileMode);
+			OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Base Alignment:\t%u\r\n"), ddsexth.baseAlignment);
+			OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Data Size:\t%u\r\n"), ddsexth.dataSize);
+			OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("XDK Version:\t%u\r\n"), ddsexth.xdkVer);
 		}
 	}
 
 	// Decode and display the DDS image
-	DisplayDDS(hwndCtl, hFile, dwFileSize, FALSE);
+	DisplayDDS(hwndEdit, hFile, dwFileSize, FALSE);
 
 	return TRUE;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL DisplayDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize, BOOL bShowTextureDesc)
+BOOL DisplayDDS(HWND hwndEdit, HANDLE hFile, DWORD dwFileSize, BOOL bShowTextureDesc)
 {
-	if (hwndCtl == NULL || hFile == NULL || dwFileSize == 0)
+	if (hwndEdit == NULL || hFile == NULL || dwFileSize == 0)
 		return FALSE;
 
-	HWND hDlg = GetParent(hwndCtl);
+	HWND hDlg = GetParent(hwndEdit);
 
 	// Jump to the beginning of the file
 	if (!FileSeekBegin(hFile, 0))
@@ -794,7 +794,7 @@ BOOL DisplayDDS(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize, BOOL bShowTextureD
 	}
 
 	if (bShowTextureDesc)
-		OutputText(hwndCtl, g_szSep1);
+		OutputText(hwndEdit, g_szSep1);
 
 	HANDLE hDib = NULL;
 	HCURSOR hOldCursor = SetCursor(LoadCursor(NULL, IDC_WAIT));

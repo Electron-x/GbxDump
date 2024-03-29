@@ -27,19 +27,19 @@
 // Determines whether the system is globally offline
 BOOL IsGlobalOffline(HINTERNET hInternet = NULL);
 // Retrieves error messages from the WinINet module
-void LastInternetError(HWND hwndCtl, DWORD dwError);
+void LastInternetError(HWND hwndEdit, DWORD dwError);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL ReadInternetFile(HWND hwndCtl, LPCTSTR lpszUrl, LPSTR lpszData, DWORD dwSize)
+BOOL ReadInternetFile(HWND hwndEdit, LPCTSTR lpszUrl, LPSTR lpszData, DWORD dwSize)
 {
-	if (hwndCtl == NULL || lpszUrl == NULL || lpszData == NULL || dwSize == 0)
+	if (hwndEdit == NULL || lpszUrl == NULL || lpszData == NULL || dwSize == 0)
 		return FALSE;
 
 	HINTERNET hInternet = InternetOpen(g_szUserAgent, INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
 	if (hInternet == NULL)
 	{
-		LastInternetError(hwndCtl, GetLastError());
+		LastInternetError(hwndEdit, GetLastError());
 		return FALSE;
 	}
 
@@ -54,12 +54,12 @@ BOOL ReadInternetFile(HWND hwndCtl, LPCTSTR lpszUrl, LPSTR lpszData, DWORD dwSiz
 
 		if (!IsGlobalOffline(hInternet))
 		{
-			LastInternetError(hwndCtl, dwError);
+			LastInternetError(hwndEdit, dwError);
 			InternetCloseHandle(hInternet);
 			return FALSE;
 		}
 
-		if (!InternetGoOnline((LPTSTR)lpszUrl, GetParent(hwndCtl), INTERENT_GOONLINE_REFRESH))
+		if (!InternetGoOnline((LPTSTR)lpszUrl, GetParent(hwndEdit), INTERENT_GOONLINE_REFRESH))
 		{
 			InternetCloseHandle(hInternet);
 			return FALSE;
@@ -68,7 +68,7 @@ BOOL ReadInternetFile(HWND hwndCtl, LPCTSTR lpszUrl, LPSTR lpszData, DWORD dwSiz
 		hInternetFile = InternetOpenUrl(hInternet, lpszUrl, NULL, 0, 0, INTERNET_NO_CALLBACK);
 		if (hInternetFile == NULL)
 		{
-			LastInternetError(hwndCtl, GetLastError());
+			LastInternetError(hwndEdit, GetLastError());
 			InternetCloseHandle(hInternet);
 			return FALSE;
 		}
@@ -82,7 +82,7 @@ BOOL ReadInternetFile(HWND hwndCtl, LPCTSTR lpszUrl, LPSTR lpszData, DWORD dwSiz
 	{
 		if (!InternetReadFile(hInternetFile, lpsz, dwSize-dwReadTotal-1, &dwRead))
 		{
-			LastInternetError(hwndCtl, GetLastError());
+			LastInternetError(hwndEdit, GetLastError());
 			InternetCloseHandle(hInternetFile);
 			InternetCloseHandle(hInternet);
 			return FALSE;
@@ -118,9 +118,9 @@ BOOL IsGlobalOffline(HINTERNET hInternet)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-void LastInternetError(HWND hwndCtl, DWORD dwError)
+void LastInternetError(HWND hwndEdit, DWORD dwError)
 {
-	if (hwndCtl == NULL)
+	if (hwndEdit == NULL)
 		return;
 
 	LPVOID lpMsgBuf = NULL;
@@ -138,10 +138,10 @@ void LastInternetError(HWND hwndCtl, DWORD dwError)
 		return;
 	}
 
-	int nLen = Edit_GetTextLength(hwndCtl);
-	Edit_SetSel(hwndCtl, (WPARAM)nLen, (LPARAM)nLen);
-	OutputText(hwndCtl, g_szSep1);
-	Edit_ReplaceSel(hwndCtl, lpMsgBuf);
+	int nLen = Edit_GetTextLength(hwndEdit);
+	Edit_SetSel(hwndEdit, (WPARAM)nLen, (LPARAM)nLen);
+	OutputText(hwndEdit, g_szSep1);
+	Edit_ReplaceSel(hwndEdit, lpMsgBuf);
 
 	LocalFree(lpMsgBuf);
 }

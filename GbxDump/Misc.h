@@ -53,26 +53,26 @@ BOOL DisableButton(HWND hDlg, int nIDButton, int nIDFocus);
 HWND GetOutputWindow(HWND hDlg = NULL);
 
 // Clears the text of an edit control, resets the undo flag, and clears the modification flag
-void ClearOutputWindow(HWND hwndCtl);
+void ClearOutputWindow(HWND hwndEdit);
 
 // Inserts the passed text at the current cursor position of an edit control
-void OutputText(HWND hwndCtl, LPCTSTR lpszOutput);
+void OutputText(HWND hwndEdit, LPCTSTR lpszOutput);
 
 // Formats text with _vsntprintf and inserts it at the current cursor position of an edit control
-void OutputTextFmt(HWND hwndCtl, LPTSTR lpszOutput, SIZE_T cchLenOutput, LPCTSTR lpszFormat, ...);
+void OutputTextFmt(HWND hwndEdit, LPTSTR lpszOutput, SIZE_T cchLenOutput, LPCTSTR lpszFormat, ...);
 
 // Loads an error message from the resources and inserts it with a
 // separator line at the current cursor position of an edit control
-BOOL OutputTextErr(HWND hwndCtl, UINT uID);
+BOOL OutputTextErr(HWND hwndEdit, UINT uID);
 
 // Loads a message from the resources and replaces the placeholder {COUNT} with the passed
 // value (to keep the printf-style format specifiers under internal control). The text is
 // then inserted with a separator line at the current cursor position of an edit control.
-BOOL OutputTextCount(HWND hwndCtl, UINT uID, SIZE_T uCount);
+BOOL OutputTextCount(HWND hwndEdit, UINT uID, SIZE_T uCount);
 
 // Retrieves the message text for a system-defined error and inserts it
 // with separator lines at the current cursor position of an edit control
-BOOL OutputErrorMessage(HWND hwndCtl, DWORD dwError);
+BOOL OutputErrorMessage(HWND hwndEdit, DWORD dwError);
 
 // Appends a string to another string with an OR separator. Is used to list flag names
 PTCHAR AppendFlagName(LPTSTR lpszOutput, SIZE_T cchLenOutput, LPCTSTR lpszFlagName);

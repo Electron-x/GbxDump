@@ -70,53 +70,53 @@ typedef struct _CHUNK
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Forward declarations of functions included in this code module
 
-BASECLASS GetBaseClass(HWND hwndCtl, DWORD dwClassId);
-DWORD ReadRefTable(HWND hwndCtl, HANDLE hFile, WORD wVersion, PBYTE achStorageSettings);
-BOOL ReadSubFolders(HWND hwndCtl, HANDLE hFile, PDWORD pdwIndex, LPCSTR lpszFolder, BOOL bIsText);
-BOOL ReadSkin(HWND hwndCtl, HANDLE hFile);
+BASECLASS GetBaseClass(HWND hwndEdit, DWORD dwClassId);
+DWORD ReadRefTable(HWND hwndEdit, HANDLE hFile, WORD wVersion, PBYTE achStorageSettings);
+BOOL ReadSubFolders(HWND hwndEdit, HANDLE hFile, PDWORD pdwIndex, LPCSTR lpszFolder, BOOL bIsText);
+BOOL ReadSkin(HWND hwndEdit, HANDLE hFile);
 
-BOOL DumpChallenge(HWND hwndCtl, HANDLE hFile, LPSTR lpszUid, LPSTR lpszEnvi);
-BOOL DumpReplay(HWND hwndCtl, HANDLE hFile, LPSTR lpszUid, LPSTR lpszEnvi);
-BOOL DumpCollector(HWND hwndCtl, HANDLE hFile);
-BOOL DumpSkin(HWND hwndCtl, HANDLE hFile);
-BOOL DumpProfile(HWND hwndCtl, HANDLE hFile);
-BOOL DumpCollection(HWND hwndCtl, HANDLE hFile);
-BOOL DumpPlug(HWND hwndCtl, HANDLE hFile);
-BOOL DumpHms(HWND hwndCtl, HANDLE hFile);
-BOOL DumpOther(HWND hwndCtl, HANDLE hFile);
+BOOL DumpChallenge(HWND hwndEdit, HANDLE hFile, LPSTR lpszUid, LPSTR lpszEnvi);
+BOOL DumpReplay(HWND hwndEdit, HANDLE hFile, LPSTR lpszUid, LPSTR lpszEnvi);
+BOOL DumpCollector(HWND hwndEdit, HANDLE hFile);
+BOOL DumpSkin(HWND hwndEdit, HANDLE hFile);
+BOOL DumpProfile(HWND hwndEdit, HANDLE hFile);
+BOOL DumpCollection(HWND hwndEdit, HANDLE hFile);
+BOOL DumpPlug(HWND hwndEdit, HANDLE hFile);
+BOOL DumpHms(HWND hwndEdit, HANDLE hFile);
+BOOL DumpOther(HWND hwndEdit, HANDLE hFile);
 
-BOOL ChallengeTmDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK chunkTmDesc);
-BOOL ChallengeCommonChunk(HWND hwndCtl, HANDLE hFile, PCHUNK chunkCommon, LPSTR lpszUid, LPSTR lpszEnvi);
-BOOL ChallengeVersionChunk(HWND hwndCtl, HANDLE hFile, PCHUNK chunkVersion);
-BOOL ChallengeThumbnailChunk(HWND hwndCtl, HANDLE hFile, PCHUNK chunkThumbnail);
-BOOL ChallengeVskDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK chunkVskDesc);
+BOOL ChallengeTmDescChunk(HWND hwndEdit, HANDLE hFile, PCHUNK chunkTmDesc);
+BOOL ChallengeCommonChunk(HWND hwndEdit, HANDLE hFile, PCHUNK chunkCommon, LPSTR lpszUid, LPSTR lpszEnvi);
+BOOL ChallengeVersionChunk(HWND hwndEdit, HANDLE hFile, PCHUNK chunkVersion);
+BOOL ChallengeThumbnailChunk(HWND hwndEdit, HANDLE hFile, PCHUNK chunkThumbnail);
+BOOL ChallengeVskDescChunk(HWND hwndEdit, HANDLE hFile, PCHUNK chunkVskDesc);
 
-BOOL ReplayVersionChunk(HWND hwndCtl, HANDLE hFile, PCHUNK chunkVersion, LPSTR lpszUid, LPSTR lpszEnvi);
+BOOL ReplayVersionChunk(HWND hwndEdit, HANDLE hFile, PCHUNK chunkVersion, LPSTR lpszUid, LPSTR lpszEnvi);
 
-BOOL ChallengeReplayCommunityChunk(HWND hwndCtl, HANDLE hFile, PCHUNK chunkCommunity);
-BOOL ChallengeReplayAuthorChunk(HWND hwndCtl, HANDLE hFile, PCHUNK chunkAuthor);
+BOOL ChallengeReplayCommunityChunk(HWND hwndEdit, HANDLE hFile, PCHUNK chunkCommunity);
+BOOL ChallengeReplayAuthorChunk(HWND hwndEdit, HANDLE hFile, PCHUNK chunkAuthor);
 
-BOOL CollectorDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK chunkDesc);
-BOOL CollectorIconChunk(HWND hwndCtl, HANDLE hFile, PCHUNK chunkIcon);
-BOOL CollectorTimeChunk(HWND hwndCtl, HANDLE hFile, PCHUNK chunkTime);
-BOOL CollectorSkinChunk(HWND hwndCtl, HANDLE hFile, PCHUNK chunkSkin);
+BOOL CollectorDescChunk(HWND hwndEdit, HANDLE hFile, PCHUNK chunkDesc);
+BOOL CollectorIconChunk(HWND hwndEdit, HANDLE hFile, PCHUNK chunkIcon);
+BOOL CollectorTimeChunk(HWND hwndEdit, HANDLE hFile, PCHUNK chunkTime);
+BOOL CollectorSkinChunk(HWND hwndEdit, HANDLE hFile, PCHUNK chunkSkin);
 
-BOOL ObjectInfoTypeChunk(HWND hwndCtl, HANDLE hFile, PCHUNK chunkType);
-BOOL ObjectInfoVersionChunk(HWND hwndCtl, HANDLE hFile, PCHUNK chunkVersion);
+BOOL ObjectInfoTypeChunk(HWND hwndEdit, HANDLE hFile, PCHUNK chunkType);
+BOOL ObjectInfoVersionChunk(HWND hwndEdit, HANDLE hFile, PCHUNK chunkVersion);
 
-BOOL DecorationMoodChunk(HWND hwndCtl, HANDLE hFile, PCHUNK chunkMood);
-BOOL DecorationUnknownChunk(HWND hwndCtl, HANDLE hFile, PCHUNK chunkUnknown);
+BOOL DecorationMoodChunk(HWND hwndEdit, HANDLE hFile, PCHUNK chunkMood);
+BOOL DecorationUnknownChunk(HWND hwndEdit, HANDLE hFile, PCHUNK chunkUnknown);
 
-BOOL CollectionOldDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK chunkOldDesc);
-BOOL CollectionDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK chunkDesc);
-BOOL CollectionFoldersChunk(HWND hwndCtl, HANDLE hFile, PCHUNK chunkFolders);
-BOOL CollectionMenuIconsChunk(HWND hwndCtl, HANDLE hFile, PCHUNK chunkMenuIcons);
+BOOL CollectionOldDescChunk(HWND hwndEdit, HANDLE hFile, PCHUNK chunkOldDesc);
+BOOL CollectionDescChunk(HWND hwndEdit, HANDLE hFile, PCHUNK chunkDesc);
+BOOL CollectionFoldersChunk(HWND hwndEdit, HANDLE hFile, PCHUNK chunkFolders);
+BOOL CollectionMenuIconsChunk(HWND hwndEdit, HANDLE hFile, PCHUNK chunkMenuIcons);
 
-BOOL PlugVersionChunk(HWND hwndCtl, HANDLE hFile, PCHUNK chunkVersion);
-BOOL HmsVersionChunk(HWND hwndCtl, HANDLE hFile, PCHUNK chunkVersion);
-BOOL GameSkinChunk(HWND hwndCtl, HANDLE hFile, PCHUNK chunkGameSkin);
-BOOL ProfileChunk(HWND hwndCtl, HANDLE hFile, PCHUNK chunkProfile);
-BOOL FolderDepChunk(HWND hwndCtl, HANDLE hFile, PCHUNK chunkFolder);
+BOOL PlugVersionChunk(HWND hwndEdit, HANDLE hFile, PCHUNK chunkVersion);
+BOOL HmsVersionChunk(HWND hwndEdit, HANDLE hFile, PCHUNK chunkVersion);
+BOOL GameSkinChunk(HWND hwndEdit, HANDLE hFile, PCHUNK chunkGameSkin);
+BOOL ProfileChunk(HWND hwndEdit, HANDLE hFile, PCHUNK chunkProfile);
+BOOL FolderDepChunk(HWND hwndEdit, HANDLE hFile, PCHUNK chunkFolder);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // String Constants
@@ -141,12 +141,12 @@ const CHAR g_szMpEnvis[]  = "Canyon,Valley,Stadium,Lagoon,Arena,Storm,Cryo,Meteo
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // DumpGbx is called by DumpFile from GbxDump.cpp
 
-BOOL DumpGbx(HWND hwndCtl, HANDLE hFile, LPSTR lpszUid, LPSTR lpszEnvi)
+BOOL DumpGbx(HWND hwndEdit, HANDLE hFile, LPSTR lpszUid, LPSTR lpszEnvi)
 {
 	BOOL bRet = FALSE;
 	TCHAR szOutput[OUTPUT_LEN];
 
-	if (hwndCtl == NULL || hFile == NULL)
+	if (hwndEdit == NULL || hFile == NULL)
 		return FALSE;
 
 	// Skip the file signature (already checked in DumpFile())
@@ -158,19 +158,19 @@ BOOL DumpGbx(HWND hwndCtl, HANDLE hFile, LPSTR lpszUid, LPSTR lpszEnvi)
 	if (!ReadNat16(hFile, &wVersion))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("File Version:\t%d"), wVersion);
-	if (wVersion > 6) OutputText(hwndCtl, g_szAsterisk);
-	OutputText(hwndCtl, g_szCRLF);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("File Version:\t%d"), wVersion);
+	if (wVersion > 6) OutputText(hwndEdit, g_szAsterisk);
+	OutputText(hwndEdit, g_szCRLF);
 
 	if (wVersion > 6)
 	{ // Unsupported or corrupted file version
-		OutputTextErr(hwndCtl, g_bGerUI ? IDP_GER_ERR_VERSION : IDP_ENG_ERR_VERSION);
-		OutputText(hwndCtl, g_szSep1);
+		OutputTextErr(hwndEdit, g_bGerUI ? IDP_GER_ERR_VERSION : IDP_ENG_ERR_VERSION);
+		OutputText(hwndEdit, g_szSep1);
 	}
 
 	if (wVersion < 3)
 	{ // From here no further support for GBX files below version 3
-		OutputTextErr(hwndCtl, g_bGerUI ? IDP_GER_ERR_UNAVAIL : IDP_ENG_ERR_UNAVAIL);
+		OutputTextErr(hwndEdit, g_bGerUI ? IDP_GER_ERR_UNAVAIL : IDP_ENG_ERR_UNAVAIL);
 		return TRUE;
 	}
 
@@ -181,20 +181,20 @@ BOOL DumpGbx(HWND hwndCtl, HANDLE hFile, LPSTR lpszUid, LPSTR lpszEnvi)
 		return FALSE;
 
 #ifdef _DEBUG
-	OutputText(hwndCtl, TEXT("File Settings:\t"));
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%hc%hc%hc"), achStorageSettings[0],
+	OutputText(hwndEdit, TEXT("File Settings:\t"));
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("%hc%hc%hc"), achStorageSettings[0],
 		achStorageSettings[1], achStorageSettings[2]);
 	if (wVersion >= 4)
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%hc"), achStorageSettings[3]);
-	OutputText(hwndCtl, g_szCRLF);
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("%hc"), achStorageSettings[3]);
+	OutputText(hwndEdit, g_szCRLF);
 #endif
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("File Format:\t%s\r\n"),
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("File Format:\t%s\r\n"),
 		IS_GBX_TEXT(achStorageSettings) ? TEXT("Text") : TEXT("Binary"));
 	// The RefTable block should always be uncompressed
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Ref Table:\t%s\r\n"),
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Ref Table:\t%s\r\n"),
 		IS_REF_COMPRESSED(achStorageSettings) ? TEXT("Compressed*") : TEXT("Uncompressed"));
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("File Body:\t%s\r\n"),
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("File Body:\t%s\r\n"),
 		IS_BODY_UNCOMPRESSED(achStorageSettings) ? TEXT("Uncompressed") : TEXT("Compressed"));
 
 	// Read Class ID
@@ -203,9 +203,9 @@ BOOL DumpGbx(HWND hwndCtl, HANDLE hFile, LPSTR lpszUid, LPSTR lpszEnvi)
 		return FALSE;
 
 	// Output Class ID and determine the base class from the ID.
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Class ID:\t%08X"), dwClassId);
-	BASECLASS eBaseClass = GetBaseClass(hwndCtl, dwClassId);
-	OutputText(hwndCtl, g_szCRLF);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Class ID:\t%08X"), dwClassId);
+	BASECLASS eBaseClass = GetBaseClass(hwndEdit, dwClassId);
+	OutputText(hwndEdit, g_szCRLF);
 
 	// From version 6 onwards, user data is supported in the file header
 	DWORD dwUserDataSize = 0;
@@ -217,9 +217,9 @@ BOOL DumpGbx(HWND hwndCtl, HANDLE hFile, LPSTR lpszUid, LPSTR lpszEnvi)
 
 		if (FormatByteSize(dwUserDataSize, szOutput, _countof(szOutput)))
 		{
-			OutputText(hwndCtl, TEXT("User Data:\t"));
-			OutputText(hwndCtl, szOutput);
-			OutputText(hwndCtl, g_szCRLF);
+			OutputText(hwndEdit, TEXT("User Data:\t"));
+			OutputText(hwndEdit, szOutput);
+			OutputText(hwndEdit, g_szCRLF);
 		}
 	}
 
@@ -232,10 +232,10 @@ BOOL DumpGbx(HWND hwndCtl, HANDLE hFile, LPSTR lpszUid, LPSTR lpszEnvi)
 	if (!ReadNat32(hFile, &dwNumEntries, IS_GBX_TEXT(achStorageSettings)) || dwNumEntries >= 50000)
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Number Refs:\t%d\r\n"), dwNumEntries);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Number Refs:\t%d\r\n"), dwNumEntries);
 
 	// Read external references and determine the size of the body in case of a compressed body
-	DWORD dwExtEntries = ReadRefTable(hwndCtl, hFile, wVersion, achStorageSettings);
+	DWORD dwExtEntries = ReadRefTable(hwndEdit, hFile, wVersion, achStorageSettings);
 	if (dwExtEntries != (DWORD)-1 && IS_BODY_COMPRESSED(achStorageSettings))
 	{
 		DWORD dwCompressedSize = 0;
@@ -250,18 +250,18 @@ BOOL DumpGbx(HWND hwndCtl, HANDLE hFile, LPSTR lpszUid, LPSTR lpszEnvi)
 
 		if (dwCompressedSize > 0 && FormatByteSize(dwCompressedSize, szOutput, _countof(szOutput)))
 		{ // Output size of the compressed body
-			if (dwExtEntries > 0) OutputText(hwndCtl, g_szSep1);
-			OutputText(hwndCtl, TEXT("Body Size:\t"));
-			OutputText(hwndCtl, szOutput);
+			if (dwExtEntries > 0) OutputText(hwndEdit, g_szSep1);
+			OutputText(hwndEdit, TEXT("Body Size:\t"));
+			OutputText(hwndEdit, szOutput);
 
 			if (dwUncompressedSize > 0 && FormatByteSize(dwUncompressedSize, szOutput, _countof(szOutput)))
 			{ // Output uncompressed body size
-				OutputText(hwndCtl, TEXT(" ("));
-				OutputText(hwndCtl, szOutput);
-				OutputText(hwndCtl, TEXT(" uncompressed)"));
+				OutputText(hwndEdit, TEXT(" ("));
+				OutputText(hwndEdit, szOutput);
+				OutputText(hwndEdit, TEXT(" uncompressed)"));
 			}
 
-			OutputText(hwndCtl, g_szCRLF);
+			OutputText(hwndEdit, g_szCRLF);
 		}
 	}
 
@@ -269,16 +269,16 @@ BOOL DumpGbx(HWND hwndCtl, HANDLE hFile, LPSTR lpszUid, LPSTR lpszEnvi)
 	{
 		// No user data available (not supported or empty)
 		if (wVersion < 6)
-			OutputTextErr(hwndCtl, g_bGerUI ? IDP_GER_ERR_UNAVAIL : IDP_ENG_ERR_UNAVAIL);
+			OutputTextErr(hwndEdit, g_bGerUI ? IDP_GER_ERR_UNAVAIL : IDP_ENG_ERR_UNAVAIL);
 		else
-			OutputTextErr(hwndCtl, g_bGerUI ? IDP_GER_ERR_EMPTY : IDP_ENG_ERR_EMPTY);
+			OutputTextErr(hwndEdit, g_bGerUI ? IDP_GER_ERR_EMPTY : IDP_ENG_ERR_EMPTY);
 		return TRUE;
 	}
 
 	// From this point on no further support for GBX files in text format
 	if (IS_GBX_TEXT(achStorageSettings))
 	{
-		OutputTextErr(hwndCtl, g_bGerUI ? IDP_GER_ERR_TEXT : IDP_ENG_ERR_TEXT);
+		OutputTextErr(hwndEdit, g_bGerUI ? IDP_GER_ERR_TEXT : IDP_ENG_ERR_TEXT);
 		return TRUE;
 	}
 
@@ -286,32 +286,32 @@ BOOL DumpGbx(HWND hwndCtl, HANDLE hFile, LPSTR lpszUid, LPSTR lpszEnvi)
 	switch (eBaseClass)
 	{
 		case eChallenge:
-			bRet = DumpChallenge(hwndCtl, hFile, lpszUid, lpszEnvi);
+			bRet = DumpChallenge(hwndEdit, hFile, lpszUid, lpszEnvi);
 			break;
 		case eReplay:
-			bRet = DumpReplay(hwndCtl, hFile, lpszUid, lpszEnvi);
+			bRet = DumpReplay(hwndEdit, hFile, lpszUid, lpszEnvi);
 			break;
 		case eCollector:
-			bRet = DumpCollector(hwndCtl, hFile);
+			bRet = DumpCollector(hwndEdit, hFile);
 			break;
 		case eSkin:
-			bRet = DumpSkin(hwndCtl, hFile);
+			bRet = DumpSkin(hwndEdit, hFile);
 			break;
 		case eProfile:
-			bRet = DumpProfile(hwndCtl, hFile);
+			bRet = DumpProfile(hwndEdit, hFile);
 			break;
 		case eCollection:
-			bRet = DumpCollection(hwndCtl, hFile);
+			bRet = DumpCollection(hwndEdit, hFile);
 			break;
 		case ePlug:
-			bRet = DumpPlug(hwndCtl, hFile);
+			bRet = DumpPlug(hwndEdit, hFile);
 			break;
 		case eHms:
-			bRet = DumpHms(hwndCtl, hFile);
+			bRet = DumpHms(hwndEdit, hFile);
 			break;
 		case eOther:
 		default:
-			bRet = DumpOther(hwndCtl, hFile);
+			bRet = DumpOther(hwndEdit, hFile);
 	}
 
 	return bRet;
@@ -319,7 +319,7 @@ BOOL DumpGbx(HWND hwndCtl, HANDLE hFile, LPSTR lpszUid, LPSTR lpszEnvi)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BASECLASS GetBaseClass(HWND hwndCtl, DWORD dwClassId)
+BASECLASS GetBaseClass(HWND hwndEdit, DWORD dwClassId)
 {
 	BASECLASS eBaseClass = eOther;
 
@@ -329,7 +329,7 @@ BASECLASS GetBaseClass(HWND hwndCtl, DWORD dwClassId)
 		case CLSID_CHALLENGE_TM:
 		case CLSID_CHALLENGE_VSK:
 			eBaseClass = eChallenge;
-			OutputText(hwndCtl, TEXT(" (Challenge)"));
+			OutputText(hwndEdit, TEXT(" (Challenge)"));
 			break;
 
 		case CLSID_REPLAYRECORD_TM:
@@ -337,334 +337,334 @@ BASECLASS GetBaseClass(HWND hwndCtl, DWORD dwClassId)
 		case CLSID_REPLAYRECORD_VSK:
 		case CLSID_AUTOSAVE_TM:
 			eBaseClass = eReplay;
-			OutputText(hwndCtl, TEXT(" (ReplayRecord)"));
+			OutputText(hwndEdit, TEXT(" (ReplayRecord)"));
 			break;
 
 		case CLSID_ITEMMODEL_MP:
 			eBaseClass = eCollector;
-			OutputText(hwndCtl, TEXT(" (ItemModel)"));
+			OutputText(hwndEdit, TEXT(" (ItemModel)"));
 			break;
 
 		case CLSID_OBJECTINFO_TMF:
 		case CLSID_OBJECTINFO_TM:
 		case CLSID_OBJECTINFO_VSK:
 			eBaseClass = eCollector;
-			OutputText(hwndCtl, TEXT(" (ObjectInfo)"));
+			OutputText(hwndEdit, TEXT(" (ObjectInfo)"));
 			break;
 
 		case CLSID_CARDEVENT_MP:
 			eBaseClass = eCollector;
-			OutputText(hwndCtl, TEXT(" (CardEventInfo)"));
+			OutputText(hwndEdit, TEXT(" (CardEventInfo)"));
 			break;
 
 		case CLSID_MACROBLOCK_MP:
 			eBaseClass = eCollector;
-			OutputText(hwndCtl, TEXT(" (MacroBlockInfo)"));
+			OutputText(hwndEdit, TEXT(" (MacroBlockInfo)"));
 			break;
 
 		case CLSID_MACRODECALS_MP:
 			eBaseClass = eCollector;
-			OutputText(hwndCtl, TEXT(" (MacroDecals)"));
+			OutputText(hwndEdit, TEXT(" (MacroDecals)"));
 			break;
 
 		case CLSID_VEHICLE_TM:
 			eBaseClass = eCollector;
-			OutputText(hwndCtl, TEXT(" (CollectorVehicle)"));
+			OutputText(hwndEdit, TEXT(" (CollectorVehicle)"));
 			break;
 
 		case CLSID_DECORATION_TMF:
 		case CLSID_DECORATION_TM:
 			eBaseClass = eCollector;
-			OutputText(hwndCtl, TEXT(" (Decoration)"));
+			OutputText(hwndEdit, TEXT(" (Decoration)"));
 			break;
 
 		case CLSID_BLOCKFLAT_TNF:
 		case CLSID_BLOCKFLAT_TM:
 			eBaseClass = eCollector;
-			OutputText(hwndCtl, TEXT(" (BlockInfoFlat)"));
+			OutputText(hwndEdit, TEXT(" (BlockInfoFlat)"));
 			break;
 
 		case CLSID_BLOCKFRONTIER_TNF:
 		case CLSID_BLOCKFRONTIER_TM:
 			eBaseClass = eCollector;
-			OutputText(hwndCtl, TEXT(" (BlockInfoFrontier)"));
+			OutputText(hwndEdit, TEXT(" (BlockInfoFrontier)"));
 			break;
 
 		case CLSID_BLOCKCLASSIC_TNF:
 		case CLSID_BLOCKCLASSIC_TM:
 			eBaseClass = eCollector;
-			OutputText(hwndCtl, TEXT(" (BlockInfoClassic)"));
+			OutputText(hwndEdit, TEXT(" (BlockInfoClassic)"));
 			break;
 
 		case CLSID_BLOCKROAD_TNF:
 		case CLSID_BLOCKROAD_TM:
 			eBaseClass = eCollector;
-			OutputText(hwndCtl, TEXT(" (BlockInfoRoad)"));
+			OutputText(hwndEdit, TEXT(" (BlockInfoRoad)"));
 			break;
 
 		case CLSID_BLOCKCLIP_TNF:
 		case CLSID_BLOCKCLIP_TM:
 			eBaseClass = eCollector;
-			OutputText(hwndCtl, TEXT(" (BlockInfoClip)"));
+			OutputText(hwndEdit, TEXT(" (BlockInfoClip)"));
 			break;
 
 		case CLSID_BLOCKSLOPE_TNF:
 		case CLSID_BLOCKSLOPE_TM:
 			eBaseClass = eCollector;
-			OutputText(hwndCtl, TEXT(" (BlockInfoSlope)"));
+			OutputText(hwndEdit, TEXT(" (BlockInfoSlope)"));
 			break;
 
 		case CLSID_BLOCKPYLON_TNF:
 		case CLSID_BLOCKPYLON_TM:
 			eBaseClass = eCollector;
-			OutputText(hwndCtl, TEXT(" (BlockInfoPylon)"));
+			OutputText(hwndEdit, TEXT(" (BlockInfoPylon)"));
 			break;
 
 		case CLSID_BLOCKRECTASYM_TNF:
 		case CLSID_BLOCKRECTASYM_TM:
 			eBaseClass = eCollector;
-			OutputText(hwndCtl, TEXT(" (BlockInfoRectAsym)"));
+			OutputText(hwndEdit, TEXT(" (BlockInfoRectAsym)"));
 			break;
 
 		case CLSID_BLOCKTRANSITION_MP:
 			eBaseClass = eCollector;
-			OutputText(hwndCtl, TEXT(" (BlockInfoTransition)"));
+			OutputText(hwndEdit, TEXT(" (BlockInfoTransition)"));
 			break;
 
 		case CLSID_BLOCKMODEL_MP:
 			eBaseClass = eCollector;
-			OutputText(hwndCtl, TEXT(" (CustomBlockModel)"));
+			OutputText(hwndEdit, TEXT(" (CustomBlockModel)"));
 			break;
 
 		case CLSID_SKIN_TMF:
 		case CLSID_SKIN_MP:
 			eBaseClass = eSkin;
-			OutputText(hwndCtl, TEXT(" (Skin)"));
+			OutputText(hwndEdit, TEXT(" (Skin)"));
 			break;
 
 		case CLSID_PLAYERPROFILE_TMF:
 		case CLSID_PLAYERPROFILE_TM:
 		case CLSID_PLAYERPROFILE_VSK:
 			eBaseClass = eProfile;
-			OutputText(hwndCtl, TEXT(" (PlayerProfile)"));
+			OutputText(hwndEdit, TEXT(" (PlayerProfile)"));
 			break;
 
 		case CLSID_USERPROFILE_MP:
-			OutputText(hwndCtl, TEXT(" (UserProfile)"));
+			OutputText(hwndEdit, TEXT(" (UserProfile)"));
 			break;
 
 		case CLSID_COLLECTION_TMF:
 		case CLSID_COLLECTION_TM:
 		case CLSID_COLLECTION_VSK:
 			eBaseClass = eCollection;
-			OutputText(hwndCtl, TEXT(" (Collection)"));
+			OutputText(hwndEdit, TEXT(" (Collection)"));
 			break;
 
 		case CLSID_ANIMFILE_MP:
 			eBaseClass = ePlug;
-			OutputText(hwndCtl, TEXT(" (AnimFile)"));
+			OutputText(hwndEdit, TEXT(" (AnimFile)"));
 			break;
 
 		case CLSID_SOLID2MODEL_MP:
 			eBaseClass = ePlug;
-			OutputText(hwndCtl, TEXT(" (Solid2Model)"));
+			OutputText(hwndEdit, TEXT(" (Solid2Model)"));
 			break;
 
 		case CLSID_ACTIONMODEL_MP:
-			OutputText(hwndCtl, TEXT(" (ActionModel)"));
+			OutputText(hwndEdit, TEXT(" (ActionModel)"));
 			break;
 
 		case CLSID_MENUMODEL_MP:
-			OutputText(hwndCtl, TEXT(" (ModuleMenuModel)"));
+			OutputText(hwndEdit, TEXT(" (ModuleMenuModel)"));
 			break;
 
 		case CLSID_COMMONMODEL_MP:
-			OutputText(hwndCtl, TEXT(" (ModuleModelCommon)"));
+			OutputText(hwndEdit, TEXT(" (ModuleModelCommon)"));
 			break;
 
 		case CLSID_INVENTORYMODEL_MP:
-			OutputText(hwndCtl, TEXT(" (ModulePlaygroundInventoryModel)"));
+			OutputText(hwndEdit, TEXT(" (ModulePlaygroundInventoryModel)"));
 			break;
 
 		case CLSID_SCORESMODEL_MP:
-			OutputText(hwndCtl, TEXT(" (ModulePlaygroundScoresTableModel)"));
+			OutputText(hwndEdit, TEXT(" (ModulePlaygroundScoresTableModel)"));
 			break;
 
 		case CLSID_STOREMODEL_MP:
-			OutputText(hwndCtl, TEXT(" (ModulePlaygroundStoreModel)"));
+			OutputText(hwndEdit, TEXT(" (ModulePlaygroundStoreModel)"));
 			break;
 
 		case CLSID_HUDMODEL_MP:
-			OutputText(hwndCtl, TEXT(" (ModulePlaygroundHudModel)"));
+			OutputText(hwndEdit, TEXT(" (ModulePlaygroundHudModel)"));
 			break;
 
 		case CLSID_MENUPAGEMODEL_MP:
-			OutputText(hwndCtl, TEXT(" (ModuleMenuPageModel)"));
+			OutputText(hwndEdit, TEXT(" (ModuleMenuPageModel)"));
 			break;
 
 		case CLSID_EDITORMODEL_MP:
-			OutputText(hwndCtl, TEXT(" (EditorModel)"));
+			OutputText(hwndEdit, TEXT(" (EditorModel)"));
 			break;
 
 		case CLSID_VEHICLEMODEL_MP:
-			OutputText(hwndCtl, TEXT(" (VehicleModel)"));
+			OutputText(hwndEdit, TEXT(" (VehicleModel)"));
 			break;
 
 		case CLSID_CHRONOMODEL_MP:
-			OutputText(hwndCtl, TEXT(" (ModulePlaygroundChronoModel)"));
+			OutputText(hwndEdit, TEXT(" (ModulePlaygroundChronoModel)"));
 			break;
 
 		case CLSID_METERMODEL_MP:
-			OutputText(hwndCtl, TEXT(" (ModulePlaygroundSpeedMeterModel)"));
+			OutputText(hwndEdit, TEXT(" (ModulePlaygroundSpeedMeterModel)"));
 			break;
 
 		case CLSID_PLAYERMODEL_MP:
-			OutputText(hwndCtl, TEXT(" (ModulePlaygroundPlayerStateModel)"));
+			OutputText(hwndEdit, TEXT(" (ModulePlaygroundPlayerStateModel)"));
 			break;
 
 		case CLSID_TEAMMODEL_MP:
-			OutputText(hwndCtl, TEXT(" (ModulePlaygroundTeamStateModel)"));
+			OutputText(hwndEdit, TEXT(" (ModulePlaygroundTeamStateModel)"));
 			break;
 
 		case CLSID_PIXELARTMODEL_MP:
-			OutputText(hwndCtl, TEXT(" (PixelArtModel)"));
+			OutputText(hwndEdit, TEXT(" (PixelArtModel)"));
 			break;
 
 		case CLSID_BLOCKITEM_MP:
-			OutputText(hwndCtl, TEXT(" (BlockItem)"));
+			OutputText(hwndEdit, TEXT(" (BlockItem)"));
 			break;
 
 		case CLSID_CRYSTAL_TM:
-			OutputText(hwndCtl, TEXT(" (Crystal)"));
+			OutputText(hwndEdit, TEXT(" (Crystal)"));
 			break;
 
 		case CLSID_SOLID_TM:
-			OutputText(hwndCtl, TEXT(" (Solid)"));
+			OutputText(hwndEdit, TEXT(" (Solid)"));
 			break;
 
 		case CLSID_MATERIAL_TMF:
-			OutputText(hwndCtl, TEXT(" (Material)"));
+			OutputText(hwndEdit, TEXT(" (Material)"));
 			break;
 
 		case CLSID_MATUSERINST_MP:
-			OutputText(hwndCtl, TEXT(" (MaterialUserInst)"));
+			OutputText(hwndEdit, TEXT(" (MaterialUserInst)"));
 			break;
 
 		case CLSID_SURFACE_TM:
-			OutputText(hwndCtl, TEXT(" (Surface)"));
+			OutputText(hwndEdit, TEXT(" (Surface)"));
 			break;
 
 		case CLSID_BITMAP_TM:
-			OutputText(hwndCtl, TEXT(" (Bitmap)"));
+			OutputText(hwndEdit, TEXT(" (Bitmap)"));
 			break;
 
 		case CLSID_FONTBITMAP_TM:
-			OutputText(hwndCtl, TEXT(" (FontBitmap)"));
+			OutputText(hwndEdit, TEXT(" (FontBitmap)"));
 			break;
 
 		case CLSID_GHOST_TMF:
 		case CLSID_GHOST_TM:
-			OutputText(hwndCtl, TEXT(" (Ghost)"));
+			OutputText(hwndEdit, TEXT(" (Ghost)"));
 			break;
 
 		case CLSID_MEDIACLIP_TMF:
 		case CLSID_MEDIACLIP_TM:
-			OutputText(hwndCtl, TEXT(" (MediaClip)"));
+			OutputText(hwndEdit, TEXT(" (MediaClip)"));
 			break;
 
 		case CLSID_CAMPAIGN_TMF:
 		case CLSID_CAMPAIGN_TM:
-			OutputText(hwndCtl, TEXT(" (Campaign)"));
+			OutputText(hwndEdit, TEXT(" (Campaign)"));
 			break;
 
 		case CLSID_USERFILELIST_MP:
-			OutputText(hwndCtl, TEXT(" (UserFileList)"));
+			OutputText(hwndEdit, TEXT(" (UserFileList)"));
 			break;
 
 		case CLSID_SYSTEMCONFIG_TM:
-			OutputText(hwndCtl, TEXT(" (Config)"));
+			OutputText(hwndEdit, TEXT(" (Config)"));
 			break;
 
 		case CLSID_DX9DEVICECAPS_TM:
-			OutputText(hwndCtl, TEXT(" (Dx9DeviceCaps)"));
+			OutputText(hwndEdit, TEXT(" (Dx9DeviceCaps)"));
 			break;
 
 		case CLSID_REFBUFFER_TM:
-			OutputText(hwndCtl, TEXT(" (RefBuffer)"));
+			OutputText(hwndEdit, TEXT(" (RefBuffer)"));
 			break;
 
 		case CLSID_SHADERAPPLY_TM:
-			OutputText(hwndCtl, TEXT(" (ShaderApply)"));
+			OutputText(hwndEdit, TEXT(" (ShaderApply)"));
 			break;
 
 		case CLSID_SHADERLAYERUV_TM:
-			OutputText(hwndCtl, TEXT(" (ShaderLayerUV)"));
+			OutputText(hwndEdit, TEXT(" (ShaderLayerUV)"));
 			break;
 
 		case CLSID_GPUCOMPILECACHE_MP:
-			OutputText(hwndCtl, TEXT(" (GpuCompileCache)"));
+			OutputText(hwndEdit, TEXT(" (GpuCompileCache)"));
 			break;
 
 		case CLSID_LIGHTMAP_TM:
 			eBaseClass = eHms;
-			OutputText(hwndCtl, TEXT(" (LightMap)"));
+			OutputText(hwndEdit, TEXT(" (LightMap)"));
 			break;
 
 		case CLSID_LIGHTMAPCACHE_TM:
-			OutputText(hwndCtl, TEXT(" (LightMapCache)"));
+			OutputText(hwndEdit, TEXT(" (LightMapCache)"));
 			break;
 
 		case CLSID_TRAITSPERSIST_MP:
-			OutputText(hwndCtl, TEXT(" (TraitsPersistent)"));
+			OutputText(hwndEdit, TEXT(" (TraitsPersistent)"));
 			break;
 
 		case CLSID_INPUTREPLAY_MP:
-			OutputText(hwndCtl, TEXT(" (Replay)"));
+			OutputText(hwndEdit, TEXT(" (Replay)"));
 			break;
 
 		case CLSID_PLAYERSCORE_TMF:
 		case CLSID_PLAYERSCORE_TM:
-			OutputText(hwndCtl, TEXT(" (PlayerScore)"));
+			OutputText(hwndEdit, TEXT(" (PlayerScore)"));
 			break;
 
 		case CLSID_LADDERSCORES_TMF:
-			OutputText(hwndCtl, TEXT(" (LadderScores)"));
+			OutputText(hwndEdit, TEXT(" (LadderScores)"));
 			break;
 
 		case CLSID_LEAGUEMANAGER_TMF:
-			OutputText(hwndCtl, TEXT(" (LeagueManager)"));
+			OutputText(hwndEdit, TEXT(" (LeagueManager)"));
 			break;
 
 		case CLSID_SCORESMANAGER_TMF:
-			OutputText(hwndCtl, TEXT(" (CampaignsScoresManager)"));
+			OutputText(hwndEdit, TEXT(" (CampaignsScoresManager)"));
 			break;
 
 		case CLSID_SCOREANDLBCACHE:
-			OutputText(hwndCtl, TEXT(" (ScoreAndLeaderBoardCache)"));
+			OutputText(hwndEdit, TEXT(" (ScoreAndLeaderBoardCache)"));
 			break;
 
 		case CLSID_SAVELAUNCHEDCP:
-			OutputText(hwndCtl, TEXT(" (SaveLaunchedCheckpoints)"));
+			OutputText(hwndEdit, TEXT(" (SaveLaunchedCheckpoints)"));
 			break;
 
 		case CLSID_PAINTERLAYER:
-			OutputText(hwndCtl, TEXT(" (PainterLayer)"));
+			OutputText(hwndEdit, TEXT(" (PainterLayer)"));
 			break;
 
 		case CLSID_REGATTA_VSK:
-			OutputText(hwndCtl, TEXT(" (Regatta)"));
+			OutputText(hwndEdit, TEXT(" (Regatta)"));
 			break;
 
 		case CLSID_ACMODEL_VSK:
-			OutputText(hwndCtl, TEXT(" (ACModel)"));
+			OutputText(hwndEdit, TEXT(" (ACModel)"));
 			break;
 
 		case CLSID_TOYBOAT_VSK:
-			OutputText(hwndCtl, TEXT(" (ToyBoat)"));
+			OutputText(hwndEdit, TEXT(" (ToyBoat)"));
 			break;
 
 		case CLSID_BOATPARAM_VSK:
-			OutputText(hwndCtl, TEXT(" (BoatParam)"));
+			OutputText(hwndEdit, TEXT(" (BoatParam)"));
 			break;
 	}
 
@@ -673,7 +673,7 @@ BASECLASS GetBaseClass(HWND hwndCtl, DWORD dwClassId)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL DumpChallenge(HWND hwndCtl, HANDLE hFile, LPSTR lpszUid, LPSTR lpszEnvi)
+BOOL DumpChallenge(HWND hwndEdit, HANDLE hFile, LPSTR lpszUid, LPSTR lpszEnvi)
 {
 	DWORD dwNumHeaderChunks = 0;
 	CHUNK chunkTmDesc = {0};
@@ -695,13 +695,13 @@ BOOL DumpChallenge(HWND hwndCtl, HANDLE hFile, LPSTR lpszUid, LPSTR lpszEnvi)
 
 	if (dwNumHeaderChunks == 0)
 	{
-		OutputTextErr(hwndCtl, g_bGerUI ? IDP_GER_ERR_CHUNKS : IDP_ENG_ERR_CHUNKS);
+		OutputTextErr(hwndEdit, g_bGerUI ? IDP_GER_ERR_CHUNKS : IDP_ENG_ERR_CHUNKS);
 		return TRUE;
 	}
 	else if (dwNumHeaderChunks > 0xFF) // sanity check
 		return FALSE;
 
-	OutputText(hwndCtl, g_szSep1);
+	OutputText(hwndEdit, g_szSep1);
 
 	// Determine chunk sizes and positions
 	DWORD dwChunkId, dwChunkSize;
@@ -724,7 +724,7 @@ BOOL DumpChallenge(HWND hwndCtl, HANDLE hFile, LPSTR lpszUid, LPSTR lpszEnvi)
 				chunkTmDesc.dwSize = dwChunkSize;
 				chunkTmDesc.dwOffset = dwChunkOffset;
 				dwChunkOffset += dwChunkSize;
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
 				break;
 
 			case 0x03043003: // (TM)
@@ -733,7 +733,7 @@ BOOL DumpChallenge(HWND hwndCtl, HANDLE hFile, LPSTR lpszUid, LPSTR lpszEnvi)
 				chunkCommon.dwSize = dwChunkSize;
 				chunkCommon.dwOffset = dwChunkOffset;
 				dwChunkOffset += dwChunkSize;
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
 				break;
 
 			case 0x03043004: // (TM)
@@ -742,7 +742,7 @@ BOOL DumpChallenge(HWND hwndCtl, HANDLE hFile, LPSTR lpszUid, LPSTR lpszEnvi)
 				chunkVersion.dwSize = dwChunkSize;
 				chunkVersion.dwOffset = dwChunkOffset;
 				dwChunkOffset += dwChunkSize;
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
 				break;
 
 			case 0x03043005: // (TM)
@@ -751,7 +751,7 @@ BOOL DumpChallenge(HWND hwndCtl, HANDLE hFile, LPSTR lpszUid, LPSTR lpszEnvi)
 				chunkCommunity.dwSize = dwChunkSize;
 				chunkCommunity.dwOffset = dwChunkOffset;
 				dwChunkOffset += dwChunkSize;
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
 				break;
 
 			case 0x03043007: // (TM)
@@ -760,7 +760,7 @@ BOOL DumpChallenge(HWND hwndCtl, HANDLE hFile, LPSTR lpszUid, LPSTR lpszEnvi)
 				chunkThumbnail.dwSize = dwChunkSize;
 				chunkThumbnail.dwOffset = dwChunkOffset;
 				dwChunkOffset += dwChunkSize;
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
 				break;
 
 			case 0x03043008: // (MP)
@@ -768,7 +768,7 @@ BOOL DumpChallenge(HWND hwndCtl, HANDLE hFile, LPSTR lpszUid, LPSTR lpszEnvi)
 				chunkAuthor.dwSize = dwChunkSize;
 				chunkAuthor.dwOffset = dwChunkOffset;
 				dwChunkOffset += dwChunkSize;
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
 				break;
 
 			case 0x21080001: // (VSK)
@@ -776,12 +776,12 @@ BOOL DumpChallenge(HWND hwndCtl, HANDLE hFile, LPSTR lpszUid, LPSTR lpszEnvi)
 				chunkVskDesc.dwSize = dwChunkSize;
 				chunkVskDesc.dwOffset = dwChunkOffset;
 				dwChunkOffset += dwChunkSize;
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
 				break;
 
 			default:
 				dwChunkOffset += dwChunkSize;
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
 		}
 	}
 
@@ -789,38 +789,38 @@ BOOL DumpChallenge(HWND hwndCtl, HANDLE hFile, LPSTR lpszUid, LPSTR lpszEnvi)
 
 	// TMDesc chunk
 	if (chunkTmDesc.dwSize > 0)
-		bSuccess &= ChallengeTmDescChunk(hwndCtl, hFile, &chunkTmDesc);
+		bSuccess &= ChallengeTmDescChunk(hwndEdit, hFile, &chunkTmDesc);
 
 	// Common chunk
 	if (chunkCommon.dwSize > 0)
-		bSuccess &= ChallengeCommonChunk(hwndCtl, hFile, &chunkCommon, lpszUid, lpszEnvi);
+		bSuccess &= ChallengeCommonChunk(hwndEdit, hFile, &chunkCommon, lpszUid, lpszEnvi);
 
 	// Version chunk
 	if (chunkVersion.dwSize > 0)
-		bSuccess &= ChallengeVersionChunk(hwndCtl, hFile, &chunkVersion);
+		bSuccess &= ChallengeVersionChunk(hwndEdit, hFile, &chunkVersion);
 
 	// Community chunk
 	if (chunkCommunity.dwSize > 0)
-		bSuccess &= ChallengeReplayCommunityChunk(hwndCtl, hFile, &chunkCommunity);
+		bSuccess &= ChallengeReplayCommunityChunk(hwndEdit, hFile, &chunkCommunity);
 
 	// Thumbnail chunk
 	if (chunkThumbnail.dwSize > 0)
-		bSuccess &= ChallengeThumbnailChunk(hwndCtl, hFile, &chunkThumbnail);
+		bSuccess &= ChallengeThumbnailChunk(hwndEdit, hFile, &chunkThumbnail);
 
 	// Author chunk
 	if (chunkAuthor.dwSize > 0)
-		bSuccess &= ChallengeReplayAuthorChunk(hwndCtl, hFile, &chunkAuthor);
+		bSuccess &= ChallengeReplayAuthorChunk(hwndEdit, hFile, &chunkAuthor);
 
 	// VSKDesc chunk
 	if (chunkVskDesc.dwSize > 0)
-		bSuccess &= ChallengeVskDescChunk(hwndCtl, hFile, &chunkVskDesc);
+		bSuccess &= ChallengeVskDescChunk(hwndEdit, hFile, &chunkVskDesc);
 
 	return bSuccess;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL DumpReplay(HWND hwndCtl, HANDLE hFile, LPSTR lpszUid, LPSTR lpszEnvi)
+BOOL DumpReplay(HWND hwndEdit, HANDLE hFile, LPSTR lpszUid, LPSTR lpszEnvi)
 {
 	DWORD dwNumHeaderChunks = 0;
 	CHUNK chunkVersion = {0};
@@ -838,13 +838,13 @@ BOOL DumpReplay(HWND hwndCtl, HANDLE hFile, LPSTR lpszUid, LPSTR lpszEnvi)
 
 	if (dwNumHeaderChunks == 0)
 	{
-		OutputTextErr(hwndCtl, g_bGerUI ? IDP_GER_ERR_CHUNKS : IDP_ENG_ERR_CHUNKS);
+		OutputTextErr(hwndEdit, g_bGerUI ? IDP_GER_ERR_CHUNKS : IDP_ENG_ERR_CHUNKS);
 		return TRUE;
 	}
 	else if (dwNumHeaderChunks > 0xFF) // sanity check
 		return FALSE;
 
-	OutputText(hwndCtl, g_szSep1);
+	OutputText(hwndEdit, g_szSep1);
 
 	// Determine chunk sizes and positions
 	DWORD dwChunkId, dwChunkSize;
@@ -867,7 +867,7 @@ BOOL DumpReplay(HWND hwndCtl, HANDLE hFile, LPSTR lpszUid, LPSTR lpszEnvi)
 				chunkVersion.dwSize = dwChunkSize;
 				chunkVersion.dwOffset = dwChunkOffset;
 				dwChunkOffset += dwChunkSize;
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
 				break;
 
 			case 0x03093001: // (TM)
@@ -876,7 +876,7 @@ BOOL DumpReplay(HWND hwndCtl, HANDLE hFile, LPSTR lpszUid, LPSTR lpszEnvi)
 				chunkCommunity.dwSize = dwChunkSize;
 				chunkCommunity.dwOffset = dwChunkOffset;
 				dwChunkOffset += dwChunkSize;
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
 				break;
 
 			case 0x03093002: // (MP)
@@ -884,12 +884,12 @@ BOOL DumpReplay(HWND hwndCtl, HANDLE hFile, LPSTR lpszUid, LPSTR lpszEnvi)
 				chunkAuthor.dwSize = dwChunkSize;
 				chunkAuthor.dwOffset = dwChunkOffset;
 				dwChunkOffset += dwChunkSize;
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
 				break;
 
 			default:
 				dwChunkOffset += dwChunkSize;
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
 		}
 	}
 
@@ -897,22 +897,22 @@ BOOL DumpReplay(HWND hwndCtl, HANDLE hFile, LPSTR lpszUid, LPSTR lpszEnvi)
 
 	// Version chunk
 	if (chunkVersion.dwSize > 0)
-		bSuccess &= ReplayVersionChunk(hwndCtl, hFile, &chunkVersion, lpszUid, lpszEnvi);
+		bSuccess &= ReplayVersionChunk(hwndEdit, hFile, &chunkVersion, lpszUid, lpszEnvi);
 
 	// Community chunk
 	if (chunkCommunity.dwSize > 0)
-		bSuccess &= ChallengeReplayCommunityChunk(hwndCtl, hFile, &chunkCommunity);
+		bSuccess &= ChallengeReplayCommunityChunk(hwndEdit, hFile, &chunkCommunity);
 
 	// Author chunk
 	if (chunkAuthor.dwSize > 0)
-		bSuccess &= ChallengeReplayAuthorChunk(hwndCtl, hFile, &chunkAuthor);
+		bSuccess &= ChallengeReplayAuthorChunk(hwndEdit, hFile, &chunkAuthor);
 
 	return bSuccess;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL DumpCollector(HWND hwndCtl, HANDLE hFile)
+BOOL DumpCollector(HWND hwndEdit, HANDLE hFile)
 {
 	DWORD dwNumHeaderChunks = 0;
 	CHUNK chunkFolder = {0};
@@ -935,13 +935,13 @@ BOOL DumpCollector(HWND hwndCtl, HANDLE hFile)
 
 	if (dwNumHeaderChunks == 0)
 	{
-		OutputTextErr(hwndCtl, g_bGerUI ? IDP_GER_ERR_CHUNKS : IDP_ENG_ERR_CHUNKS);
+		OutputTextErr(hwndEdit, g_bGerUI ? IDP_GER_ERR_CHUNKS : IDP_ENG_ERR_CHUNKS);
 		return TRUE;
 	}
 	else if (dwNumHeaderChunks > 0xFF)
 		return FALSE;
 
-	OutputText(hwndCtl, g_szSep1);
+	OutputText(hwndEdit, g_szSep1);
 
 	DWORD dwChunkId, dwChunkSize;
 	DWORD dwChunkOffset = GET_CHUNK_OFFSET(dwNumHeaderChunks);
@@ -962,7 +962,7 @@ BOOL DumpCollector(HWND hwndCtl, HANDLE hFile)
 				chunkFolder.dwSize = dwChunkSize;
 				chunkFolder.dwOffset = dwChunkOffset;
 				dwChunkOffset += dwChunkSize;
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
 				break;
 
 			case 0x0301A003:
@@ -972,7 +972,7 @@ BOOL DumpCollector(HWND hwndCtl, HANDLE hFile)
 				chunkDesc.dwSize = dwChunkSize;
 				chunkDesc.dwOffset = dwChunkOffset;
 				dwChunkOffset += dwChunkSize;
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
 				break;
 
 			case 0x0301A004:
@@ -982,7 +982,7 @@ BOOL DumpCollector(HWND hwndCtl, HANDLE hFile)
 				chunkIcon.dwSize = dwChunkSize;
 				chunkIcon.dwOffset = dwChunkOffset;
 				dwChunkOffset += dwChunkSize;
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
 				break;
 
 			case 0x0301A006:
@@ -991,7 +991,7 @@ BOOL DumpCollector(HWND hwndCtl, HANDLE hFile)
 				chunkTime.dwSize = dwChunkSize;
 				chunkTime.dwOffset = dwChunkOffset;
 				dwChunkOffset += dwChunkSize;
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
 				break;
 
 			case 0x2E001008:
@@ -999,7 +999,7 @@ BOOL DumpCollector(HWND hwndCtl, HANDLE hFile)
 				chunkSkin.dwSize = dwChunkSize;
 				chunkSkin.dwOffset = dwChunkOffset;
 				dwChunkOffset += dwChunkSize;
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
 				break;
 
 			case 0x0301C000:
@@ -1008,7 +1008,7 @@ BOOL DumpCollector(HWND hwndCtl, HANDLE hFile)
 				chunkType.dwSize = dwChunkSize;
 				chunkType.dwOffset = dwChunkOffset;
 				dwChunkOffset += dwChunkSize;
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
 				break;
 
 			case 0x0301C001:
@@ -1017,7 +1017,7 @@ BOOL DumpCollector(HWND hwndCtl, HANDLE hFile)
 				chunkVersion.dwSize = dwChunkSize;
 				chunkVersion.dwOffset = dwChunkOffset;
 				dwChunkOffset += dwChunkSize;
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
 				break;
 
 			case 0x03031000:
@@ -1026,7 +1026,7 @@ BOOL DumpCollector(HWND hwndCtl, HANDLE hFile)
 				chunkGameSkin.dwSize = dwChunkSize;
 				chunkGameSkin.dwOffset = dwChunkOffset;
 				dwChunkOffset += dwChunkSize;
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
 				break;
 
 			case 0x03038000:
@@ -1034,7 +1034,7 @@ BOOL DumpCollector(HWND hwndCtl, HANDLE hFile)
 				chunkMood.dwSize = dwChunkSize;
 				chunkMood.dwOffset = dwChunkOffset;
 				dwChunkOffset += dwChunkSize;
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
 				break;
 
 			case 0x03038001:
@@ -1042,12 +1042,12 @@ BOOL DumpCollector(HWND hwndCtl, HANDLE hFile)
 				chunkUnknown.dwSize = dwChunkSize;
 				chunkUnknown.dwOffset = dwChunkOffset;
 				dwChunkOffset += dwChunkSize;
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
 				break;
 
 			default:
 				dwChunkOffset += dwChunkSize;
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
 		}
 	}
 
@@ -1055,50 +1055,50 @@ BOOL DumpCollector(HWND hwndCtl, HANDLE hFile)
 
 	// Folder Dep chunk
 	if (chunkFolder.dwSize > 0)
-		bSuccess &= FolderDepChunk(hwndCtl, hFile, &chunkFolder);
+		bSuccess &= FolderDepChunk(hwndEdit, hFile, &chunkFolder);
 
 	// Desc chunk
 	if (chunkDesc.dwSize > 0)
-		bSuccess &= CollectorDescChunk(hwndCtl, hFile, &chunkDesc);
+		bSuccess &= CollectorDescChunk(hwndEdit, hFile, &chunkDesc);
 
 	// Icon chunk
 	if (chunkIcon.dwSize > 0)
-		bSuccess &= CollectorIconChunk(hwndCtl, hFile, &chunkIcon);
+		bSuccess &= CollectorIconChunk(hwndEdit, hFile, &chunkIcon);
 
 	// Time chunk
 	if (chunkTime.dwSize > 0)
-		bSuccess &= CollectorTimeChunk(hwndCtl, hFile, &chunkTime);
+		bSuccess &= CollectorTimeChunk(hwndEdit, hFile, &chunkTime);
 
 	// Skin chunk
 	if (chunkSkin.dwSize > 0)
-		bSuccess &= CollectorSkinChunk(hwndCtl, hFile, &chunkSkin);
+		bSuccess &= CollectorSkinChunk(hwndEdit, hFile, &chunkSkin);
 
 	// Type chunk
 	if (chunkType.dwSize > 0)
-		bSuccess &= ObjectInfoTypeChunk(hwndCtl, hFile, &chunkType);
+		bSuccess &= ObjectInfoTypeChunk(hwndEdit, hFile, &chunkType);
 
 	// Version chunk
 	if (chunkVersion.dwSize > 0)
-		bSuccess &= ObjectInfoVersionChunk(hwndCtl, hFile, &chunkVersion);
+		bSuccess &= ObjectInfoVersionChunk(hwndEdit, hFile, &chunkVersion);
 
 	// Game Skin chunk
 	if (chunkGameSkin.dwSize > 0)
-		bSuccess &= GameSkinChunk(hwndCtl, hFile, &chunkGameSkin);
+		bSuccess &= GameSkinChunk(hwndEdit, hFile, &chunkGameSkin);
 
 	// Mood chunk
 	if (chunkMood.dwSize > 0)
-		bSuccess &= DecorationMoodChunk(hwndCtl, hFile, &chunkMood);
+		bSuccess &= DecorationMoodChunk(hwndEdit, hFile, &chunkMood);
 
 	// Unknown chunk
 	if (chunkUnknown.dwSize > 0)
-		bSuccess &= DecorationUnknownChunk(hwndCtl, hFile, &chunkUnknown);
+		bSuccess &= DecorationUnknownChunk(hwndEdit, hFile, &chunkUnknown);
 
 	return bSuccess;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL DumpSkin(HWND hwndCtl, HANDLE hFile)
+BOOL DumpSkin(HWND hwndEdit, HANDLE hFile)
 {
 	DWORD dwNumHeaderChunks = 0;
 	CHUNK chunkGameSkin = {0};
@@ -1112,13 +1112,13 @@ BOOL DumpSkin(HWND hwndCtl, HANDLE hFile)
 
 	if (dwNumHeaderChunks == 0)
 	{
-		OutputTextErr(hwndCtl, g_bGerUI ? IDP_GER_ERR_CHUNKS : IDP_ENG_ERR_CHUNKS);
+		OutputTextErr(hwndEdit, g_bGerUI ? IDP_GER_ERR_CHUNKS : IDP_ENG_ERR_CHUNKS);
 		return TRUE;
 	}
 	else if (dwNumHeaderChunks > 0xFF)
 		return FALSE;
 
-	OutputText(hwndCtl, g_szSep1);
+	OutputText(hwndEdit, g_szSep1);
 
 	DWORD dwChunkId, dwChunkSize;
 	DWORD dwChunkOffset = GET_CHUNK_OFFSET(dwNumHeaderChunks);
@@ -1140,12 +1140,12 @@ BOOL DumpSkin(HWND hwndCtl, HANDLE hFile)
 				chunkGameSkin.dwSize = dwChunkSize;
 				chunkGameSkin.dwOffset = dwChunkOffset;
 				dwChunkOffset += dwChunkSize;
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
 				break;
 
 			default:
 				dwChunkOffset += dwChunkSize;
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
 		}
 	}
 
@@ -1153,14 +1153,14 @@ BOOL DumpSkin(HWND hwndCtl, HANDLE hFile)
 
 	// Skin chunk
 	if (chunkGameSkin.dwSize > 0)
-		bSuccess &= GameSkinChunk(hwndCtl, hFile, &chunkGameSkin);
+		bSuccess &= GameSkinChunk(hwndEdit, hFile, &chunkGameSkin);
 
 	return bSuccess;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL DumpProfile(HWND hwndCtl, HANDLE hFile)
+BOOL DumpProfile(HWND hwndEdit, HANDLE hFile)
 {
 	DWORD dwNumHeaderChunks = 0;
 	CHUNK chunkProfile = {0};
@@ -1174,13 +1174,13 @@ BOOL DumpProfile(HWND hwndCtl, HANDLE hFile)
 
 	if (dwNumHeaderChunks == 0)
 	{
-		OutputTextErr(hwndCtl, g_bGerUI ? IDP_GER_ERR_CHUNKS : IDP_ENG_ERR_CHUNKS);
+		OutputTextErr(hwndEdit, g_bGerUI ? IDP_GER_ERR_CHUNKS : IDP_ENG_ERR_CHUNKS);
 		return TRUE;
 	}
 	else if (dwNumHeaderChunks > 0xFF)
 		return FALSE;
 
-	OutputText(hwndCtl, g_szSep1);
+	OutputText(hwndEdit, g_szSep1);
 
 	DWORD dwChunkId, dwChunkSize;
 	DWORD dwChunkOffset = GET_CHUNK_OFFSET(dwNumHeaderChunks);
@@ -1201,12 +1201,12 @@ BOOL DumpProfile(HWND hwndCtl, HANDLE hFile)
 				chunkProfile.dwSize = dwChunkSize;
 				chunkProfile.dwOffset = dwChunkOffset;
 				dwChunkOffset += dwChunkSize;
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
 				break;
 
 			default:
 				dwChunkOffset += dwChunkSize;
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
 		}
 	}
 
@@ -1214,14 +1214,14 @@ BOOL DumpProfile(HWND hwndCtl, HANDLE hFile)
 
 	// Profile chunk
 	if (chunkProfile.dwSize > 0)
-		bSuccess &= ProfileChunk(hwndCtl, hFile, &chunkProfile);
+		bSuccess &= ProfileChunk(hwndEdit, hFile, &chunkProfile);
 
 	return bSuccess;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL DumpCollection(HWND hwndCtl, HANDLE hFile)
+BOOL DumpCollection(HWND hwndEdit, HANDLE hFile)
 {
 	DWORD dwNumHeaderChunks = 0;
 	CHUNK chunkFolder = {0};
@@ -1239,13 +1239,13 @@ BOOL DumpCollection(HWND hwndCtl, HANDLE hFile)
 
 	if (dwNumHeaderChunks == 0)
 	{
-		OutputTextErr(hwndCtl, g_bGerUI ? IDP_GER_ERR_CHUNKS : IDP_ENG_ERR_CHUNKS);
+		OutputTextErr(hwndEdit, g_bGerUI ? IDP_GER_ERR_CHUNKS : IDP_ENG_ERR_CHUNKS);
 		return TRUE;
 	}
 	else if (dwNumHeaderChunks > 0xFF)
 		return FALSE;
 
-	OutputText(hwndCtl, g_szSep1);
+	OutputText(hwndEdit, g_szSep1);
 
 	DWORD dwChunkId, dwChunkSize;
 	DWORD dwChunkOffset = GET_CHUNK_OFFSET(dwNumHeaderChunks);
@@ -1266,7 +1266,7 @@ BOOL DumpCollection(HWND hwndCtl, HANDLE hFile)
 				chunkFolder.dwSize = dwChunkSize;
 				chunkFolder.dwOffset = dwChunkOffset;
 				dwChunkOffset += dwChunkSize;
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
 				break;
 
 			case 0x24004000:
@@ -1275,7 +1275,7 @@ BOOL DumpCollection(HWND hwndCtl, HANDLE hFile)
 				chunkOldDesc.dwSize = dwChunkSize;
 				chunkOldDesc.dwOffset = dwChunkOffset;
 				dwChunkOffset += dwChunkSize;
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
 				break;
 
 			case 0x24004001:
@@ -1284,7 +1284,7 @@ BOOL DumpCollection(HWND hwndCtl, HANDLE hFile)
 				chunkDesc.dwSize = dwChunkSize;
 				chunkDesc.dwOffset = dwChunkOffset;
 				dwChunkOffset += dwChunkSize;
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
 				break;
 
 			case 0x03033002:
@@ -1292,7 +1292,7 @@ BOOL DumpCollection(HWND hwndCtl, HANDLE hFile)
 				chunkFolders.dwSize = dwChunkSize;
 				chunkFolders.dwOffset = dwChunkOffset;
 				dwChunkOffset += dwChunkSize;
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
 				break;
 
 			case 0x03033003:
@@ -1300,12 +1300,12 @@ BOOL DumpCollection(HWND hwndCtl, HANDLE hFile)
 				chunkMenuIcons.dwSize = dwChunkSize;
 				chunkMenuIcons.dwOffset = dwChunkOffset;
 				dwChunkOffset += dwChunkSize;
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
 				break;
 
 			default:
 				dwChunkOffset += dwChunkSize;
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
 		}
 	}
 
@@ -1313,30 +1313,30 @@ BOOL DumpCollection(HWND hwndCtl, HANDLE hFile)
 
 	// Folder Dep chunk
 	if (chunkFolder.dwSize > 0)
-		bSuccess &= FolderDepChunk(hwndCtl, hFile, &chunkFolder);
+		bSuccess &= FolderDepChunk(hwndEdit, hFile, &chunkFolder);
 
 	// Old Desc chunk
 	if (chunkOldDesc.dwSize > 0)
-		bSuccess &= CollectionOldDescChunk(hwndCtl, hFile, &chunkOldDesc);
+		bSuccess &= CollectionOldDescChunk(hwndEdit, hFile, &chunkOldDesc);
 
 	// Desc chunk
 	if (chunkDesc.dwSize > 0)
-		bSuccess &= CollectionDescChunk(hwndCtl, hFile, &chunkDesc);
+		bSuccess &= CollectionDescChunk(hwndEdit, hFile, &chunkDesc);
 
 	// Collector Folders chunk
 	if (chunkFolders.dwSize > 0)
-		bSuccess &= CollectionFoldersChunk(hwndCtl, hFile, &chunkFolders);
+		bSuccess &= CollectionFoldersChunk(hwndEdit, hFile, &chunkFolders);
 
 	// Menu Icons Folders chunk
 	if (chunkMenuIcons.dwSize > 0)
-		bSuccess &= CollectionMenuIconsChunk(hwndCtl, hFile, &chunkMenuIcons);
+		bSuccess &= CollectionMenuIconsChunk(hwndEdit, hFile, &chunkMenuIcons);
 
 	return bSuccess;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL DumpPlug(HWND hwndCtl, HANDLE hFile)
+BOOL DumpPlug(HWND hwndEdit, HANDLE hFile)
 {
 	DWORD dwNumHeaderChunks = 0;
 	CHUNK chunkVersion = {0};
@@ -1350,13 +1350,13 @@ BOOL DumpPlug(HWND hwndCtl, HANDLE hFile)
 
 	if (dwNumHeaderChunks == 0)
 	{
-		OutputTextErr(hwndCtl, g_bGerUI ? IDP_GER_ERR_CHUNKS : IDP_ENG_ERR_CHUNKS);
+		OutputTextErr(hwndEdit, g_bGerUI ? IDP_GER_ERR_CHUNKS : IDP_ENG_ERR_CHUNKS);
 		return TRUE;
 	}
 	else if (dwNumHeaderChunks > 0xFF)
 		return FALSE;
 
-	OutputText(hwndCtl, g_szSep1);
+	OutputText(hwndEdit, g_szSep1);
 
 	DWORD dwChunkId, dwChunkSize;
 	DWORD dwChunkOffset = GET_CHUNK_OFFSET(dwNumHeaderChunks);
@@ -1378,12 +1378,12 @@ BOOL DumpPlug(HWND hwndCtl, HANDLE hFile)
 				chunkVersion.dwSize = dwChunkSize;
 				chunkVersion.dwOffset = dwChunkOffset;
 				dwChunkOffset += dwChunkSize;
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
 				break;
 
 			default:
 				dwChunkOffset += dwChunkSize;
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
 		}
 	}
 
@@ -1391,14 +1391,14 @@ BOOL DumpPlug(HWND hwndCtl, HANDLE hFile)
 
 	// Version chunk
 	if (chunkVersion.dwSize > 0)
-		bSuccess &= PlugVersionChunk(hwndCtl, hFile, &chunkVersion);
+		bSuccess &= PlugVersionChunk(hwndEdit, hFile, &chunkVersion);
 
 	return bSuccess;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL DumpHms(HWND hwndCtl, HANDLE hFile)
+BOOL DumpHms(HWND hwndEdit, HANDLE hFile)
 {
 	DWORD dwNumHeaderChunks = 0;
 	CHUNK chunkVersion = {0};
@@ -1412,13 +1412,13 @@ BOOL DumpHms(HWND hwndCtl, HANDLE hFile)
 
 	if (dwNumHeaderChunks == 0)
 	{
-		OutputTextErr(hwndCtl, g_bGerUI ? IDP_GER_ERR_CHUNKS : IDP_ENG_ERR_CHUNKS);
+		OutputTextErr(hwndEdit, g_bGerUI ? IDP_GER_ERR_CHUNKS : IDP_ENG_ERR_CHUNKS);
 		return TRUE;
 	}
 	else if (dwNumHeaderChunks > 0xFF)
 		return FALSE;
 
-	OutputText(hwndCtl, g_szSep1);
+	OutputText(hwndEdit, g_szSep1);
 
 	DWORD dwChunkId, dwChunkSize;
 	DWORD dwChunkOffset = GET_CHUNK_OFFSET(dwNumHeaderChunks);
@@ -1439,12 +1439,12 @@ BOOL DumpHms(HWND hwndCtl, HANDLE hFile)
 				chunkVersion.dwSize = dwChunkSize;
 				chunkVersion.dwOffset = dwChunkOffset;
 				dwChunkOffset += dwChunkSize;
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
 				break;
 
 			default:
 				dwChunkOffset += dwChunkSize;
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
 		}
 	}
 
@@ -1452,14 +1452,14 @@ BOOL DumpHms(HWND hwndCtl, HANDLE hFile)
 
 	// Version chunk
 	if (chunkVersion.dwSize > 0)
-		bSuccess &= HmsVersionChunk(hwndCtl, hFile, &chunkVersion);
+		bSuccess &= HmsVersionChunk(hwndEdit, hFile, &chunkVersion);
 
 	return bSuccess;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL DumpOther(HWND hwndCtl, HANDLE hFile)
+BOOL DumpOther(HWND hwndEdit, HANDLE hFile)
 {
 	DWORD dwNumHeaderChunks = 0;
 	CHUNK chunkFolder = {0};
@@ -1473,13 +1473,13 @@ BOOL DumpOther(HWND hwndCtl, HANDLE hFile)
 
 	if (dwNumHeaderChunks == 0)
 	{
-		OutputTextErr(hwndCtl, g_bGerUI ? IDP_GER_ERR_CHUNKS : IDP_ENG_ERR_CHUNKS);
+		OutputTextErr(hwndEdit, g_bGerUI ? IDP_GER_ERR_CHUNKS : IDP_ENG_ERR_CHUNKS);
 		return TRUE;
 	}
 	else if (dwNumHeaderChunks > 0xFF)
 		return FALSE;
 
-	OutputText(hwndCtl, g_szSep1);
+	OutputText(hwndEdit, g_szSep1);
 
 	DWORD dwChunkId, dwChunkSize;
 	DWORD dwChunkOffset = GET_CHUNK_OFFSET(dwNumHeaderChunks);
@@ -1500,12 +1500,12 @@ BOOL DumpOther(HWND hwndCtl, HANDLE hFile)
 				chunkFolder.dwSize = dwChunkSize;
 				chunkFolder.dwOffset = dwChunkOffset;
 				dwChunkOffset += dwChunkSize;
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
 				break;
 
 			default:
 				dwChunkOffset += dwChunkSize;
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szChunk, dwCouter, dwChunkId, dwChunkSize);
 		}
 	}
 
@@ -1513,10 +1513,10 @@ BOOL DumpOther(HWND hwndCtl, HANDLE hFile)
 
 	// Folder Dep chunk
 	if (chunkFolder.dwSize > 0)
-		bSuccess &= FolderDepChunk(hwndCtl, hFile, &chunkFolder);
+		bSuccess &= FolderDepChunk(hwndEdit, hFile, &chunkFolder);
 
 	if (dwNumHeaderChunks > 1 || chunkFolder.dwSize == 0)
-		OutputTextErr(hwndCtl, g_bGerUI ? IDP_GER_ERR_CLASS : IDP_ENG_ERR_CLASS);
+		OutputTextErr(hwndEdit, g_bGerUI ? IDP_GER_ERR_CLASS : IDP_ENG_ERR_CLASS);
 
 	return bSuccess;
 }
@@ -1525,7 +1525,7 @@ BOOL DumpOther(HWND hwndCtl, HANDLE hFile)
 
 #define EFid_Resource 4
 
-DWORD ReadRefTable(HWND hwndCtl, HANDLE hFile, WORD wVersion, PBYTE achStorageSettings)
+DWORD ReadRefTable(HWND hwndEdit, HANDLE hFile, WORD wVersion, PBYTE achStorageSettings)
 {
 	TCHAR szOutput[OUTPUT_LEN];
 	BOOL bIsText = IS_GBX_TEXT(achStorageSettings);
@@ -1539,8 +1539,8 @@ DWORD ReadRefTable(HWND hwndCtl, HANDLE hFile, WORD wVersion, PBYTE achStorageSe
 	if (!ReadNat32(hFile, &dwExtEntries, bIsText))
 		return (DWORD)-1;
 
-	if (dwExtEntries > 0) OutputText(hwndCtl, g_szSep1);
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Num Ext Refs:\t%d\r\n"), dwExtEntries);
+	if (dwExtEntries > 0) OutputText(hwndEdit, g_szSep1);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Num Ext Refs:\t%d\r\n"), dwExtEntries);
 
 	if (dwExtEntries == 0)
 		return 0;
@@ -1550,7 +1550,7 @@ DWORD ReadRefTable(HWND hwndCtl, HANDLE hFile, WORD wVersion, PBYTE achStorageSe
 	if (!ReadNat32(hFile, &dwAncestorLevel, bIsText))
 		return (DWORD)-1;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Num Levels Up:\t%d\r\n"), dwAncestorLevel);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Num Levels Up:\t%d\r\n"), dwAncestorLevel);
 
 	// Number of subdirectories
 	DWORD dwNumSubFolders = 0;
@@ -1560,21 +1560,21 @@ DWORD ReadRefTable(HWND hwndCtl, HANDLE hFile, WORD wVersion, PBYTE achStorageSe
 	// Read subdirectories
 	DWORD dwIndex = 0;
 	while (dwNumSubFolders--)
-		if (!ReadSubFolders(hwndCtl, hFile, &dwIndex, NULL, bIsText))
+		if (!ReadSubFolders(hwndEdit, hFile, &dwIndex, NULL, bIsText))
 			return (DWORD)-1;
 
 	// Read external references
 	DWORD dwCount = dwExtEntries;
 	while (dwCount--)
 	{
-		OutputText(hwndCtl, g_szSep0);
+		OutputText(hwndEdit, g_szSep0);
 
 		// Flags
 		DWORD dwFlags = 0;
 		if (!ReadNat32(hFile, &dwFlags, bIsText))
 			return (DWORD)-1;
 
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Flags:\t\t%08X\r\n"), dwFlags);
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Flags:\t\t%08X\r\n"), dwFlags);
 
 		// Read file name or resource index
 		if ((dwFlags & EFid_Resource) == 0)
@@ -1587,9 +1587,9 @@ DWORD ReadRefTable(HWND hwndCtl, HANDLE hFile, WORD wVersion, PBYTE achStorageSe
 
 			if (nRet > 0)
 			{
-				OutputText(hwndCtl, TEXT("File Name:\t"));
+				OutputText(hwndEdit, TEXT("File Name:\t"));
 				ConvertGbxString(szFolder, nRet, szOutput, _countof(szOutput));
-				OutputText(hwndCtl, szOutput);
+				OutputText(hwndEdit, szOutput);
 			}
 		}
 		else
@@ -1599,7 +1599,7 @@ DWORD ReadRefTable(HWND hwndCtl, HANDLE hFile, WORD wVersion, PBYTE achStorageSe
 			if (!ReadNat32(hFile, &dwResourceIndex, bIsText))
 				return (DWORD)-1;
 
-			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Resource Index:\t%d\r\n"), dwResourceIndex);
+			OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Resource Index:\t%d\r\n"), dwResourceIndex);
 		}
 
 		// Node index
@@ -1607,7 +1607,7 @@ DWORD ReadRefTable(HWND hwndCtl, HANDLE hFile, WORD wVersion, PBYTE achStorageSe
 		if (!ReadNat32(hFile, &dwNodeIndex, bIsText))
 			return (DWORD)-1;
 
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Node Index:\t%d\r\n"), dwNodeIndex);
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Node Index:\t%d\r\n"), dwNodeIndex);
 
 		if (wVersion >= 5)
 		{
@@ -1616,7 +1616,7 @@ DWORD ReadRefTable(HWND hwndCtl, HANDLE hFile, WORD wVersion, PBYTE achStorageSe
 			if (!ReadBool(hFile, &bUseFile, bIsText))
 				return (DWORD)-1;
 
-			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Use File:\t%s\r\n"), bUseFile ? g_szTrue : g_szFalse);
+			OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Use File:\t%s\r\n"), bUseFile ? g_szTrue : g_szFalse);
 		}
 
 		// Folder index
@@ -1626,7 +1626,7 @@ DWORD ReadRefTable(HWND hwndCtl, HANDLE hFile, WORD wVersion, PBYTE achStorageSe
 			if (!ReadNat32(hFile, &dwFolderIndex, bIsText))
 				return (DWORD)-1;
 
-			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Folder Index:\t%d\r\n"), dwFolderIndex);
+			OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Folder Index:\t%d\r\n"), dwFolderIndex);
 
 			if (dwFolderIndex == (DWORD)-1)
 			{
@@ -1643,7 +1643,7 @@ DWORD ReadRefTable(HWND hwndCtl, HANDLE hFile, WORD wVersion, PBYTE achStorageSe
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Recursive; called by ReadRefTable
 
-BOOL ReadSubFolders(HWND hwndCtl, HANDLE hFile, PDWORD pdwIndex, LPCSTR lpszFolder, BOOL bIsText)
+BOOL ReadSubFolders(HWND hwndEdit, HANDLE hFile, PDWORD pdwIndex, LPCSTR lpszFolder, BOOL bIsText)
 {
 	SSIZE_T nRet = 0;
 	CHAR szRead[MAX_PATH];
@@ -1660,9 +1660,9 @@ BOOL ReadSubFolders(HWND hwndCtl, HANDLE hFile, PDWORD pdwIndex, LPCSTR lpszFold
 
 	// Create path and output with index
 	strncat(szFolder, szRead, _countof(szFolder) - strlen(szFolder) - 1);
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Folder %u:\t"), ++(*pdwIndex));
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Folder %u:\t"), ++(*pdwIndex));
 	ConvertGbxString(szFolder, strlen(szFolder), szOutput, _countof(szOutput));
-	OutputText(hwndCtl, szOutput);
+	OutputText(hwndEdit, szOutput);
 
 	// Number of subdirectories
 	DWORD dwNumSubFolders = 0;
@@ -1675,7 +1675,7 @@ BOOL ReadSubFolders(HWND hwndCtl, HANDLE hFile, PDWORD pdwIndex, LPCSTR lpszFold
 
 		// Read further subdirectories
 		while (dwNumSubFolders--)
-			if (!ReadSubFolders(hwndCtl, hFile, pdwIndex, szFolder, bIsText))
+			if (!ReadSubFolders(hwndEdit, hFile, pdwIndex, szFolder, bIsText))
 				return FALSE;
 	}
 
@@ -1685,7 +1685,7 @@ BOOL ReadSubFolders(HWND hwndCtl, HANDLE hFile, PDWORD pdwIndex, LPCSTR lpszFold
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // ReadSkin is called by GameSkinChunk and DecorationMoodChunk
 
-BOOL ReadSkin(HWND hwndCtl, HANDLE hFile)
+BOOL ReadSkin(HWND hwndEdit, HANDLE hFile)
 {
 	SSIZE_T nRet = 0;
 	CHAR szRead[ID_LEN];
@@ -1696,9 +1696,9 @@ BOOL ReadSkin(HWND hwndCtl, HANDLE hFile)
 	if (!ReadNat8(hFile, &cVersion))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szVersion, (char)cVersion);
-	if (cVersion > 5) OutputText(hwndCtl, g_szAsterisk);
-	OutputText(hwndCtl, g_szCRLF);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szVersion, (char)cVersion);
+	if (cVersion > 5) OutputText(hwndEdit, g_szAsterisk);
+	OutputText(hwndEdit, g_szCRLF);
 
 	// Folder
 	if ((nRet = ReadString(hFile, szRead, _countof(szRead))) < 0)
@@ -1706,9 +1706,9 @@ BOOL ReadSkin(HWND hwndCtl, HANDLE hFile)
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, g_szFolder);
+		OutputText(hwndEdit, g_szFolder);
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	if (cVersion >= 1)
@@ -1719,9 +1719,9 @@ BOOL ReadSkin(HWND hwndCtl, HANDLE hFile)
 
 		if (nRet > 0)
 		{
-			OutputText(hwndCtl, TEXT("Texture Name:\t"));
+			OutputText(hwndEdit, TEXT("Texture Name:\t"));
 			ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-			OutputText(hwndCtl, szOutput);
+			OutputText(hwndEdit, szOutput);
 		}
 
 		// Scene ID
@@ -1730,9 +1730,9 @@ BOOL ReadSkin(HWND hwndCtl, HANDLE hFile)
 
 		if (nRet > 0)
 		{
-			OutputText(hwndCtl, TEXT("Scene ID:\t"));
+			OutputText(hwndEdit, TEXT("Scene ID:\t"));
 			ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-			OutputText(hwndCtl, szOutput);
+			OutputText(hwndEdit, szOutput);
 		}
 	}
 
@@ -1741,25 +1741,25 @@ BOOL ReadSkin(HWND hwndCtl, HANDLE hFile)
 	if (!ReadNat8(hFile, &cCount))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Number:\t\t%d\r\n"), (char)cCount);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Number:\t\t%d\r\n"), (char)cCount);
 
 	while (cCount--)
 	{
-		OutputText(hwndCtl, g_szSep0);
+		OutputText(hwndEdit, g_szSep0);
 
 		// Class ID
 		DWORD dwClassId = 0;
 		if (!ReadMask(hFile, &dwClassId))
 			return FALSE;
 
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Class ID:\t%08X"), dwClassId);
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Class ID:\t%08X"), dwClassId);
 		if (dwClassId == CLSID_FILEIMG_TM)
-			OutputText(hwndCtl, TEXT(" (FileImg)"));
+			OutputText(hwndEdit, TEXT(" (FileImg)"));
 		else if (dwClassId == CLSID_FILESND_TM)
-			OutputText(hwndCtl, TEXT(" (FileSnd)"));
+			OutputText(hwndEdit, TEXT(" (FileSnd)"));
 		else if (dwClassId == CLSID_BITMAP_TM)
-			OutputText(hwndCtl, TEXT(" (Bitmap)"));
-		OutputText(hwndCtl, g_szCRLF);
+			OutputText(hwndEdit, TEXT(" (Bitmap)"));
+		OutputText(hwndEdit, g_szCRLF);
 
 		// Name
 		if ((nRet = ReadString(hFile, szRead, _countof(szRead))) < 0)
@@ -1767,9 +1767,9 @@ BOOL ReadSkin(HWND hwndCtl, HANDLE hFile)
 
 		if (nRet > 0)
 		{
-			OutputText(hwndCtl, TEXT("Name:\t\t"));
+			OutputText(hwndEdit, TEXT("Name:\t\t"));
 			ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-			OutputText(hwndCtl, szOutput);
+			OutputText(hwndEdit, szOutput);
 		}
 
 		// File
@@ -1778,9 +1778,9 @@ BOOL ReadSkin(HWND hwndCtl, HANDLE hFile)
 
 		if (nRet > 0)
 		{
-			OutputText(hwndCtl, TEXT("File:\t\t"));
+			OutputText(hwndEdit, TEXT("File:\t\t"));
 			ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-			OutputText(hwndCtl, szOutput);
+			OutputText(hwndEdit, szOutput);
 		}
 
 		if (cVersion >= 2)
@@ -1790,7 +1790,7 @@ BOOL ReadSkin(HWND hwndCtl, HANDLE hFile)
 			if (!ReadBool(hFile, &bMipMap))
 				return FALSE;
 
-			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Need Mipmap:\t%s\r\n"), bMipMap ? g_szTrue : g_szFalse);
+			OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Need Mipmap:\t%s\r\n"), bMipMap ? g_szTrue : g_szFalse);
 		}
 	}
 
@@ -1802,10 +1802,10 @@ BOOL ReadSkin(HWND hwndCtl, HANDLE hFile)
 
 		if (nRet > 0)
 		{
-			OutputText(hwndCtl, g_szSep0);
-			OutputText(hwndCtl, TEXT("Alt Folder:\t"));
+			OutputText(hwndEdit, g_szSep0);
+			OutputText(hwndEdit, TEXT("Alt Folder:\t"));
 			ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-			OutputText(hwndCtl, szOutput);
+			OutputText(hwndEdit, szOutput);
 		}
 	}
 
@@ -1816,8 +1816,8 @@ BOOL ReadSkin(HWND hwndCtl, HANDLE hFile)
 		if (!ReadBool(hFile, &bUseDefSkin))
 			return FALSE;
 
-		OutputText(hwndCtl, g_szSep0);
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Use Def Skin:\t%s\r\n"), bUseDefSkin ? g_szTrue : g_szFalse);
+		OutputText(hwndEdit, g_szSep0);
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Use Def Skin:\t%s\r\n"), bUseDefSkin ? g_szTrue : g_szFalse);
 	}
 
 	return TRUE;
@@ -1825,7 +1825,7 @@ BOOL ReadSkin(HWND hwndCtl, HANDLE hFile)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL ChallengeTmDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckTmDesc)
+BOOL ChallengeTmDescChunk(HWND hwndEdit, HANDLE hFile, PCHUNK pckTmDesc)
 {
 	BYTE  cVersion = 0;
 	DWORD dwGold = UNASSIGNED;
@@ -1842,7 +1842,7 @@ BOOL ChallengeTmDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckTmDesc)
 	BOOL  bFormatTime = TRUE;
 
 	TCHAR szOutput[OUTPUT_LEN];
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szSep3, pckTmDesc->dwId);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szSep3, pckTmDesc->dwId);
 
 	// Jump to the TmDesc chunk
 	if (!FileSeekBegin(hFile, pckTmDesc->dwOffset))
@@ -1852,9 +1852,9 @@ BOOL ChallengeTmDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckTmDesc)
 	if (!ReadNat8(hFile, &cVersion))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szVersion, (char)cVersion);
-	if (cVersion > 13) OutputText(hwndCtl, g_szAsterisk);
-	OutputText(hwndCtl, g_szCRLF);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szVersion, (char)cVersion);
+	if (cVersion > 13) OutputText(hwndEdit, g_szAsterisk);
+	OutputText(hwndEdit, g_szCRLF);
 
 	// First, fully read the data to format the output accordingly
 	if (cVersion < 3)
@@ -1974,102 +1974,102 @@ BOOL ChallengeTmDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckTmDesc)
 	if (cVersion >= 1)
 	{
 		// Bronze
-		OutputText(hwndCtl, TEXT("Bronze:\t\t"));
+		OutputText(hwndEdit, TEXT("Bronze:\t\t"));
 		FormatTime(dwBronze, szOutput, _countof(szOutput), bFormatTime);
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 
 		// Silver
-		OutputText(hwndCtl, TEXT("Silver:\t\t"));
+		OutputText(hwndEdit, TEXT("Silver:\t\t"));
 		FormatTime(dwSilver, szOutput, _countof(szOutput), bFormatTime);
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 
 		// Gold
-		OutputText(hwndCtl, TEXT("Gold:\t\t"));
+		OutputText(hwndEdit, TEXT("Gold:\t\t"));
 		FormatTime(dwGold, szOutput, _countof(szOutput), bFormatTime);
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 
 		// Author time
-		OutputText(hwndCtl, TEXT("Best Time:\t"));
+		OutputText(hwndEdit, TEXT("Best Time:\t"));
 		FormatTime(dwAuthortime, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	if (cVersion >= 4)
 	{
 		// CopperPrice
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput),
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput),
 			cVersion >= 12 ? TEXT("Display Cost:\t%d\r\n") : TEXT("Copper Price:\t%d\r\n"), dwCopperPrice);
 	}
 
 	if (cVersion >= 5)
 	{
 		// Multilap
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Lap Race:\t%s\r\n"), bIsLapRace ? g_szTrue : g_szFalse);
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Lap Race:\t%s\r\n"), bIsLapRace ? g_szTrue : g_szFalse);
 	}
 
 	if (cVersion >= 7)
 	{
 		// Track Type
-		OutputText(hwndCtl, TEXT("Type:\t\t"));
+		OutputText(hwndEdit, TEXT("Type:\t\t"));
 		switch (dwTrackType)
 		{
 			case 0:
-				OutputText(hwndCtl, TEXT("Race"));
+				OutputText(hwndEdit, TEXT("Race"));
 				break;
 			case 1:
-				OutputText(hwndCtl, TEXT("Platform"));
+				OutputText(hwndEdit, TEXT("Platform"));
 				break;
 			case 2:
-				OutputText(hwndCtl, TEXT("Puzzle"));
+				OutputText(hwndEdit, TEXT("Puzzle"));
 				break;
 			case 3:
-				OutputText(hwndCtl, TEXT("Crazy"));
+				OutputText(hwndEdit, TEXT("Crazy"));
 				break;
 			case 4:
-				OutputText(hwndCtl, TEXT("Shortcut"));
+				OutputText(hwndEdit, TEXT("Shortcut"));
 				break;
 			case 5:
-				OutputText(hwndCtl, TEXT("Stunts"));
+				OutputText(hwndEdit, TEXT("Stunts"));
 				break;
 			case 6:
-				OutputText(hwndCtl, TEXT("Script"));
+				OutputText(hwndEdit, TEXT("Script"));
 				break;
 			case UNASSIGNED:
-				OutputText(hwndCtl, g_szUnknown);
+				OutputText(hwndEdit, g_szUnknown);
 				break;
 			default:
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%d"), dwTrackType);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("%d"), dwTrackType);
 		}
-		OutputText(hwndCtl, g_szCRLF);
+		OutputText(hwndEdit, g_szCRLF);
 	}
 
 	if (cVersion >= 10)
 	{
 		// Author Score
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Best Score:\t%d\r\n"), dwAuthorscore);
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Best Score:\t%d\r\n"), dwAuthorscore);
 	}
 
 	if (cVersion >= 11)
 	{
 		// Editor Mode
 #ifdef _DEBUG
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Editor Flags:\t%08X\r\n"), dwEditorMode);
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Editor Flags:\t%08X\r\n"), dwEditorMode);
 #endif
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Simple Editor:\t%s\r\n"),
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Simple Editor:\t%s\r\n"),
 			IS_UNASSIGNED(dwEditorMode) ? g_szUnknown : ((dwEditorMode & 0x1) ? g_szTrue : g_szFalse));
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Party Editor:\t%s\r\n"),
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Party Editor:\t%s\r\n"),
 			IS_UNASSIGNED(dwEditorMode) ? g_szUnknown : ((dwEditorMode & 0x4) ? g_szTrue : g_szFalse));
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Ghost Blocks:\t%s\r\n"),
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Ghost Blocks:\t%s\r\n"),
 			IS_UNASSIGNED(dwEditorMode) ? g_szUnknown : ((dwEditorMode & 0x2) ? g_szTrue : g_szFalse));
 	}
 
 	if (cVersion >= 13)
 	{
 		// Checkpoints
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Checkpoints:\t%d\r\n"), dwCheckpoints);
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Checkpoints:\t%d\r\n"), dwCheckpoints);
 
 		// Number of laps
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Number Laps:\t%d\r\n"), dwNbLaps);
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Number Laps:\t%d\r\n"), dwNbLaps);
 	}
 
 	return TRUE;
@@ -2077,7 +2077,7 @@ BOOL ChallengeTmDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckTmDesc)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL ChallengeCommonChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckCommon, LPSTR lpszUid, LPSTR lpszEnvi)
+BOOL ChallengeCommonChunk(HWND hwndEdit, HANDLE hFile, PCHUNK pckCommon, LPSTR lpszUid, LPSTR lpszEnvi)
 {
 	if (lpszUid == NULL || lpszEnvi == NULL)
 		return FALSE;
@@ -2088,7 +2088,7 @@ BOOL ChallengeCommonChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckCommon, LPSTR lp
 	ResetIdentifier(&id);
 
 	TCHAR szOutput[OUTPUT_LEN];
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szSep3, pckCommon->dwId);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szSep3, pckCommon->dwId);
 
 	// Jump to Common chunk
 	if (!FileSeekBegin(hFile, pckCommon->dwOffset))
@@ -2099,9 +2099,9 @@ BOOL ChallengeCommonChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckCommon, LPSTR lp
 	if (!ReadNat8(hFile, &cVersion))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szVersion, (char)cVersion);
-	if (cVersion > 11) OutputText(hwndCtl, g_szAsterisk);
-	OutputText(hwndCtl, g_szCRLF);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szVersion, (char)cVersion);
+	if (cVersion > 11) OutputText(hwndEdit, g_szAsterisk);
+	OutputText(hwndEdit, g_szCRLF);
 
 	// Map UID
 	if ((nRet = ReadIdentifier(hFile, &id, szRead, _countof(szRead))) < 0)
@@ -2110,9 +2110,9 @@ BOOL ChallengeCommonChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckCommon, LPSTR lp
 	if (nRet > 0)
 	{
 		MyStrNCpyA(lpszUid, szRead, UID_LENGTH);
-		OutputText(hwndCtl, TEXT("Map UID:\t"));
+		OutputText(hwndEdit, TEXT("Map UID:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	// Environment
@@ -2123,9 +2123,9 @@ BOOL ChallengeCommonChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckCommon, LPSTR lp
 	if (nRet > 0)
 	{
 		MyStrNCpyA(lpszEnvi, szRead, ENVI_LENGTH);
-		OutputText(hwndCtl, TEXT("Collection:\t"));
+		OutputText(hwndEdit, TEXT("Collection:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	if (lpszEnvi[0] != '\0')
@@ -2133,14 +2133,14 @@ BOOL ChallengeCommonChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckCommon, LPSTR lp
 		if (strstr(g_szMpEnvis, lpszEnvi) != NULL)
 		{
 			BOOL bIsTM2020 = (dwId == 26);
-			Button_Enable(GetDlgItem(GetParent(hwndCtl), IDC_TMX), TRUE);
+			Button_Enable(GetDlgItem(GetParent(hwndEdit), IDC_TMX), TRUE);
 			if (strstr(g_szTm2Envis, lpszEnvi) != NULL && !bIsTM2020)
-				Button_Enable(GetDlgItem(GetParent(hwndCtl), IDC_DEDIMANIA), TRUE);
+				Button_Enable(GetDlgItem(GetParent(hwndEdit), IDC_DEDIMANIA), TRUE);
 		}
 		else if (strstr(g_szTm1Envis, lpszEnvi) != NULL)
 		{
-			Button_Enable(GetDlgItem(GetParent(hwndCtl), IDC_TMX), TRUE);
-			Button_Enable(GetDlgItem(GetParent(hwndCtl), IDC_DEDIMANIA), TRUE);
+			Button_Enable(GetDlgItem(GetParent(hwndEdit), IDC_TMX), TRUE);
+			Button_Enable(GetDlgItem(GetParent(hwndEdit), IDC_DEDIMANIA), TRUE);
 		}
 	}
 
@@ -2150,9 +2150,9 @@ BOOL ChallengeCommonChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckCommon, LPSTR lp
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Map Author:\t"));
+		OutputText(hwndEdit, TEXT("Map Author:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	// Track Name
@@ -2161,9 +2161,9 @@ BOOL ChallengeCommonChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckCommon, LPSTR lp
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Map Name:\t"));
+		OutputText(hwndEdit, TEXT("Map Name:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput), TRUE);
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	// Game Mode
@@ -2171,55 +2171,55 @@ BOOL ChallengeCommonChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckCommon, LPSTR lp
 	if (!ReadNat8(hFile, &cGameMode))
 		return FALSE;
 
-	OutputText(hwndCtl, TEXT("Kind:\t\t"));
+	OutputText(hwndEdit, TEXT("Kind:\t\t"));
 	switch (cGameMode)
 	{
 		case 0:
-			OutputText(hwndCtl, TEXT("(internal)EndMarker"));
+			OutputText(hwndEdit, TEXT("(internal)EndMarker"));
 			break;
 		case 1:
-			OutputText(hwndCtl, TEXT("(old)Campaign"));
+			OutputText(hwndEdit, TEXT("(old)Campaign"));
 			break;
 		case 2:
-			OutputText(hwndCtl, TEXT("(old)Puzzle"));
+			OutputText(hwndEdit, TEXT("(old)Puzzle"));
 			break;
 		case 3:
-			OutputText(hwndCtl, TEXT("(old)Retro"));
+			OutputText(hwndEdit, TEXT("(old)Retro"));
 			break;
 		case 4:
-			OutputText(hwndCtl, TEXT("(old)TimeAttack"));
+			OutputText(hwndEdit, TEXT("(old)TimeAttack"));
 			break;
 		case 5:
-			OutputText(hwndCtl, TEXT("(old)Rounds"));
+			OutputText(hwndEdit, TEXT("(old)Rounds"));
 			break;
 		case 6:
-			OutputText(hwndCtl, TEXT("InProgress"));
+			OutputText(hwndEdit, TEXT("InProgress"));
 			break;
 		case 7:
-			OutputText(hwndCtl, TEXT("Campaign"));
+			OutputText(hwndEdit, TEXT("Campaign"));
 			break;
 		case 8:
-			OutputText(hwndCtl, TEXT("Multi"));
+			OutputText(hwndEdit, TEXT("Multi"));
 			break;
 		case 9:
-			OutputText(hwndCtl, TEXT("Solo"));
+			OutputText(hwndEdit, TEXT("Solo"));
 			break;
 		case 10:
-			OutputText(hwndCtl, TEXT("Site"));
+			OutputText(hwndEdit, TEXT("Site"));
 			break;
 		case 11:
-			OutputText(hwndCtl, TEXT("SoloNadeo"));
+			OutputText(hwndEdit, TEXT("SoloNadeo"));
 			break;
 		case 12:
-			OutputText(hwndCtl, TEXT("MultiNadeo"));
+			OutputText(hwndEdit, TEXT("MultiNadeo"));
 			break;
 		case 0xFF:
-			OutputText(hwndCtl, g_szUnknown);
+			OutputText(hwndEdit, g_szUnknown);
 			break;
 		default:
-			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%d"), (char)cGameMode);
+			OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("%d"), (char)cGameMode);
 	}
-	OutputText(hwndCtl, g_szCRLF);
+	OutputText(hwndEdit, g_szCRLF);
 
 	if (cVersion < 1)
 		return TRUE;
@@ -2230,14 +2230,14 @@ BOOL ChallengeCommonChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckCommon, LPSTR lp
 		return FALSE;
 
 	if (bLocked) // Usage in TM unknown
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Locked:\t\t%s\r\n"), bLocked ? g_szTrue : g_szFalse);
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Locked:\t\t%s\r\n"), bLocked ? g_szTrue : g_szFalse);
 
 	// Password (obsolete)
 	if ((nRet = ReadString(hFile, szRead, _countof(szRead))) < 0)
 		return FALSE;
 
 	if (nRet > 0) // Show only if set
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Password:\t%s\r\n"), nRet > 0 ? g_szYes : g_szNo);
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Password:\t%s\r\n"), nRet > 0 ? g_szYes : g_szNo);
 
 	if (cVersion < 2)
 		return TRUE;
@@ -2248,9 +2248,9 @@ BOOL ChallengeCommonChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckCommon, LPSTR lp
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Mood:\t\t"));
+		OutputText(hwndEdit, TEXT("Mood:\t\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	// Decoration
@@ -2259,9 +2259,9 @@ BOOL ChallengeCommonChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckCommon, LPSTR lp
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Decoration:\t"));
+		OutputText(hwndEdit, TEXT("Decoration:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	// Decoration Author
@@ -2270,9 +2270,9 @@ BOOL ChallengeCommonChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckCommon, LPSTR lp
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Deco Author:\t"));
+		OutputText(hwndEdit, TEXT("Deco Author:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	if (cVersion < 3)
@@ -2284,7 +2284,7 @@ BOOL ChallengeCommonChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckCommon, LPSTR lp
 		return FALSE;
 
 #ifdef _DEBUG
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Map Coord Org.:\t(%g, %g)\r\n"),
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Map Coord Org.:\t(%g, %g)\r\n"),
 		(double)fVec2X, (double)fVec2Y);
 #endif
 
@@ -2296,7 +2296,7 @@ BOOL ChallengeCommonChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckCommon, LPSTR lp
 		return FALSE;
 
 #ifdef _DEBUG
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Map Coord Tgt.:\t(%g, %g)\r\n"),
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Map Coord Tgt.:\t(%g, %g)\r\n"),
 		(double)fVec2X, (double)fVec2Y);
 #endif
 
@@ -2308,18 +2308,18 @@ BOOL ChallengeCommonChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckCommon, LPSTR lp
 	if (!ReadNat128(hFile, &aPackMask))
 		return FALSE;
 
-	OutputText(hwndCtl, TEXT("Pack Mask:\t"));
+	OutputText(hwndEdit, TEXT("Pack Mask:\t"));
 	if (aPackMask[0] > 0x4FFFFF || aPackMask[1] || aPackMask[2] || aPackMask[3])
 	{
 		ZeroMemory(szOutput, sizeof(szOutput));
 		for (SIZE_T i = 0; i < _countof(aPackMask); i++)
 			_sntprintf(szOutput, _countof(szOutput), TEXT("%08X%s"), aPackMask[i], (LPTSTR)szOutput);
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 	else
 	{
 		DWORD dwPackMask = aPackMask[0];
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%X"), dwPackMask);
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("%X"), dwPackMask);
 		if (dwPackMask != 0)
 		{
 			if (dwPackMask == 0x07)
@@ -2436,13 +2436,13 @@ BOOL ChallengeCommonChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckCommon, LPSTR lp
 			}
 			if (szOutput[0] != TEXT('\0'))
 			{
-				OutputText(hwndCtl, TEXT(" ("));
-				OutputText(hwndCtl, szOutput);
-				OutputText(hwndCtl, TEXT(")"));
+				OutputText(hwndEdit, TEXT(" ("));
+				OutputText(hwndEdit, szOutput);
+				OutputText(hwndEdit, TEXT(")"));
 			}
 		}
 	}
-	OutputText(hwndCtl, g_szCRLF);
+	OutputText(hwndEdit, g_szCRLF);
 
 	if (cVersion < 6)
 		return TRUE;
@@ -2453,9 +2453,9 @@ BOOL ChallengeCommonChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckCommon, LPSTR lp
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Map Type:\t"));
+		OutputText(hwndEdit, TEXT("Map Type:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput), TRUE);
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	// Map Style
@@ -2464,9 +2464,9 @@ BOOL ChallengeCommonChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckCommon, LPSTR lp
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Map Style:\t"));
+		OutputText(hwndEdit, TEXT("Map Style:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput), TRUE);
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	if (cVersion <= 8)
@@ -2486,7 +2486,7 @@ BOOL ChallengeCommonChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckCommon, LPSTR lp
 		return FALSE;
 
 	if (ullLightmapCache.HighPart != 0xFFFFFFFF || ullLightmapCache.LowPart != 0xFFFFFFFF)
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Lightmap Cache:\t%08X%08X\r\n"),
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Lightmap Cache:\t%08X%08X\r\n"),
 			ullLightmapCache.HighPart, ullLightmapCache.LowPart);
 
 	if (cVersion < 9)
@@ -2497,7 +2497,7 @@ BOOL ChallengeCommonChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckCommon, LPSTR lp
 	if (!ReadNat8(hFile, &cLightmap))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Lightmap Vers.:\t%d\r\n"), (char)cLightmap);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Lightmap Vers.:\t%d\r\n"), (char)cLightmap);
 
 	if (cVersion < 11)
 		return TRUE;
@@ -2508,9 +2508,9 @@ BOOL ChallengeCommonChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckCommon, LPSTR lp
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Title ID:\t"));
+		OutputText(hwndEdit, TEXT("Title ID:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	return TRUE;
@@ -2518,10 +2518,10 @@ BOOL ChallengeCommonChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckCommon, LPSTR lp
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL ChallengeVersionChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVersion)
+BOOL ChallengeVersionChunk(HWND hwndEdit, HANDLE hFile, PCHUNK pckVersion)
 {
 	TCHAR szOutput[OUTPUT_LEN];
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szSep3, pckVersion->dwId);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szSep3, pckVersion->dwId);
 
 	// Jump to Version chunk
 	if (!FileSeekBegin(hFile, pckVersion->dwOffset))
@@ -2533,7 +2533,7 @@ BOOL ChallengeVersionChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVersion)
 		return FALSE;
 
 	// VSK requires special treatment
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Header Version:\t%d\r\n"),
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Header Version:\t%d\r\n"),
 		(dwVersion < 10000 || IS_UNASSIGNED(dwVersion)) ? dwVersion : dwVersion - 9999);
 
 	return TRUE;
@@ -2541,7 +2541,7 @@ BOOL ChallengeVersionChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVersion)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL ChallengeVskDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVskDesc)
+BOOL ChallengeVskDescChunk(HWND hwndEdit, HANDLE hFile, PCHUNK pckVskDesc)
 {
 	SSIZE_T nRet = 0;
 	CHAR szRead[ID_LEN];
@@ -2549,7 +2549,7 @@ BOOL ChallengeVskDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVskDesc)
 	ResetIdentifier(&id);
 
 	TCHAR szOutput[OUTPUT_LEN];
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szSep3, pckVskDesc->dwId);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szSep3, pckVskDesc->dwId);
 
 	// Jump to the VskDesc chunk
 	if (!FileSeekBegin(hFile, pckVskDesc->dwOffset))
@@ -2560,9 +2560,9 @@ BOOL ChallengeVskDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVskDesc)
 	if (!ReadNat8(hFile, &cVersion))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szVersion, (char)cVersion);
-	if (cVersion > 14) OutputText(hwndCtl, g_szAsterisk);
-	OutputText(hwndCtl, g_szCRLF);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szVersion, (char)cVersion);
+	if (cVersion > 14) OutputText(hwndEdit, g_szAsterisk);
+	OutputText(hwndEdit, g_szCRLF);
 
 	if (cVersion < 1)
 	{	// Was the data from chunk 24003003 initially stored here?
@@ -2594,28 +2594,28 @@ BOOL ChallengeVskDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVskDesc)
 		if (!ReadNat8(hFile, &cBoat))
 			return FALSE;
 
-		OutputText(hwndCtl, TEXT("Boat Name:\t"));
+		OutputText(hwndEdit, TEXT("Boat Name:\t"));
 		switch (cBoat)
 		{
 			case 0:
-				OutputText(hwndCtl, TEXT("Acc"));
+				OutputText(hwndEdit, TEXT("Acc"));
 				break;
 			case 1:
-				OutputText(hwndCtl, TEXT("Multi"));
+				OutputText(hwndEdit, TEXT("Multi"));
 				break;
 			case 2:
-				OutputText(hwndCtl, TEXT("Melges"));
+				OutputText(hwndEdit, TEXT("Melges"));
 				break;
 			case 3:
-				OutputText(hwndCtl, TEXT("OffShore"));
+				OutputText(hwndEdit, TEXT("OffShore"));
 				break;
 			case 0xFF:
-				OutputText(hwndCtl, g_szUnknown);
+				OutputText(hwndEdit, g_szUnknown);
 				break;
 			default:
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%d"), (char)cBoat);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("%d"), (char)cBoat);
 		}
-		OutputText(hwndCtl, g_szCRLF);
+		OutputText(hwndEdit, g_szCRLF);
 	}
 	else
 	{
@@ -2633,9 +2633,9 @@ BOOL ChallengeVskDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVskDesc)
 				pszEnd++;
 			}
 
-			OutputText(hwndCtl, TEXT("Boat Name:\t"));
+			OutputText(hwndEdit, TEXT("Boat Name:\t"));
 			ConvertGbxString(pszBegin, strlen(pszBegin), szOutput, _countof(szOutput));
-			OutputText(hwndCtl, szOutput);
+			OutputText(hwndEdit, szOutput);
 
 			pszBegin = pszEnd;
 			if (pszBegin != NULL && *pszBegin != '\0')
@@ -2647,9 +2647,9 @@ BOOL ChallengeVskDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVskDesc)
 					pszEnd++;
 				}
 
-				OutputText(hwndCtl, TEXT("Website:\t"));
+				OutputText(hwndEdit, TEXT("Website:\t"));
 				ConvertGbxString(pszBegin, strlen(pszBegin), szOutput, _countof(szOutput));
-				OutputText(hwndCtl, szOutput);
+				OutputText(hwndEdit, szOutput);
 
 				pszBegin = pszEnd;
 				if (pszBegin != NULL && *pszBegin != '\0')
@@ -2658,9 +2658,9 @@ BOOL ChallengeVskDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVskDesc)
 					if (pszEnd != NULL)
 						*pszEnd = '\0';
 
-					OutputText(hwndCtl, TEXT("Boat ID:\t"));
+					OutputText(hwndEdit, TEXT("Boat ID:\t"));
 					ConvertGbxString(pszBegin, strlen(pszBegin), szOutput, _countof(szOutput));
-					OutputText(hwndCtl, szOutput);
+					OutputText(hwndEdit, szOutput);
 				}
 			}
 		}
@@ -2674,9 +2674,9 @@ BOOL ChallengeVskDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVskDesc)
 
 		if (nRet > 0)
 		{
-			OutputText(hwndCtl, TEXT("Boat Author:\t"));
+			OutputText(hwndEdit, TEXT("Boat Author:\t"));
 			ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-			OutputText(hwndCtl, szOutput);
+			OutputText(hwndEdit, szOutput);
 		}
 	}
 
@@ -2685,25 +2685,25 @@ BOOL ChallengeVskDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVskDesc)
 	if (!ReadNat8(hFile, &cRaceMode))
 		return FALSE;
 
-	OutputText(hwndCtl, TEXT("Race Mode:\t"));
+	OutputText(hwndEdit, TEXT("Race Mode:\t"));
 	switch (cRaceMode)
 	{
 		case 0:
-			OutputText(hwndCtl, TEXT("Fleet Race"));
+			OutputText(hwndEdit, TEXT("Fleet Race"));
 			break;
 		case 1:
-			OutputText(hwndCtl, TEXT("Match Race"));
+			OutputText(hwndEdit, TEXT("Match Race"));
 			break;
 		case 2:
-			OutputText(hwndCtl, TEXT("Team Race"));
+			OutputText(hwndEdit, TEXT("Team Race"));
 			break;
 		case 0xFF:
-			OutputText(hwndCtl, g_szUnknown);
+			OutputText(hwndEdit, g_szUnknown);
 			break;
 		default:
-			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%d"), (char)cRaceMode);
+			OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("%d"), (char)cRaceMode);
 	}
-	OutputText(hwndCtl, g_szCRLF);
+	OutputText(hwndEdit, g_szCRLF);
 
 	// Skip unknown Nat8 variable
 	if (!FileSeekCurrent(hFile, 1))
@@ -2714,47 +2714,47 @@ BOOL ChallengeVskDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVskDesc)
 	if (!ReadNat8(hFile, &cWindDir))
 		return FALSE;
 
-	OutputText(hwndCtl, TEXT("Wind Direction:\t"));
+	OutputText(hwndEdit, TEXT("Wind Direction:\t"));
 	switch (cWindDir)
 	{
 		case 0:
-			OutputText(hwndCtl, TEXT("North"));
+			OutputText(hwndEdit, TEXT("North"));
 			break;
 		case 1:
-			OutputText(hwndCtl, TEXT("NE"));
+			OutputText(hwndEdit, TEXT("NE"));
 			break;
 		case 2:
-			OutputText(hwndCtl, TEXT("East"));
+			OutputText(hwndEdit, TEXT("East"));
 			break;
 		case 3:
-			OutputText(hwndCtl, TEXT("SE"));
+			OutputText(hwndEdit, TEXT("SE"));
 			break;
 		case 4:
-			OutputText(hwndCtl, TEXT("South"));
+			OutputText(hwndEdit, TEXT("South"));
 			break;
 		case 5:
-			OutputText(hwndCtl, TEXT("SW"));
+			OutputText(hwndEdit, TEXT("SW"));
 			break;
 		case 6:
-			OutputText(hwndCtl, TEXT("West"));
+			OutputText(hwndEdit, TEXT("West"));
 			break;
 		case 7:
-			OutputText(hwndCtl, TEXT("NW"));
+			OutputText(hwndEdit, TEXT("NW"));
 			break;
 		case 0xFF:
-			OutputText(hwndCtl, g_szUnknown);
+			OutputText(hwndEdit, g_szUnknown);
 			break;
 		default:
-			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%d"), (char)cWindDir);
+			OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("%d"), (char)cWindDir);
 	}
-	OutputText(hwndCtl, g_szCRLF);
+	OutputText(hwndEdit, g_szCRLF);
 
 	// Wind Strength
 	BYTE cWindStrength = 0xFF;
 	if (!ReadNat8(hFile, &cWindStrength))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Wind Strength:\tForce %d\r\n"),
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Wind Strength:\tForce %d\r\n"),
 		cWindStrength == 0xFF ? (char)cWindStrength : cWindStrength + 3);
 
 	// Weather
@@ -2762,28 +2762,28 @@ BOOL ChallengeVskDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVskDesc)
 	if (!ReadNat8(hFile, &cWeather))
 		return FALSE;
 
-	OutputText(hwndCtl, TEXT("Weather:\t"));
+	OutputText(hwndEdit, TEXT("Weather:\t"));
 	switch (cWeather)
 	{
 		case 0:
-			OutputText(hwndCtl, TEXT("Sunny"));
+			OutputText(hwndEdit, TEXT("Sunny"));
 			break;
 		case 1:
-			OutputText(hwndCtl, TEXT("Cloudy"));
+			OutputText(hwndEdit, TEXT("Cloudy"));
 			break;
 		case 2:
-			OutputText(hwndCtl, TEXT("Rainy"));
+			OutputText(hwndEdit, TEXT("Rainy"));
 			break;
 		case 3:
-			OutputText(hwndCtl, TEXT("Stormy"));
+			OutputText(hwndEdit, TEXT("Stormy"));
 			break;
 		case 0xFF:
-			OutputText(hwndCtl, g_szUnknown);
+			OutputText(hwndEdit, g_szUnknown);
 			break;
 		default:
-			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%d"), (char)cWeather);
+			OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("%d"), (char)cWeather);
 	}
-	OutputText(hwndCtl, g_szCRLF);
+	OutputText(hwndEdit, g_szCRLF);
 
 	// Skip unknown Nat8 variable
 	if (!FileSeekCurrent(hFile, 1))
@@ -2794,40 +2794,40 @@ BOOL ChallengeVskDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVskDesc)
 	if (!ReadNat8(hFile, &cStartDelay))
 		return FALSE;
 
-	OutputText(hwndCtl, TEXT("Start Delay:\t"));
+	OutputText(hwndEdit, TEXT("Start Delay:\t"));
 	switch (cStartDelay)
 	{
 		case 0:
-			OutputText(hwndCtl, TEXT("Immediate"));
+			OutputText(hwndEdit, TEXT("Immediate"));
 			break;
 		case 1:
-			OutputText(hwndCtl, TEXT("1 Min"));
+			OutputText(hwndEdit, TEXT("1 Min"));
 			break;
 		case 2:
-			OutputText(hwndCtl, TEXT("3 Min"));
+			OutputText(hwndEdit, TEXT("3 Min"));
 			break;
 		case 3:
-			OutputText(hwndCtl, TEXT("5 Min"));
+			OutputText(hwndEdit, TEXT("5 Min"));
 			break;
 		case 4:
-			OutputText(hwndCtl, TEXT("8 Min"));
+			OutputText(hwndEdit, TEXT("8 Min"));
 			break;
 		case 0xFF:
-			OutputText(hwndCtl, g_szUnknown);
+			OutputText(hwndEdit, g_szUnknown);
 			break;
 		default:
-			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%d"), (char)cStartDelay);
+			OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("%d"), (char)cStartDelay);
 	}
-	OutputText(hwndCtl, g_szCRLF);
+	OutputText(hwndEdit, g_szCRLF);
 
 	// Start Time
 	DWORD dwDayTime = UNASSIGNED;
 	if (!ReadNat32(hFile, &dwDayTime))
 		return FALSE;
 
-	OutputText(hwndCtl, TEXT("Start Time:\t"));
+	OutputText(hwndEdit, TEXT("Start Time:\t"));
 	FormatTime(dwDayTime, szOutput, _countof(szOutput));
-	OutputText(hwndCtl, szOutput);
+	OutputText(hwndEdit, szOutput);
 
 	if (cVersion < 2)
 		return TRUE;
@@ -2837,30 +2837,30 @@ BOOL ChallengeVskDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVskDesc)
 	if (!ReadNat32(hFile, &dwTimeLimit))
 		return FALSE;
 
-	OutputText(hwndCtl, TEXT("Time Limit:\t"));
+	OutputText(hwndEdit, TEXT("Time Limit:\t"));
 	FormatTime(dwTimeLimit, szOutput, _countof(szOutput));
-	OutputText(hwndCtl, szOutput);
+	OutputText(hwndEdit, szOutput);
 
 	// No Penalty
 	BOOL bNoPenalty = FALSE;
 	if (!ReadBool(hFile, &bNoPenalty))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("No Penalty:\t%s\r\n"), bNoPenalty ? g_szYes : g_szNo);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("No Penalty:\t%s\r\n"), bNoPenalty ? g_szYes : g_szNo);
 
 	// Infl. Penalty
 	BOOL bInflPenalty = FALSE;
 	if (!ReadBool(hFile, &bInflPenalty))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Infl. Penalty:\t%s\r\n"), bInflPenalty ? g_szYes : g_szNo);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Infl. Penalty:\t%s\r\n"), bInflPenalty ? g_szYes : g_szNo);
 
 	// Finish First
 	BOOL bFinishFirst = FALSE;
 	if (!ReadBool(hFile, &bFinishFirst))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Finish First:\t%s\r\n"), bFinishFirst ? g_szYes : g_szNo);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Finish First:\t%s\r\n"), bFinishFirst ? g_szYes : g_szNo);
 
 	if (cVersion < 3)
 		return TRUE;
@@ -2870,7 +2870,7 @@ BOOL ChallengeVskDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVskDesc)
 	if (!ReadNat8(hFile, &cNbAIs))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Number AIs:\t%d\r\n"), (char)cNbAIs);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Number AIs:\t%d\r\n"), (char)cNbAIs);
 
 	if (cVersion < 4)
 		return TRUE;
@@ -2880,7 +2880,7 @@ BOOL ChallengeVskDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVskDesc)
 	if (!ReadReal(hFile, &fLength))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Course Length:\t%f nmi\r\n"), (double)fLength);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Course Length:\t%f nmi\r\n"), (double)fLength);
 
 	if (cVersion == 4)
 	{
@@ -2894,9 +2894,9 @@ BOOL ChallengeVskDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVskDesc)
 	if (!ReadNat32(hFile, &dwWindShiftDur))
 		return FALSE;
 
-	OutputText(hwndCtl, TEXT("Wind Shift Dur:\t"));
+	OutputText(hwndEdit, TEXT("Wind Shift Dur:\t"));
 	FormatTime(dwWindShiftDur, szOutput, _countof(szOutput));
-	OutputText(hwndCtl, szOutput);
+	OutputText(hwndEdit, szOutput);
 
 	if (cVersion < 5)
 		return TRUE;
@@ -2906,7 +2906,7 @@ BOOL ChallengeVskDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVskDesc)
 	if (!ReadInteger(hFile, &nWindShiftAng))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Wind Shift Ang:\t%d°\r\n"), nWindShiftAng);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Wind Shift Ang:\t%d°\r\n"), nWindShiftAng);
 
 	// Skip unknown Nat8 variable
 	if (!FileSeekCurrent(hFile, 1))
@@ -2924,9 +2924,9 @@ BOOL ChallengeVskDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVskDesc)
 
 		if (nRet > 0)
 		{
-			OutputText(hwndCtl, TEXT("Unknown:\t"));
+			OutputText(hwndEdit, TEXT("Unknown:\t"));
 			ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-			OutputText(hwndCtl, szOutput);
+			OutputText(hwndEdit, szOutput);
 		}
 	}
 
@@ -2938,7 +2938,7 @@ BOOL ChallengeVskDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVskDesc)
 	if (!ReadBool(hFile, &bExactWind))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Exact Wind:\t%s\r\n"), bExactWind ? g_szFalse : g_szTrue);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Exact Wind:\t%s\r\n"), bExactWind ? g_szFalse : g_szTrue);
 
 	if (cVersion < 10)
 		return TRUE;
@@ -2948,7 +2948,7 @@ BOOL ChallengeVskDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVskDesc)
 	if (!ReadNat32(hFile, &dwSpawnPoints))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Spawn Points:\t%u\r\n"), dwSpawnPoints);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Spawn Points:\t%u\r\n"), dwSpawnPoints);
 
 	if (cVersion < 11)
 		return TRUE;
@@ -2958,28 +2958,28 @@ BOOL ChallengeVskDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVskDesc)
 	if (!ReadNat8(hFile, &cAILevel))
 		return FALSE;
 
-	OutputText(hwndCtl, TEXT("AI Level:\t"));
+	OutputText(hwndEdit, TEXT("AI Level:\t"));
 	switch (cAILevel)
 	{
 		case 0:
-			OutputText(hwndCtl, TEXT("Easy"));
+			OutputText(hwndEdit, TEXT("Easy"));
 			break;
 		case 1:
-			OutputText(hwndCtl, TEXT("Intermediate"));
+			OutputText(hwndEdit, TEXT("Intermediate"));
 			break;
 		case 2:
-			OutputText(hwndCtl, TEXT("Expert"));
+			OutputText(hwndEdit, TEXT("Expert"));
 			break;
 		case 3:
-			OutputText(hwndCtl, TEXT("Pro"));
+			OutputText(hwndEdit, TEXT("Pro"));
 			break;
 		case 0xFF:
-			OutputText(hwndCtl, g_szUnknown);
+			OutputText(hwndEdit, g_szUnknown);
 			break;
 		default:
-			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%d"), (char)cAILevel);
+			OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("%d"), (char)cAILevel);
 	}
-	OutputText(hwndCtl, g_szCRLF);
+	OutputText(hwndEdit, g_szCRLF);
 
 	if (cVersion < 13)
 		return TRUE;
@@ -2989,7 +2989,7 @@ BOOL ChallengeVskDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVskDesc)
 	if (!ReadBool(hFile, &bSmallShifts))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Small Shifts:\t%s\r\n"), bSmallShifts ? g_szTrue : g_szFalse);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Small Shifts:\t%s\r\n"), bSmallShifts ? g_szTrue : g_szFalse);
 
 	if (cVersion < 14)
 		return TRUE;
@@ -2999,24 +2999,24 @@ BOOL ChallengeVskDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVskDesc)
 	if (!ReadBool(hFile, &bNoRules))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("No Rules:\t%s\r\n"), bNoRules ? g_szYes : g_szNo);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("No Rules:\t%s\r\n"), bNoRules ? g_szYes : g_szNo);
 
 	// Start with sail up
 	BOOL bStartSailUp = FALSE;
 	if (!ReadBool(hFile, &bStartSailUp))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Start Sail Up:\t%s\r\n"), bStartSailUp ? g_szYes : g_szNo);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Start Sail Up:\t%s\r\n"), bStartSailUp ? g_szYes : g_szNo);
 
 	return TRUE;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL ChallengeThumbnailChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckThumbnail)
+BOOL ChallengeThumbnailChunk(HWND hwndEdit, HANDLE hFile, PCHUNK pckThumbnail)
 {
 	TCHAR szOutput[OUTPUT_LEN];
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szSep3, pckThumbnail->dwId);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szSep3, pckThumbnail->dwId);
 
 	// Jump to Thumbnail chunk
 	if (!FileSeekBegin(hFile, pckThumbnail->dwOffset))
@@ -3027,9 +3027,9 @@ BOOL ChallengeThumbnailChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckThumbnail)
 	if (!ReadNat32(hFile, &dwVersion))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szVersion, dwVersion);
-	if (dwVersion > 1) OutputText(hwndCtl, g_szAsterisk);
-	OutputText(hwndCtl, g_szCRLF);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szVersion, dwVersion);
+	if (dwVersion > 1) OutputText(hwndEdit, g_szAsterisk);
+	OutputText(hwndEdit, g_szCRLF);
 
 	if (dwVersion != 0)
 	{
@@ -3052,7 +3052,7 @@ BOOL ChallengeThumbnailChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckThumbnail)
 
 		// Output <Thumbnail.jpg>
 		ConvertGbxString(lpData, cbLen, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 
 		MyGlobalFreePtr(lpData);
 
@@ -3060,9 +3060,9 @@ BOOL ChallengeThumbnailChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckThumbnail)
 		{
 			if (FormatByteSize(dwThumbnailSize, szOutput, _countof(szOutput)))
 			{
-				OutputText(hwndCtl, TEXT("Image Size:\t"));
-				OutputText(hwndCtl, szOutput);
-				OutputText(hwndCtl, g_szCRLF);
+				OutputText(hwndEdit, TEXT("Image Size:\t"));
+				OutputText(hwndEdit, szOutput);
+				OutputText(hwndEdit, g_szCRLF);
 			}
 
 			lpData = MyGlobalAllocPtr(GHND, dwThumbnailSize);
@@ -3097,11 +3097,11 @@ BOOL ChallengeThumbnailChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckThumbnail)
 					if (lHeight < 0) lHeight = -lHeight;
 					GlobalUnlock(g_hDibThumb);
 
-					OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Resolution:\t%d x %d pixels\r\n"), lWidth, lHeight);
+					OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Resolution:\t%d x %d pixels\r\n"), lWidth, lHeight);
 				}
 
 				// View the thumbnail immediately
-				HWND hwndThumb = GetDlgItem(GetParent(hwndCtl), IDC_THUMB);
+				HWND hwndThumb = GetDlgItem(GetParent(hwndEdit), IDC_THUMB);
 				if (hwndThumb != NULL)
 				{
 					if (InvalidateRect(hwndThumb, NULL, FALSE))
@@ -3126,7 +3126,7 @@ BOOL ChallengeThumbnailChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckThumbnail)
 
 		// Output </Thumbnail.jpg>
 		ConvertGbxString(lpData, cbLen, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 
 		MyGlobalFreePtr(lpData);
 
@@ -3144,7 +3144,7 @@ BOOL ChallengeThumbnailChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckThumbnail)
 
 		// Output <Comments>
 		ConvertGbxString(lpData, cbLen, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 
 		MyGlobalFreePtr(lpData);
 
@@ -3167,7 +3167,7 @@ BOOL ChallengeThumbnailChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckThumbnail)
 
 			// Output comment
 			ConvertGbxString(lpData, dwCommentsSize, szOutput, _countof(szOutput), TRUE);
-			OutputText(hwndCtl, szOutput);
+			OutputText(hwndEdit, szOutput);
 
 			MyGlobalFreePtr(lpData);
 		}
@@ -3186,7 +3186,7 @@ BOOL ChallengeThumbnailChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckThumbnail)
 
 		// Output </Comments>
 		ConvertGbxString(lpData, cbLen, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 
 		MyGlobalFreePtr(lpData);
 	}
@@ -3196,7 +3196,7 @@ BOOL ChallengeThumbnailChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckThumbnail)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL ReplayVersionChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVersion, LPSTR lpszUid, LPSTR lpszEnvi)
+BOOL ReplayVersionChunk(HWND hwndEdit, HANDLE hFile, PCHUNK pckVersion, LPSTR lpszUid, LPSTR lpszEnvi)
 {
 	if (lpszUid == NULL || lpszEnvi == NULL)
 		return FALSE;
@@ -3207,7 +3207,7 @@ BOOL ReplayVersionChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVersion, LPSTR lps
 	ResetIdentifier(&id);
 
 	TCHAR szOutput[OUTPUT_LEN];
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szSep3, pckVersion->dwId);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szSep3, pckVersion->dwId);
 
 	// Jump to Version chunk
 	if (!FileSeekBegin(hFile, pckVersion->dwOffset))
@@ -3219,7 +3219,7 @@ BOOL ReplayVersionChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVersion, LPSTR lps
 		return FALSE;
 
 	// Virtual Skipper requires special handling
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Header Version:\t%d\r\n"),
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Header Version:\t%d\r\n"),
 		(dwVersion < 10000 || IS_UNASSIGNED(dwVersion)) ? dwVersion : dwVersion - 9999);
 
 	BOOL bIsVSK = dwVersion >= 9999 ? TRUE : FALSE;
@@ -3238,9 +3238,9 @@ BOOL ReplayVersionChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVersion, LPSTR lps
 		if (nRet > 0)
 		{
 			MyStrNCpyA(lpszUid, szRead, UID_LENGTH);
-			OutputText(hwndCtl, TEXT("Map UID:\t"));
+			OutputText(hwndEdit, TEXT("Map UID:\t"));
 			ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-			OutputText(hwndCtl, szOutput);
+			OutputText(hwndEdit, szOutput);
 		}
 
 		// Environment
@@ -3251,9 +3251,9 @@ BOOL ReplayVersionChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVersion, LPSTR lps
 		if (nRet > 0)
 		{
 			MyStrNCpyA(lpszEnvi, szRead, ENVI_LENGTH);
-			OutputText(hwndCtl, TEXT("Collection:\t"));
+			OutputText(hwndEdit, TEXT("Collection:\t"));
 			ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-			OutputText(hwndCtl, szOutput);
+			OutputText(hwndEdit, szOutput);
 		}
 
 		if (lpszEnvi[0] != '\0')
@@ -3261,14 +3261,14 @@ BOOL ReplayVersionChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVersion, LPSTR lps
 			if (strstr(g_szMpEnvis, lpszEnvi) != NULL)
 			{
 				BOOL bIsTM2020 = (dwId == 26);
-				Button_Enable(GetDlgItem(GetParent(hwndCtl), IDC_TMX), TRUE);
+				Button_Enable(GetDlgItem(GetParent(hwndEdit), IDC_TMX), TRUE);
 				if (strstr(g_szTm2Envis, lpszEnvi) != NULL && !bIsTM2020)
-					Button_Enable(GetDlgItem(GetParent(hwndCtl), IDC_DEDIMANIA), TRUE);
+					Button_Enable(GetDlgItem(GetParent(hwndEdit), IDC_DEDIMANIA), TRUE);
 			}
 			else if (strstr(g_szTm1Envis, lpszEnvi) != NULL)
 			{
-				Button_Enable(GetDlgItem(GetParent(hwndCtl), IDC_TMX), TRUE);
-				Button_Enable(GetDlgItem(GetParent(hwndCtl), IDC_DEDIMANIA), TRUE);
+				Button_Enable(GetDlgItem(GetParent(hwndEdit), IDC_TMX), TRUE);
+				Button_Enable(GetDlgItem(GetParent(hwndEdit), IDC_DEDIMANIA), TRUE);
 			}
 		}
 
@@ -3278,9 +3278,9 @@ BOOL ReplayVersionChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVersion, LPSTR lps
 
 		if (nRet > 0)
 		{
-			OutputText(hwndCtl, TEXT("Map Author:\t"));
+			OutputText(hwndEdit, TEXT("Map Author:\t"));
 			ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-			OutputText(hwndCtl, szOutput);
+			OutputText(hwndEdit, szOutput);
 		}
 
 		// Best Time
@@ -3290,9 +3290,9 @@ BOOL ReplayVersionChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVersion, LPSTR lps
 
 		if (!IS_UNASSIGNED(dwBest))
 		{
-			OutputText(hwndCtl, TEXT("Best Time:\t"));
+			OutputText(hwndEdit, TEXT("Best Time:\t"));
 			FormatTime(dwBest, szOutput, _countof(szOutput));
-			OutputText(hwndCtl, szOutput);
+			OutputText(hwndEdit, szOutput);
 		}
 
 		// Nick Name
@@ -3301,9 +3301,9 @@ BOOL ReplayVersionChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVersion, LPSTR lps
 
 		if (nRet > 0)
 		{
-			OutputText(hwndCtl, TEXT("Player Name:\t"));
+			OutputText(hwndEdit, TEXT("Player Name:\t"));
 			ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput), TRUE);
-			OutputText(hwndCtl, szOutput);
+			OutputText(hwndEdit, szOutput);
 		}
 
 		if ((!bIsVSK && dwVersion >= 6) || (bIsVSK && dwVersion >= 10000))
@@ -3316,9 +3316,9 @@ BOOL ReplayVersionChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVersion, LPSTR lps
 			// This hack works because the next DWORD would be the size of the XML block.
 			if (nRet > 0 && nRet <= 128)
 			{
-				OutputText(hwndCtl, TEXT("Player Login:\t"));
+				OutputText(hwndEdit, TEXT("Player Login:\t"));
 				ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-				OutputText(hwndCtl, szOutput);
+				OutputText(hwndEdit, szOutput);
 			}
 
 			if (!bIsVSK && dwVersion >= 8)
@@ -3333,9 +3333,9 @@ BOOL ReplayVersionChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVersion, LPSTR lps
 
 				if (nRet > 0)
 				{
-					OutputText(hwndCtl, TEXT("Title ID:\t"));
+					OutputText(hwndEdit, TEXT("Title ID:\t"));
 					ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-					OutputText(hwndCtl, szOutput);
+					OutputText(hwndEdit, szOutput);
 				}
 			}
 		}
@@ -3346,10 +3346,10 @@ BOOL ReplayVersionChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVersion, LPSTR lps
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL ChallengeReplayCommunityChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckCommunity)
+BOOL ChallengeReplayCommunityChunk(HWND hwndEdit, HANDLE hFile, PCHUNK pckCommunity)
 {
 	TCHAR szOutput[OUTPUT_LEN];
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szSep3, pckCommunity->dwId);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szSep3, pckCommunity->dwId);
 
 	// Jump to Community chunk
 	if (!FileSeekBegin(hFile, pckCommunity->dwOffset))
@@ -3389,10 +3389,10 @@ BOOL ChallengeReplayCommunityChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckCommuni
 			// Insert line breaks
 			LPCTSTR lpszTemp = AllocReplaceString((LPCTSTR)pXmlString, TEXT("><"), TEXT(">\r\n<"));
 			if (lpszTemp == NULL)
-				OutputText(hwndCtl, (LPCTSTR)pXmlString);
+				OutputText(hwndEdit, (LPCTSTR)pXmlString);
 			else
 			{
-				OutputText(hwndCtl, lpszTemp);
+				OutputText(hwndEdit, lpszTemp);
 				MyGlobalFreePtr((LPVOID)lpszTemp);
 			}
 		}
@@ -3408,12 +3408,12 @@ BOOL ChallengeReplayCommunityChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckCommuni
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL ChallengeReplayAuthorChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckAuthor)
+BOOL ChallengeReplayAuthorChunk(HWND hwndEdit, HANDLE hFile, PCHUNK pckAuthor)
 {
 	SSIZE_T nRet = 0;
 	CHAR szRead[ID_LEN];
 	TCHAR szOutput[OUTPUT_LEN];
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szSep3, pckAuthor->dwId);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szSep3, pckAuthor->dwId);
 
 	// Jump to Author chunk
 	if (!FileSeekBegin(hFile, pckAuthor->dwOffset))
@@ -3424,18 +3424,18 @@ BOOL ChallengeReplayAuthorChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckAuthor)
 	if (!ReadNat32(hFile, &dwVersion))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szVersion, dwVersion);
-	if (dwVersion > 1) OutputText(hwndCtl, g_szAsterisk);
-	OutputText(hwndCtl, g_szCRLF);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szVersion, dwVersion);
+	if (dwVersion > 1) OutputText(hwndEdit, g_szAsterisk);
+	OutputText(hwndEdit, g_szCRLF);
 
 	// AuthorInfo version
 	DWORD dwAuthorVer;
 	if (!ReadNat32(hFile, &dwAuthorVer))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Author Version:\t%d"), dwAuthorVer);
-	if (dwAuthorVer > 0) OutputText(hwndCtl, g_szAsterisk);
-	OutputText(hwndCtl, g_szCRLF);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Author Version:\t%d"), dwAuthorVer);
+	if (dwAuthorVer > 0) OutputText(hwndEdit, g_szAsterisk);
+	OutputText(hwndEdit, g_szCRLF);
 
 	// Login
 	if ((nRet = ReadString(hFile, szRead, _countof(szRead))) < 0)
@@ -3443,9 +3443,9 @@ BOOL ChallengeReplayAuthorChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckAuthor)
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Author Login:\t"));
+		OutputText(hwndEdit, TEXT("Author Login:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	// Nick Name
@@ -3454,9 +3454,9 @@ BOOL ChallengeReplayAuthorChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckAuthor)
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Author Name:\t"));
+		OutputText(hwndEdit, TEXT("Author Name:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput), TRUE);
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	// Zone
@@ -3465,9 +3465,9 @@ BOOL ChallengeReplayAuthorChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckAuthor)
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Author Zone:\t"));
+		OutputText(hwndEdit, TEXT("Author Zone:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	// Extra Info
@@ -3476,9 +3476,9 @@ BOOL ChallengeReplayAuthorChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckAuthor)
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Extra Info:\t"));
+		OutputText(hwndEdit, TEXT("Extra Info:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	return TRUE;
@@ -3486,7 +3486,7 @@ BOOL ChallengeReplayAuthorChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckAuthor)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL CollectorDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckDesc)
+BOOL CollectorDescChunk(HWND hwndEdit, HANDLE hFile, PCHUNK pckDesc)
 {
 	SSIZE_T nRet = 0;
 	CHAR szRead[ID_LEN];
@@ -3494,7 +3494,7 @@ BOOL CollectorDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckDesc)
 	ResetIdentifier(&id);
 
 	TCHAR szOutput[OUTPUT_LEN];
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szSep3, pckDesc->dwId);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szSep3, pckDesc->dwId);
 
 	// Jump to Desc chunk
 	if (!FileSeekBegin(hFile, pckDesc->dwOffset))
@@ -3506,9 +3506,9 @@ BOOL CollectorDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckDesc)
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Name:\t\t"));
+		OutputText(hwndEdit, TEXT("Name:\t\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	// Collection
@@ -3517,9 +3517,9 @@ BOOL CollectorDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckDesc)
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Collection:\t"));
+		OutputText(hwndEdit, TEXT("Collection:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	// Author Name
@@ -3528,9 +3528,9 @@ BOOL CollectorDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckDesc)
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Author:\t\t"));
+		OutputText(hwndEdit, TEXT("Author:\t\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	// The following identifier is used as version number
@@ -3541,9 +3541,9 @@ BOOL CollectorDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckDesc)
 	if (!IS_NUMBER(dwVersion))
 		dwVersion = 0;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Version:\t%d"), dwVersion);
-	if (dwVersion > 8) OutputText(hwndCtl, g_szAsterisk);
-	OutputText(hwndCtl, g_szCRLF);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Version:\t%d"), dwVersion);
+	if (dwVersion > 8) OutputText(hwndEdit, g_szAsterisk);
+	OutputText(hwndEdit, g_szCRLF);
 
 	// Page Name
 	if ((nRet = ReadString(hFile, szRead, _countof(szRead))) < 0)
@@ -3551,9 +3551,9 @@ BOOL CollectorDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckDesc)
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Page Name:\t"));
+		OutputText(hwndEdit, TEXT("Page Name:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	if (dwVersion == 5)
@@ -3564,9 +3564,9 @@ BOOL CollectorDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckDesc)
 
 		if (nRet > 0)
 		{
-			OutputText(hwndCtl, TEXT("Unknown:\t"));
+			OutputText(hwndEdit, TEXT("Unknown:\t"));
 			ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-			OutputText(hwndCtl, szOutput);
+			OutputText(hwndEdit, szOutput);
 		}
 	}
 
@@ -3578,9 +3578,9 @@ BOOL CollectorDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckDesc)
 
 		if (nRet > 0)
 		{
-			OutputText(hwndCtl, TEXT("Unknown:\t"));
+			OutputText(hwndEdit, TEXT("Unknown:\t"));
 			ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-			OutputText(hwndCtl, szOutput);
+			OutputText(hwndEdit, szOutput);
 		}
 	}
 
@@ -3591,7 +3591,7 @@ BOOL CollectorDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckDesc)
 		if (!ReadNat32(hFile, &dwFlags))
 			return FALSE;
 
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Flags:\t\t%08X"), dwFlags & 0x3FF);
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Flags:\t\t%08X"), dwFlags & 0x3FF);
 
 		if (dwVersion >= 6)
 		{
@@ -3632,20 +3632,20 @@ BOOL CollectorDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckDesc)
 
 			if (szOutput[0] != g_chNil)
 			{
-				OutputText(hwndCtl, TEXT(" ("));
-				OutputText(hwndCtl, szOutput);
-				OutputText(hwndCtl, TEXT(")"));
+				OutputText(hwndEdit, TEXT(" ("));
+				OutputText(hwndEdit, szOutput);
+				OutputText(hwndEdit, TEXT(")"));
 			}
 		}
 
-		OutputText(hwndCtl, g_szCRLF);
+		OutputText(hwndEdit, g_szCRLF);
 
 		// Catalog Position
 		WORD wIndex = 0;
 		if (!ReadNat16(hFile, &wIndex))
 			return FALSE;
 
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Position:\t%d\r\n"), (short)wIndex);
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Position:\t%d\r\n"), (short)wIndex);
 	}
 
 	if (dwVersion >= 7)
@@ -3656,9 +3656,9 @@ BOOL CollectorDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckDesc)
 
 		if (nRet > 0)
 		{
-			OutputText(hwndCtl, TEXT("Name:\t\t"));
+			OutputText(hwndEdit, TEXT("Name:\t\t"));
 			ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-			OutputText(hwndCtl, szOutput);
+			OutputText(hwndEdit, szOutput);
 		}
 	}
 
@@ -3669,28 +3669,28 @@ BOOL CollectorDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckDesc)
 		if (!ReadNat8(hFile, &cProdState))
 			return FALSE;
 
-		OutputText(hwndCtl, TEXT("Prod State:\t"));
+		OutputText(hwndEdit, TEXT("Prod State:\t"));
 		switch (cProdState)
 		{
 			case 0:
-				OutputText(hwndCtl, TEXT("Aborted"));
+				OutputText(hwndEdit, TEXT("Aborted"));
 				break;
 			case 1:
-				OutputText(hwndCtl, TEXT("GameBox"));
+				OutputText(hwndEdit, TEXT("GameBox"));
 				break;
 			case 2:
-				OutputText(hwndCtl, TEXT("DevBuild"));
+				OutputText(hwndEdit, TEXT("DevBuild"));
 				break;
 			case 3:
-				OutputText(hwndCtl, TEXT("Release"));
+				OutputText(hwndEdit, TEXT("Release"));
 				break;
 			case 0xFF:
-				OutputText(hwndCtl, g_szUnknown);
+				OutputText(hwndEdit, g_szUnknown);
 				break;
 			default:
-				OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%d"), (char)cProdState);
+				OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("%d"), (char)cProdState);
 		}
-		OutputText(hwndCtl, g_szCRLF);
+		OutputText(hwndEdit, g_szCRLF);
 	}
 
 	return TRUE;
@@ -3698,12 +3698,12 @@ BOOL CollectorDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckDesc)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL CollectorIconChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckIcon)
+BOOL CollectorIconChunk(HWND hwndEdit, HANDLE hFile, PCHUNK pckIcon)
 {
-	HWND hDlg = GetParent(hwndCtl);
+	HWND hDlg = GetParent(hwndEdit);
 
 	TCHAR szOutput[OUTPUT_LEN];
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szSep3, pckIcon->dwId);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szSep3, pckIcon->dwId);
 
 	// Jump to Icon chunk
 	if (!FileSeekBegin(hFile, pckIcon->dwOffset))
@@ -3726,8 +3726,8 @@ BOOL CollectorIconChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckIcon)
 		wHeight &= 0x07FF;
 	}
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Icon Width:\t%u pixels\r\n"), wWidth);
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Icon Height:\t%u pixels\r\n"), wHeight);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Icon Width:\t%u pixels\r\n"), wWidth);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Icon Height:\t%u pixels\r\n"), wHeight);
 
 	if (wVersion < 1)
 	{ // Read RGBA image
@@ -3812,9 +3812,9 @@ BOOL CollectorIconChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckIcon)
 	if (!ReadNat16(hFile, &wVersion))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Version:\t%d"), wVersion);
-	if (wVersion > 1) OutputText(hwndCtl, g_szAsterisk);
-	OutputText(hwndCtl, g_szCRLF);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Version:\t%d"), wVersion);
+	if (wVersion > 1) OutputText(hwndEdit, g_szAsterisk);
+	OutputText(hwndEdit, g_szCRLF);
 
 	// Size of the following RIFF container
 	DWORD dwImageSize = 0;
@@ -3823,9 +3823,9 @@ BOOL CollectorIconChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckIcon)
 
 	if (FormatByteSize(dwImageSize, szOutput, _countof(szOutput)))
 	{
-		OutputText(hwndCtl, TEXT("Image Size:\t"));
-		OutputText(hwndCtl, szOutput);
-		OutputText(hwndCtl, g_szCRLF);
+		OutputText(hwndEdit, TEXT("Image Size:\t"));
+		OutputText(hwndEdit, szOutput);
+		OutputText(hwndEdit, g_szCRLF);
 	}
 
 	if (dwImageSize == 0)
@@ -3863,10 +3863,10 @@ BOOL CollectorIconChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckIcon)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL CollectorTimeChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckTime)
+BOOL CollectorTimeChunk(HWND hwndEdit, HANDLE hFile, PCHUNK pckTime)
 {
 	TCHAR szOutput[OUTPUT_LEN];
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szSep3, pckTime->dwId);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szSep3, pckTime->dwId);
 
 	// Jump to Time chunk
 	if (!FileSeekBegin(hFile, pckTime->dwOffset))
@@ -3880,28 +3880,28 @@ BOOL CollectorTimeChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckTime)
 	if (!ReadData(hFile, (LPVOID)&ftTime, 8))
 		return FALSE;
 
-	OutputText(hwndCtl, TEXT("Timestamp:\t"));
+	OutputText(hwndEdit, TEXT("Timestamp:\t"));
 	if (ftTime.dwLowDateTime == 0 && ftTime.dwHighDateTime == 0)
-		OutputText(hwndCtl, TEXT("0"));
+		OutputText(hwndEdit, TEXT("0"));
 	else if (FileTimeToSystemTime(&ftTime, &stTime))
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%02u-%02u-%02u %02u:%02u:%02u"),
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("%02u-%02u-%02u %02u:%02u:%02u"),
 			stTime.wYear, stTime.wMonth, stTime.wDay, stTime.wHour, stTime.wMinute, stTime.wSecond);
 	else
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%08X%08X"),
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("%08X%08X"),
 			ftTime.dwHighDateTime, ftTime.dwLowDateTime);
-	OutputText(hwndCtl, g_szCRLF);
+	OutputText(hwndEdit, g_szCRLF);
 
 	return TRUE;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL CollectorSkinChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckSkin)
+BOOL CollectorSkinChunk(HWND hwndEdit, HANDLE hFile, PCHUNK pckSkin)
 {
 	SSIZE_T nRet = 0;
 	CHAR szRead[ID_LEN];
 	TCHAR szOutput[OUTPUT_LEN];
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szSep3, pckSkin->dwId);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szSep3, pckSkin->dwId);
 
 	// Jump to Path chunk
 	if (!FileSeekBegin(hFile, pckSkin->dwOffset))
@@ -3912,9 +3912,9 @@ BOOL CollectorSkinChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckSkin)
 	if (!ReadNat8(hFile, &cVersion))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szVersion, (char)cVersion);
-	if (cVersion > 0) OutputText(hwndCtl, g_szAsterisk);
-	OutputText(hwndCtl, g_szCRLF);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szVersion, (char)cVersion);
+	if (cVersion > 0) OutputText(hwndEdit, g_szAsterisk);
+	OutputText(hwndEdit, g_szCRLF);
 
 	// Root path to default skin
 	if ((nRet = ReadString(hFile, szRead, _countof(szRead))) < 0)
@@ -3922,9 +3922,9 @@ BOOL CollectorSkinChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckSkin)
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Default Skin:\t"));
+		OutputText(hwndEdit, TEXT("Default Skin:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	return TRUE;
@@ -3932,10 +3932,10 @@ BOOL CollectorSkinChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckSkin)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL ObjectInfoTypeChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckType)
+BOOL ObjectInfoTypeChunk(HWND hwndEdit, HANDLE hFile, PCHUNK pckType)
 {
 	TCHAR szOutput[OUTPUT_LEN];
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szSep3, pckType->dwId);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szSep3, pckType->dwId);
 
 	// Jump to Type chunk
 	if (!FileSeekBegin(hFile, pckType->dwOffset))
@@ -3946,75 +3946,75 @@ BOOL ObjectInfoTypeChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckType)
 	if (!ReadNat32(hFile, &dwType))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%s Type:\t"),
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("%s Type:\t"),
 		pckType->dwId == 0x2E002000 ? TEXT("Item") : TEXT("Object"));
 	switch (dwType)
 	{
 		case 0:
-			OutputText(hwndCtl, TEXT("Undefined"));
+			OutputText(hwndEdit, TEXT("Undefined"));
 			break;
 		case 1:
-			OutputText(hwndCtl, TEXT("Ornament"));
+			OutputText(hwndEdit, TEXT("Ornament"));
 			break;
 		case 2:
-			OutputText(hwndCtl, TEXT("PickUp"));
+			OutputText(hwndEdit, TEXT("PickUp"));
 			break;
 		case 3:
-			OutputText(hwndCtl, TEXT("Character"));
+			OutputText(hwndEdit, TEXT("Character"));
 			break;
 		case 4:
-			OutputText(hwndCtl, TEXT("Vehicle"));
+			OutputText(hwndEdit, TEXT("Vehicle"));
 			break;
 		case 5:
-			OutputText(hwndCtl, TEXT("Spot"));
+			OutputText(hwndEdit, TEXT("Spot"));
 			break;
 		case 6:
-			OutputText(hwndCtl, TEXT("Cannon"));
+			OutputText(hwndEdit, TEXT("Cannon"));
 			break;
 		case 7:
-			OutputText(hwndCtl, TEXT("Group"));
+			OutputText(hwndEdit, TEXT("Group"));
 			break;
 		case 8:
-			OutputText(hwndCtl, TEXT("Decal"));
+			OutputText(hwndEdit, TEXT("Decal"));
 			break;
 		case 9:
-			OutputText(hwndCtl, TEXT("Turret"));
+			OutputText(hwndEdit, TEXT("Turret"));
 			break;
 		case 10:
-			OutputText(hwndCtl, TEXT("Wagon"));
+			OutputText(hwndEdit, TEXT("Wagon"));
 			break;
 		case 11:
-			OutputText(hwndCtl, TEXT("Block"));
+			OutputText(hwndEdit, TEXT("Block"));
 			break;
 		case 12:
-			OutputText(hwndCtl, TEXT("EntitySpawner"));
+			OutputText(hwndEdit, TEXT("EntitySpawner"));
 			break;
 		case 13:
-			OutputText(hwndCtl, TEXT("DeprecV"));
+			OutputText(hwndEdit, TEXT("DeprecV"));
 			break;
 		case 14:
-			OutputText(hwndCtl, TEXT("Procedural"));
+			OutputText(hwndEdit, TEXT("Procedural"));
 			break;
 		case 15:
-			OutputText(hwndCtl, TEXT("Generic"));
+			OutputText(hwndEdit, TEXT("Generic"));
 			break;
 		case UNASSIGNED:
-			OutputText(hwndCtl, g_szUnknown);
+			OutputText(hwndEdit, g_szUnknown);
 			break;
 		default:
-			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%d"), dwType);
+			OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("%d"), dwType);
 	}
-	OutputText(hwndCtl, g_szCRLF);
+	OutputText(hwndEdit, g_szCRLF);
 
 	return TRUE;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL ObjectInfoVersionChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVersion)
+BOOL ObjectInfoVersionChunk(HWND hwndEdit, HANDLE hFile, PCHUNK pckVersion)
 {
 	TCHAR szOutput[OUTPUT_LEN];
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szSep3, pckVersion->dwId);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szSep3, pckVersion->dwId);
 
 	// Jump to Version chunk
 	if (!FileSeekBegin(hFile, pckVersion->dwOffset))
@@ -4025,19 +4025,19 @@ BOOL ObjectInfoVersionChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVersion)
 	if (!ReadNat32(hFile, &dwVersion))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Version:\t%d\r\n"), dwVersion);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Version:\t%d\r\n"), dwVersion);
 
 	return TRUE;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL DecorationMoodChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckMood)
+BOOL DecorationMoodChunk(HWND hwndEdit, HANDLE hFile, PCHUNK pckMood)
 {
 	SSIZE_T nRet = 0;
 	CHAR szRead[ID_LEN];
 	TCHAR szOutput[OUTPUT_LEN];
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szSep3, pckMood->dwId);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szSep3, pckMood->dwId);
 
 	// Jump to the Mood Remaping chunk
 	if (!FileSeekBegin(hFile, pckMood->dwOffset))
@@ -4048,9 +4048,9 @@ BOOL DecorationMoodChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckMood)
 	if (!ReadNat8(hFile, &cVersion))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szVersion, (char)cVersion);
-	if (cVersion > 0) OutputText(hwndCtl, g_szAsterisk);
-	OutputText(hwndCtl, g_szCRLF);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szVersion, (char)cVersion);
+	if (cVersion > 0) OutputText(hwndEdit, g_szAsterisk);
+	OutputText(hwndEdit, g_szCRLF);
 
 	// Mood Remaping
 	if ((nRet = ReadString(hFile, szRead, _countof(szRead))) < 0)
@@ -4058,20 +4058,20 @@ BOOL DecorationMoodChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckMood)
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, g_szFolder);
+		OutputText(hwndEdit, g_szFolder);
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
-	return ReadSkin(hwndCtl, hFile);
+	return ReadSkin(hwndEdit, hFile);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL DecorationUnknownChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckUnknown)
+BOOL DecorationUnknownChunk(HWND hwndEdit, HANDLE hFile, PCHUNK pckUnknown)
 {
 	TCHAR szOutput[OUTPUT_LEN];
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szSep3, pckUnknown->dwId);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szSep3, pckUnknown->dwId);
 
 	// Jump to unknown chunk
 	if (!FileSeekBegin(hFile, pckUnknown->dwOffset))
@@ -4082,23 +4082,23 @@ BOOL DecorationUnknownChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckUnknown)
 	if (!ReadNat8(hFile, &cVersion))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szVersion, (char)cVersion);
-	if (cVersion > 0) OutputText(hwndCtl, g_szAsterisk);
-	OutputText(hwndCtl, g_szCRLF);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szVersion, (char)cVersion);
+	if (cVersion > 0) OutputText(hwndEdit, g_szAsterisk);
+	OutputText(hwndEdit, g_szCRLF);
 
 	// Unknown
 	DWORD dwUnknown = 0;
 	if (!ReadNat32(hFile, &dwUnknown))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Unknown:\t%d\r\n"), dwUnknown);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Unknown:\t%d\r\n"), dwUnknown);
 
 	return TRUE;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL CollectionOldDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckOldDesc)
+BOOL CollectionOldDescChunk(HWND hwndEdit, HANDLE hFile, PCHUNK pckOldDesc)
 {
 	SSIZE_T nRet = 0;
 	CHAR szRead[ID_LEN];
@@ -4106,7 +4106,7 @@ BOOL CollectionOldDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckOldDesc)
 	ResetIdentifier(&id);
 
 	TCHAR szOutput[OUTPUT_LEN];
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szSep3, pckOldDesc->dwId);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szSep3, pckOldDesc->dwId);
 
 	// Jump to Old Desc chunk
 	if (!FileSeekBegin(hFile, pckOldDesc->dwOffset))
@@ -4118,9 +4118,9 @@ BOOL CollectionOldDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckOldDesc)
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Collection:\t"));
+		OutputText(hwndEdit, TEXT("Collection:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	return TRUE;
@@ -4128,7 +4128,7 @@ BOOL CollectionOldDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckOldDesc)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL CollectionDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckDesc)
+BOOL CollectionDescChunk(HWND hwndEdit, HANDLE hFile, PCHUNK pckDesc)
 {
 	FLOAT fVec2X, fVec2Y;
 	SSIZE_T nRet = 0;
@@ -4137,7 +4137,7 @@ BOOL CollectionDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckDesc)
 	ResetIdentifier(&id);
 
 	TCHAR szOutput[OUTPUT_LEN];
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szSep3, pckDesc->dwId);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szSep3, pckDesc->dwId);
 
 	// Jump to Desc chunk
 	if (!FileSeekBegin(hFile, pckDesc->dwOffset))
@@ -4148,9 +4148,9 @@ BOOL CollectionDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckDesc)
 	if (!ReadNat8(hFile, &cVersion))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szVersion, (char)cVersion);
-	if (cVersion > 10) OutputText(hwndCtl, g_szAsterisk);
-	OutputText(hwndCtl, g_szCRLF);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szVersion, (char)cVersion);
+	if (cVersion > 10) OutputText(hwndEdit, g_szAsterisk);
+	OutputText(hwndEdit, g_szCRLF);
 
 	// Collection
 	if ((nRet = ReadIdentifier(hFile, &id, szRead, _countof(szRead))) < 0)
@@ -4158,9 +4158,9 @@ BOOL CollectionDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckDesc)
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Collection:\t"));
+		OutputText(hwndEdit, TEXT("Collection:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	// Need Unlock
@@ -4168,7 +4168,7 @@ BOOL CollectionDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckDesc)
 	if (!ReadBool(hFile, &bNeedUnlock))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Need Unlock:\t%s\r\n"),
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Need Unlock:\t%s\r\n"),
 		bNeedUnlock ? g_szTrue : g_szFalse);
 
 	if (cVersion < 1)
@@ -4180,9 +4180,9 @@ BOOL CollectionDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckDesc)
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Env Icon:\t"));
+		OutputText(hwndEdit, TEXT("Env Icon:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	// Icon Collection
@@ -4191,9 +4191,9 @@ BOOL CollectionDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckDesc)
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Col Icon:\t"));
+		OutputText(hwndEdit, TEXT("Col Icon:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	if (cVersion < 2)
@@ -4204,7 +4204,7 @@ BOOL CollectionDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckDesc)
 	if (!ReadInteger(hFile, &nSortIndex))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Sort Index:\t%d\r\n"), nSortIndex);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Sort Index:\t%d\r\n"), nSortIndex);
 
 	if (cVersion < 3)
 		return TRUE;
@@ -4215,9 +4215,9 @@ BOOL CollectionDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckDesc)
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Default Zone:\t"));
+		OutputText(hwndEdit, TEXT("Default Zone:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	if (cVersion < 4)
@@ -4229,9 +4229,9 @@ BOOL CollectionDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckDesc)
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Vehicle:\t"));
+		OutputText(hwndEdit, TEXT("Vehicle:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	// Collection
@@ -4240,9 +4240,9 @@ BOOL CollectionDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckDesc)
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Collection:\t"));
+		OutputText(hwndEdit, TEXT("Collection:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	// Autor Name
@@ -4251,9 +4251,9 @@ BOOL CollectionDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckDesc)
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Author:\t\t"));
+		OutputText(hwndEdit, TEXT("Author:\t\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	if (cVersion < 5)
@@ -4265,9 +4265,9 @@ BOOL CollectionDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckDesc)
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Map:\t\t"));
+		OutputText(hwndEdit, TEXT("Map:\t\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	// Skip four unknown Real variables
@@ -4280,7 +4280,7 @@ BOOL CollectionDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckDesc)
 		if (!ReadReal(hFile, &fVec2X) || !ReadReal(hFile, &fVec2Y))
 			return FALSE;
 
-		OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Map Coord Elem:\t(%g, %g)\r\n"),
+		OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Map Coord Elem:\t(%g, %g)\r\n"),
 			(double)fVec2X, (double)fVec2Y);
 
 		if (cVersion >= 6)
@@ -4289,7 +4289,7 @@ BOOL CollectionDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckDesc)
 			if (!ReadReal(hFile, &fVec2X) || !ReadReal(hFile, &fVec2Y))
 				return FALSE;
 
-			OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Map Coord Icon:\t(%g, %g)\r\n"),
+			OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Map Coord Icon:\t(%g, %g)\r\n"),
 				(double)fVec2X, (double)fVec2Y);
 		}
 	}
@@ -4303,9 +4303,9 @@ BOOL CollectionDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckDesc)
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Load Screen:\t"));
+		OutputText(hwndEdit, TEXT("Load Screen:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	if (cVersion < 8)
@@ -4315,21 +4315,21 @@ BOOL CollectionDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckDesc)
 	if (!ReadReal(hFile, &fVec2X) || !ReadReal(hFile, &fVec2Y))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Map Coord Elem:\t(%g, %g)\r\n"),
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Map Coord Elem:\t(%g, %g)\r\n"),
 		(double)fVec2X, (double)fVec2Y);
 
 	// Map Coord Icon
 	if (!ReadReal(hFile, &fVec2X) || !ReadReal(hFile, &fVec2Y))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Map Coord Icon:\t(%g, %g)\r\n"),
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Map Coord Icon:\t(%g, %g)\r\n"),
 		(double)fVec2X, (double)fVec2Y);
 
 	// Map Coord Desc
 	if (!ReadReal(hFile, &fVec2X) || !ReadReal(hFile, &fVec2Y))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Map Coord Desc:\t(%g, %g)\r\n"),
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Map Coord Desc:\t(%g, %g)\r\n"),
 		(double)fVec2X, (double)fVec2Y);
 
 	// Long Desc
@@ -4338,9 +4338,9 @@ BOOL CollectionDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckDesc)
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Long Desc:\t"));
+		OutputText(hwndEdit, TEXT("Long Desc:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	if (cVersion < 9)
@@ -4352,9 +4352,9 @@ BOOL CollectionDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckDesc)
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Display Name:\t"));
+		OutputText(hwndEdit, TEXT("Display Name:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	if (cVersion < 10)
@@ -4365,19 +4365,19 @@ BOOL CollectionDescChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckDesc)
 	if (!ReadBool(hFile, &bIsEditable))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Is Editable:\t%s\r\n"), bIsEditable ? g_szTrue : g_szFalse);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Is Editable:\t%s\r\n"), bIsEditable ? g_szTrue : g_szFalse);
 
 	return TRUE;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL CollectionFoldersChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckFolders)
+BOOL CollectionFoldersChunk(HWND hwndEdit, HANDLE hFile, PCHUNK pckFolders)
 {
 	SSIZE_T nRet = 0;
 	CHAR szRead[ID_LEN];
 	TCHAR szOutput[OUTPUT_LEN];
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szSep3, pckFolders->dwId);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szSep3, pckFolders->dwId);
 
 	// Jump to Collector Folders chunk
 	if (!FileSeekBegin(hFile, pckFolders->dwOffset))
@@ -4388,9 +4388,9 @@ BOOL CollectionFoldersChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckFolders)
 	if (!ReadNat8(hFile, &cVersion))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szVersion, (char)cVersion);
-	if (cVersion > 4) OutputText(hwndCtl, g_szAsterisk);
-	OutputText(hwndCtl, g_szCRLF);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szVersion, (char)cVersion);
+	if (cVersion > 4) OutputText(hwndEdit, g_szAsterisk);
+	OutputText(hwndEdit, g_szCRLF);
 
 	// Folder Block Info
 	if ((nRet = ReadString(hFile, szRead, _countof(szRead))) < 0)
@@ -4398,9 +4398,9 @@ BOOL CollectionFoldersChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckFolders)
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Block Info:\t"));
+		OutputText(hwndEdit, TEXT("Block Info:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	// Folder Item
@@ -4409,9 +4409,9 @@ BOOL CollectionFoldersChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckFolders)
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Item Info:\t"));
+		OutputText(hwndEdit, TEXT("Item Info:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	// Folder Decoration
@@ -4420,9 +4420,9 @@ BOOL CollectionFoldersChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckFolders)
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Decoration:\t"));
+		OutputText(hwndEdit, TEXT("Decoration:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	if (cVersion >= 1 && cVersion <= 2)
@@ -4433,9 +4433,9 @@ BOOL CollectionFoldersChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckFolders)
 
 		if (nRet > 0)
 		{
-			OutputText(hwndCtl, g_szFolder);
+			OutputText(hwndEdit, g_szFolder);
 			ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-			OutputText(hwndCtl, szOutput);
+			OutputText(hwndEdit, szOutput);
 		}
 	}
 
@@ -4448,9 +4448,9 @@ BOOL CollectionFoldersChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckFolders)
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Card Event:\t"));
+		OutputText(hwndEdit, TEXT("Card Event:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	if (cVersion < 3)
@@ -4462,9 +4462,9 @@ BOOL CollectionFoldersChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckFolders)
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Macro Block:\t"));
+		OutputText(hwndEdit, TEXT("Macro Block:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	if (cVersion < 4)
@@ -4476,9 +4476,9 @@ BOOL CollectionFoldersChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckFolders)
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Macro Decals:\t"));
+		OutputText(hwndEdit, TEXT("Macro Decals:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	return TRUE;
@@ -4486,12 +4486,12 @@ BOOL CollectionFoldersChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckFolders)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL CollectionMenuIconsChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckMenuIcons)
+BOOL CollectionMenuIconsChunk(HWND hwndEdit, HANDLE hFile, PCHUNK pckMenuIcons)
 {
 	SSIZE_T nRet = 0;
 	CHAR szRead[ID_LEN];
 	TCHAR szOutput[OUTPUT_LEN];
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szSep3, pckMenuIcons->dwId);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szSep3, pckMenuIcons->dwId);
 
 	// Jump to the Menu Icons Folders chunk
 	if (!FileSeekBegin(hFile, pckMenuIcons->dwOffset))
@@ -4502,9 +4502,9 @@ BOOL CollectionMenuIconsChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckMenuIcons)
 	if (!ReadNat8(hFile, &cVersion))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szVersion, (char)cVersion);
-	if (cVersion > 0) OutputText(hwndCtl, g_szAsterisk);
-	OutputText(hwndCtl, g_szCRLF);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szVersion, (char)cVersion);
+	if (cVersion > 0) OutputText(hwndEdit, g_szAsterisk);
+	OutputText(hwndEdit, g_szCRLF);
 
 	// Folder Menus Icons
 	if ((nRet = ReadString(hFile, szRead, _countof(szRead))) < 0)
@@ -4512,9 +4512,9 @@ BOOL CollectionMenuIconsChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckMenuIcons)
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Menus Icons:\t"));
+		OutputText(hwndEdit, TEXT("Menus Icons:\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	return TRUE;
@@ -4522,10 +4522,10 @@ BOOL CollectionMenuIconsChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckMenuIcons)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL PlugVersionChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVersion)
+BOOL PlugVersionChunk(HWND hwndEdit, HANDLE hFile, PCHUNK pckVersion)
 {
 	TCHAR szOutput[OUTPUT_LEN];
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szSep3, pckVersion->dwId);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szSep3, pckVersion->dwId);
 
 	// Jump to Version chunk
 	if (!FileSeekBegin(hFile, pckVersion->dwOffset))
@@ -4536,18 +4536,18 @@ BOOL PlugVersionChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVersion)
 	if (!ReadNat32(hFile, &dwVersion))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szVersion, dwVersion);
-	OutputText(hwndCtl, g_szCRLF);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szVersion, dwVersion);
+	OutputText(hwndEdit, g_szCRLF);
 
 	return TRUE;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL HmsVersionChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVersion)
+BOOL HmsVersionChunk(HWND hwndEdit, HANDLE hFile, PCHUNK pckVersion)
 {
 	TCHAR szOutput[OUTPUT_LEN];
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szSep3, pckVersion->dwId);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szSep3, pckVersion->dwId);
 
 	// Jump to Version chunk
 	if (!FileSeekBegin(hFile, pckVersion->dwOffset))
@@ -4558,34 +4558,34 @@ BOOL HmsVersionChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckVersion)
 	if (!ReadNat32(hFile, &dwVersion))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szVersion, dwVersion);
-	OutputText(hwndCtl, g_szCRLF);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szVersion, dwVersion);
+	OutputText(hwndEdit, g_szCRLF);
 
 	return TRUE;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL GameSkinChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckGameSkin)
+BOOL GameSkinChunk(HWND hwndEdit, HANDLE hFile, PCHUNK pckGameSkin)
 {
 	TCHAR szOutput[OUTPUT_LEN];
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szSep3, pckGameSkin->dwId);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szSep3, pckGameSkin->dwId);
 
 	// Jump to Skin chunk
 	if (!FileSeekBegin(hFile, pckGameSkin->dwOffset))
 		return FALSE;
 
-	return ReadSkin(hwndCtl, hFile);
+	return ReadSkin(hwndEdit, hFile);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL ProfileChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckProfile)
+BOOL ProfileChunk(HWND hwndEdit, HANDLE hFile, PCHUNK pckProfile)
 {
 	SSIZE_T nRet = 0;
 	CHAR szRead[ID_LEN];
 	TCHAR szOutput[OUTPUT_LEN];
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szSep3, pckProfile->dwId);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szSep3, pckProfile->dwId);
 
 	// Jump to the Net Player Profile chunk
 	if (!FileSeekBegin(hFile, pckProfile->dwOffset))
@@ -4597,9 +4597,9 @@ BOOL ProfileChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckProfile)
 
 	if (nRet > 0)
 	{
-		OutputText(hwndCtl, TEXT("Login:\t\t"));
+		OutputText(hwndEdit, TEXT("Login:\t\t"));
 		ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	// Length of the Online Support Key
@@ -4647,9 +4647,9 @@ BOOL ProfileChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckProfile)
 				_sntprintf(szOutput, _countof(szOutput), TEXT("%s%02X"), (LPTSTR)szOutput, (WORD)*lpByte++);
 		}
 
-		OutputText(hwndCtl, TEXT("Support Key:\t"));
-		OutputText(hwndCtl, szOutput);
-		OutputText(hwndCtl, g_szCRLF);
+		OutputText(hwndEdit, TEXT("Support Key:\t"));
+		OutputText(hwndEdit, szOutput);
+		OutputText(hwndEdit, g_szCRLF);
 
 		MyGlobalFreePtr(lpData);
 	}
@@ -4659,12 +4659,12 @@ BOOL ProfileChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckProfile)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL FolderDepChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckFolder)
+BOOL FolderDepChunk(HWND hwndEdit, HANDLE hFile, PCHUNK pckFolder)
 {
 	SSIZE_T nRet = 0;
 	CHAR szRead[ID_LEN];
 	TCHAR szOutput[OUTPUT_LEN];
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), g_szSep3, pckFolder->dwId);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), g_szSep3, pckFolder->dwId);
 
 	// Jump to Nod chunk
 	if (!FileSeekBegin(hFile, pckFolder->dwOffset))
@@ -4675,7 +4675,7 @@ BOOL FolderDepChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckFolder)
 	if (!ReadNat32(hFile, &dwCount) || dwCount > 0xFF)
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Number:\t\t%d\r\n"), dwCount);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Number:\t\t%d\r\n"), dwCount);
 
 	while (dwCount--)
 	{
@@ -4685,9 +4685,9 @@ BOOL FolderDepChunk(HWND hwndCtl, HANDLE hFile, PCHUNK pckFolder)
 
 		if (nRet > 0)
 		{
-			OutputText(hwndCtl, g_szFolder);
+			OutputText(hwndEdit, g_szFolder);
 			ConvertGbxString(szRead, nRet, szOutput, _countof(szOutput));
-			OutputText(hwndCtl, szOutput);
+			OutputText(hwndEdit, szOutput);
 		}
 	}
 

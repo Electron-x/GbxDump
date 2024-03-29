@@ -47,15 +47,15 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK OutputWndProc(HWND, UINT, WPARAM, LPARAM);
 
 // Opens and examines the passed file
-BOOL DumpFile(HWND hwndCtl, LPCTSTR lpszFileName, LPSTR lpszUid, LPSTR lpszEnvi);
+BOOL DumpFile(HWND hwndEdit, LPCTSTR lpszFileName, LPSTR lpszUid, LPSTR lpszEnvi);
 // Displays version and salt of a MUX file
-BOOL DumpMux(HWND hwndCtl, HANDLE hFile);
+BOOL DumpMux(HWND hwndEdit, HANDLE hFile);
 // Decompresses a JPEG image and displays it as thumbnail
-BOOL DumpJpeg(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize);
+BOOL DumpJpeg(HWND hwndEdit, HANDLE hFile, DWORD dwFileSize);
 // Decompresses a WebP image and displays it as thumbnail
-BOOL DumpWebP(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize);
+BOOL DumpWebP(HWND hwndEdit, HANDLE hFile, DWORD dwFileSize);
 // Displays a hex dump of the first 1024 bytes of a file
-BOOL DumpHex(HWND hwndCtl, HANDLE hFile, SIZE_T cbLen);
+BOOL DumpHex(HWND hwndEdit, HANDLE hFile, SIZE_T cbLen);
 
 // Draws the thumbnail in a owner-drawn control
 BOOL OnDrawItem(HWND hDlg, const LPDRAWITEMSTRUCT lpDrawItem);
@@ -71,7 +71,7 @@ BOOL DrawThumbnailText(HDC hdc, LPRECT lpRect, LPCTSTR lpszText, COLORREF color,
 HFONT CreateScaledFont(HDC hdc, LPCRECT lpRect, LPCTSTR lpszFormat);
 
 // Selects the complete URL in which the cursor is located
-int SelectText(HWND hwndCtl);
+int SelectText(HWND hwndEdit);
 // Activates or deactivates line break of an edit control
 BOOL SetWordWrap(HWND hDlg, BOOL bWordWrap);
 
@@ -191,7 +191,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 {
 	INITCOMMONCONTROLSEX iccex = {0};
 	iccex.dwSize = sizeof(iccex);
-	iccex.dwICC = ICC_BAR_CLASSES;	// scrollbar size box
+	iccex.dwICC = ICC_BAR_CLASSES;	// For the scrollbar size box
 	InitCommonControlsEx(&iccex);
 
 	WNDCLASSEX wcex     = {0};
@@ -345,8 +345,8 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 
 		case WM_DPICHANGED:
 			{
-				HWND hwndCtl = GetDlgItem(hDlg, IDC_OUTPUT);
-				if (hwndCtl == NULL || s_hfontEditBox == NULL)
+				HWND hwndEdit = GetDlgItem(hDlg, IDC_OUTPUT);
+				if (hwndEdit == NULL || s_hfontEditBox == NULL)
 					return FALSE;
 
 				LOGFONT lf = {0};
@@ -361,7 +361,7 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 					return FALSE;
 
 				DeleteFont(s_hfontEditBox);
-				SetWindowFont(hwndCtl, hfontScaled, TRUE);
+				SetWindowFont(hwndEdit, hfontScaled, TRUE);
 				s_hfontEditBox = hfontScaled;
 
 				return FALSE;
@@ -372,8 +372,8 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 				if ((GET_KEYSTATE_WPARAM(wParam) & MK_CONTROL) == 0)
 					return FALSE;
 
-				HWND hwndCtl = GetDlgItem(hDlg, IDC_OUTPUT);
-				if (hwndCtl == NULL || s_hfontEditBox == NULL)
+				HWND hwndEdit = GetDlgItem(hDlg, IDC_OUTPUT);
+				if (hwndEdit == NULL || s_hfontEditBox == NULL)
 					return FALSE;
 
 				static int nDelta = 0;
@@ -396,7 +396,7 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 					return FALSE;
 
 				DeleteFont(s_hfontEditBox);
-				SetWindowFont(hwndCtl, hfontScaled, TRUE);
+				SetWindowFont(hwndEdit, hfontScaled, TRUE);
 				s_hfontEditBox = hfontScaled;
 
 				return FALSE;
@@ -443,17 +443,17 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 					SetWindowFont(hDlg, s_hfontDlgCurr, FALSE);
 
 				LONG lThumbnailMax = 0;
-				HWND hCtlEdit = GetDlgItem(hDlg, IDC_OUTPUT);
-				HWND hCtlThumb = GetDlgItem(hDlg, IDC_THUMB);
-				HWND hCtlDediBtn = GetDlgItem(hDlg, IDC_DEDIMANIA);
+				HWND hwndEdit = GetDlgItem(hDlg, IDC_OUTPUT);
+				HWND hwndThumb = GetDlgItem(hDlg, IDC_THUMB);
+				HWND hwndDediBtn = GetDlgItem(hDlg, IDC_DEDIMANIA);
 
 				// Count all child windows for DeferWindowPos
 				int nNumWindows = 0;
-				HWND hCtl = GetWindow(hDlg, GW_CHILD);
-				while (hCtl)
+				HWND hwndChild = GetWindow(hDlg, GW_CHILD);
+				while (hwndChild)
 				{
 					nNumWindows++;
-					hCtl = GetNextSibling(hCtl);
+					hwndChild = GetNextSibling(hwndChild);
 				}
 
 				// Reposition all child windows
@@ -461,16 +461,16 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 				if (hWinPosInfo != NULL)
 				{
 					// Start with the first child window and run through all controls
-					hCtl = GetWindow(hDlg, GW_CHILD);
-					while (hCtl)
+					hwndChild = GetWindow(hDlg, GW_CHILD);
+					while (hwndChild)
 					{
 						// Assign the new font to the control.
 						// The Edit window keeps the globally defined font size.
-						if (s_hfontDlgCurr != NULL && hCtl != hCtlEdit)
-							SetWindowFont(hCtl, s_hfontDlgCurr, FALSE);
+						if (s_hfontDlgCurr != NULL && hwndChild != hwndEdit)
+							SetWindowFont(hwndChild, s_hfontDlgCurr, FALSE);
 
 						// Determine the initial size of the control
-						RetrieveWindowRect(hCtl, &rc);
+						RetrieveWindowRect(hwndChild, &rc);
 						// Calculate the new window size accordingly
 						rc.top    = (int)((yMult * rc.top)    + 0.5);
 						rc.bottom = (int)((yMult * rc.bottom) + 0.5);
@@ -478,32 +478,32 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 						rc.right  = (int)((xMult * rc.right)  + 0.5);
 
 						// Maximum height for the thumbnail
-						if (hCtl == hCtlDediBtn)
+						if (hwndChild == hwndDediBtn)
 							lThumbnailMax = rc.bottom;
 
 						// Adjust the size of the child window. The thumbnail
 						// window and the size box require special handling.
-						if (hCtl == hCtlThumb)
-							hWinPosInfo = DeferWindowPos(hWinPosInfo, hCtl, NULL, rc.left,
+						if (hwndChild == hwndThumb)
+							hWinPosInfo = DeferWindowPos(hWinPosInfo, hwndChild, NULL, rc.left,
 								max(lThumbnailMax, rc.bottom-(rc.right-rc.left)), rc.right-rc.left,
 								min(rc.bottom-lThumbnailMax, rc.right-rc.left), SWP_NOZORDER | SWP_NOACTIVATE);
-						else if (hCtl == s_hwndSizeBox)
+						else if (hwndChild == s_hwndSizeBox)
 						{
 							int cx = GetSystemMetrics(SM_CXVSCROLL);
 							int cy = GetSystemMetrics(SM_CYHSCROLL);
 							if (wParam == SIZE_MAXIMIZED)
-								ShowWindow(hCtl, SW_HIDE);
-							else if (!IsWindowVisible(hCtl))
-								ShowWindow(hCtl, SW_SHOW);
-							hWinPosInfo = DeferWindowPos(hWinPosInfo, hCtl, NULL,
+								ShowWindow(hwndChild, SW_HIDE);
+							else if (!IsWindowVisible(hwndChild))
+								ShowWindow(hwndChild, SW_SHOW);
+							hWinPosInfo = DeferWindowPos(hWinPosInfo, hwndChild, NULL,
 								rc.right-cx, rc.bottom-cy, cx, cy, SWP_NOZORDER | SWP_NOACTIVATE);
 						}
 						else
-							hWinPosInfo = DeferWindowPos(hWinPosInfo, hCtl, NULL, rc.left, rc.top,
+							hWinPosInfo = DeferWindowPos(hWinPosInfo, hwndChild, NULL, rc.left, rc.top,
 								(rc.right-rc.left), (rc.bottom-rc.top), SWP_NOZORDER | SWP_NOACTIVATE);
 
 						// Determine the next child window
-						hCtl = GetNextSibling(hCtl);
+						hwndChild = GetNextSibling(hwndChild);
 					}
 
 					if (hWinPosInfo != NULL)
@@ -522,11 +522,11 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 						SaveSettings(hDlg, s_hfontEditBox);
 
 						DeleteWindowRect(hDlg);
-						HWND hwndCtl = GetWindow(hDlg, GW_CHILD);
-						while (hwndCtl)
+						HWND hwndChild = GetWindow(hDlg, GW_CHILD);
+						while (hwndChild)
 						{
-							DeleteWindowRect(hwndCtl);
-							hwndCtl = GetNextSibling(hwndCtl);
+							DeleteWindowRect(hwndChild);
+							hwndChild = GetNextSibling(hwndChild);
 						}
 
 						if (s_hwndSizeBox != NULL)
@@ -535,9 +535,9 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 							s_hwndSizeBox = NULL;
 						}
 
-						hwndCtl = GetDlgItem(hDlg, IDC_OUTPUT);
-						if (hwndCtl != NULL && g_lpPrevOutputWndProc != NULL)
-							SubclassWindow(hwndCtl, g_lpPrevOutputWndProc);
+						HWND hwndEdit = GetDlgItem(hDlg, IDC_OUTPUT);
+						if (hwndEdit != NULL && g_lpPrevOutputWndProc != NULL)
+							SubclassWindow(hwndEdit, g_lpPrevOutputWndProc);
 
 						if (s_hfontEditBox != NULL)
 						{
@@ -566,16 +566,16 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 						if (GetFileName(hDlg, s_szFileName, _countof(s_szFileName), &s_dwLoadFilterIndex))
 						{
 							HCURSOR hOldCursor = SetCursor(LoadCursor(NULL, IDC_WAIT));
-							HWND hwndCtl = GetDlgItem(hDlg, IDC_OUTPUT);
+							HWND hwndEdit = GetDlgItem(hDlg, IDC_OUTPUT);
 
-							ClearOutputWindow(hwndCtl);
+							ClearOutputWindow(hwndEdit);
 
 							// Dump the file
-							if (DumpFile(hwndCtl, s_szFileName, s_szUid, s_szEnvi) && GetFocus() != hwndCtl)
+							if (DumpFile(hwndEdit, s_szFileName, s_szUid, s_szEnvi) && GetFocus() != hwndEdit)
 							{
-								SetFocus(hwndCtl);
-								int nLen = Edit_GetTextLength(hwndCtl);
-								Edit_SetSel(hwndCtl, nLen, nLen);
+								SetFocus(hwndEdit);
+								int nLen = Edit_GetTextLength(hwndEdit);
+								Edit_SetSel(hwndEdit, nLen, nLen);
 							}
 
 							SetCursor(hOldCursor);
@@ -585,14 +585,14 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 
 				case IDC_COPY:
 					{ // Copy text from the edit control to the clipboard
-						HWND hwndCtl = GetDlgItem(hDlg, IDC_OUTPUT);
-						DWORD dwSelection = Edit_GetSel(hwndCtl);
+						HWND hwndEdit = GetDlgItem(hDlg, IDC_OUTPUT);
+						DWORD dwSelection = Edit_GetSel(hwndEdit);
 						if (HIWORD(dwSelection) != LOWORD(dwSelection))
-							SendMessage(hwndCtl, WM_COPY, 0, 0);
+							SendMessage(hwndEdit, WM_COPY, 0, 0);
 						else
 						{
-							Edit_SetSel(hwndCtl, 0, -1);
-							SendMessage(hwndCtl, WM_COPY, 0, 0);
+							Edit_SetSel(hwndEdit, 0, -1);
+							SendMessage(hwndEdit, WM_COPY, 0, 0);
 						}
 					}
 					return FALSE;
@@ -628,9 +628,9 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 						}
 
 						HCURSOR hOldCursor = SetCursor(LoadCursor(NULL, IDC_WAIT));
-						HWND hwndCtl = GetDlgItem(hDlg, IDC_OUTPUT);
+						HWND hwndEdit = GetDlgItem(hDlg, IDC_OUTPUT);
 
-						ClearOutputWindow(hwndCtl);
+						ClearOutputWindow(hwndEdit);
 
 						BOOL bSuccess = FALSE;
 						for (UINT iFile = 0; iFile < nFiles; iFile++)
@@ -638,20 +638,20 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 							DragQueryFile(hDrop, iFile, s_szFileName, _countof(s_szFileName));
 
 							if (iFile > 0)
-								Edit_ReplaceSel(hwndCtl, TEXT("\r\n"));
+								Edit_ReplaceSel(hwndEdit, TEXT("\r\n"));
 
 							// Dump the file
-							bSuccess = DumpFile(hwndCtl, s_szFileName, s_szUid, s_szEnvi) || bSuccess;
+							bSuccess = DumpFile(hwndEdit, s_szFileName, s_szUid, s_szEnvi) || bSuccess;
 						}
 
 						GlobalUnlock(hDrop);
 						CloseClipboard();
 
-						if (bSuccess && GetFocus() != hwndCtl)
+						if (bSuccess && GetFocus() != hwndEdit)
 						{
-							SetFocus(hwndCtl);
-							int nLen = Edit_GetTextLength(hwndCtl);
-							Edit_SetSel(hwndCtl, nLen, nLen);
+							SetFocus(hwndEdit);
+							int nLen = Edit_GetTextLength(hwndEdit);
+							Edit_SetSel(hwndEdit, nLen, nLen);
 						}
 
 						SetCursor(hOldCursor);
@@ -677,32 +677,32 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 
 				case IDC_TMX:
 					{
-						HWND hwndCtl = GetDlgItem(hDlg, IDC_OUTPUT);
-						if (GetFocus() != hwndCtl)
-							SetFocus(hwndCtl);
+						HWND hwndEdit = GetDlgItem(hDlg, IDC_OUTPUT);
+						if (GetFocus() != hwndEdit)
+							SetFocus(hwndEdit);
 
 						// Place the cursor at the end of the text
-						int nLen = Edit_GetTextLength(hwndCtl);
-						Edit_SetSel(hwndCtl, nLen, nLen);
+						int nLen = Edit_GetTextLength(hwndEdit);
+						Edit_SetSel(hwndEdit, nLen, nLen);
 
 						Button_Enable(GetDlgItem(hDlg, IDC_TMX), FALSE);
-						if (!DumpTmx(hwndCtl, s_szUid, s_szEnvi))
+						if (!DumpTmx(hwndEdit, s_szUid, s_szEnvi))
 							Button_Enable(GetDlgItem(hDlg, IDC_TMX), TRUE);
 					}
 					return FALSE;
 
 				case IDC_DEDIMANIA:
 					{
-						HWND hwndCtl = GetDlgItem(hDlg, IDC_OUTPUT);
-						if (GetFocus() != hwndCtl)
-							SetFocus(hwndCtl);
+						HWND hwndEdit = GetDlgItem(hDlg, IDC_OUTPUT);
+						if (GetFocus() != hwndEdit)
+							SetFocus(hwndEdit);
 
 						// Place the cursor at the end of the text
-						int nLen = Edit_GetTextLength(hwndCtl);
-						Edit_SetSel(hwndCtl, nLen, nLen);
+						int nLen = Edit_GetTextLength(hwndEdit);
+						Edit_SetSel(hwndEdit, nLen, nLen);
 
 						Button_Enable(GetDlgItem(hDlg, IDC_DEDIMANIA), FALSE);
-						if (!DumpDedimania(hwndCtl, s_szUid, s_szEnvi))
+						if (!DumpDedimania(hwndEdit, s_szUid, s_szEnvi))
 							Button_Enable(GetDlgItem(hDlg, IDC_DEDIMANIA), TRUE);
 					}
 					return FALSE;
@@ -770,18 +770,18 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 		case WMU_FILEOPEN:
 			{ // Open the GBX file passed by program argument
 				HCURSOR hOldCursor = SetCursor(LoadCursor(NULL, IDC_WAIT));
-				HWND hwndCtl = GetDlgItem(hDlg, IDC_OUTPUT);
+				HWND hwndEdit = GetDlgItem(hDlg, IDC_OUTPUT);
 
 				// Dump the file
-				if (DumpFile(hwndCtl, (LPCTSTR)lParam, s_szUid, s_szEnvi))
+				if (DumpFile(hwndEdit, (LPCTSTR)lParam, s_szUid, s_szEnvi))
 				{
-					SetFocus(hwndCtl);
-					int nLen = Edit_GetTextLength(hwndCtl);
-					Edit_SetSel(hwndCtl, nLen, nLen);
+					SetFocus(hwndEdit);
+					int nLen = Edit_GetTextLength(hwndEdit);
+					Edit_SetSel(hwndEdit, nLen, nLen);
 				}
 
-				if ((GetWindowStyle(hwndCtl) & ES_READONLY) == 0)
-					Edit_SetReadOnly(hwndCtl, TRUE);
+				if ((GetWindowStyle(hwndEdit) & ES_READONLY) == 0)
+					Edit_SetReadOnly(hwndEdit, TRUE);
 
 				SetCursor(hOldCursor);
 			}
@@ -808,9 +808,9 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 				}
 
 				HCURSOR hOldCursor = SetCursor(LoadCursor(NULL, IDC_WAIT));
-				HWND hwndCtl = GetDlgItem(hDlg, IDC_OUTPUT);
+				HWND hwndEdit = GetDlgItem(hDlg, IDC_OUTPUT);
 
-				ClearOutputWindow(hwndCtl);
+				ClearOutputWindow(hwndEdit);
 
 				BOOL bSuccess = FALSE;
 				for (UINT iFile = 0; iFile < nFiles; iFile++)
@@ -818,19 +818,19 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 					DragQueryFile(hDrop, iFile, s_szFileName, _countof(s_szFileName));
 
 					if (iFile > 0)
-						Edit_ReplaceSel(hwndCtl, TEXT("\r\n"));
+						Edit_ReplaceSel(hwndEdit, TEXT("\r\n"));
 
 					// Dump the file
-					bSuccess = DumpFile(hwndCtl, s_szFileName, s_szUid, s_szEnvi) || bSuccess;
+					bSuccess = DumpFile(hwndEdit, s_szFileName, s_szUid, s_szEnvi) || bSuccess;
 				}
 
 				DragFinish(hDrop);
 
-				if (bSuccess && GetFocus() != hwndCtl)
+				if (bSuccess && GetFocus() != hwndEdit)
 				{
-					SetFocus(hwndCtl);
-					int nLen = Edit_GetTextLength(hwndCtl);
-					Edit_SetSel(hwndCtl, nLen, nLen);
+					SetFocus(hwndEdit);
+					int nLen = Edit_GetTextLength(hwndEdit);
+					Edit_SetSel(hwndEdit, nLen, nLen);
 				}
 
 				SetCursor(hOldCursor);
@@ -839,10 +839,10 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 
 		case WM_CONTEXTMENU:
 			{ // Display the context menu for the dialog box or the thumbnail
-				HWND hwndContext = (HWND)wParam;
+				HWND hwndSender = (HWND)wParam;
 				HWND hwndThumb = GetDlgItem(hDlg, IDC_THUMB);
 
-				if (hwndContext == hDlg || hwndContext == hwndThumb)
+				if (hwndSender == hDlg || hwndSender == hwndThumb)
 				{
 					int x = GET_X_LPARAM(lParam);
 					int y = GET_Y_LPARAM(lParam);
@@ -850,13 +850,13 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 					if (x == -1 || y == -1)
 					{
 						RECT rc;
-						GetWindowRect(hwndContext, &rc);
+						GetWindowRect(hwndSender, &rc);
 						x = (rc.left + rc.right) / 2;
 						y = (rc.top + rc.bottom) / 2;
 					}
 
 					LPTSTR lpszMenuName = MAKEINTRESOURCE(g_bGerUI ? IDR_GER_POPUP_DIALOG : IDR_ENG_POPUP_DIALOG);
-					if (hwndContext == hwndThumb)
+					if (hwndSender == hwndThumb)
 						lpszMenuName = MAKEINTRESOURCE(g_bGerUI ? IDR_GER_POPUP_THUMB : IDR_ENG_POPUP_THUMB);
 
 					HMENU hmenuPopup = LoadMenu(g_hInstance, lpszMenuName);
@@ -870,12 +870,12 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 						return FALSE;
 					}
 
-					if (hwndContext == hDlg)
+					if (hwndSender == hDlg)
 					{
 						if (!IsClipboardFormatAvailable(CF_HDROP))
 							EnableMenuItem(hmenuTrackPopup, IDC_PASTE, MF_BYCOMMAND | MF_GRAYED);
 					}
-					else if (hwndContext == hwndThumb)
+					else if (hwndSender == hwndThumb)
 					{
 						if (g_hDibThumb != NULL)
 						{
@@ -1006,22 +1006,22 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 					rc.right - cx, rc.bottom - cy, cx, cy, hDlg, (HMENU)-1, g_hInstance, NULL);
 
 				// Save size of all child windows as property
-				HWND hwndCtl = GetWindow(hDlg, GW_CHILD);
-				while (hwndCtl)
+				HWND hwndChild = GetWindow(hDlg, GW_CHILD);
+				while (hwndChild)
 				{
-					GetWindowRect(hwndCtl, &rc);
+					GetWindowRect(hwndChild, &rc);
 					ScreenToClient(hDlg, (LPPOINT)&rc.left);
 					ScreenToClient(hDlg, (LPPOINT)&rc.right);
-					StoreWindowRect(hwndCtl, &rc);
-					hwndCtl = GetNextSibling(hwndCtl);
+					StoreWindowRect(hwndChild, &rc);
+					hwndChild = GetNextSibling(hwndChild);
 				}
 
 				// Subclass the text output window
-				hwndCtl = GetDlgItem(hDlg, IDC_OUTPUT);
-				g_lpPrevOutputWndProc = SubclassWindow(hwndCtl, OutputWndProc);
+				HWND hwndEdit = GetDlgItem(hDlg, IDC_OUTPUT);
+				g_lpPrevOutputWndProc = SubclassWindow(hwndEdit, OutputWndProc);
 
 				// Set the memory limit of the text output window
-				Edit_LimitText(hwndCtl, 0);
+				Edit_LimitText(hwndEdit, 0);
 
 				// Set font of the text output window dpi-aware
 				LOGFONT lf = {0};
@@ -1045,7 +1045,7 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 					DeleteFont(s_hfontEditBox);
 				s_hfontEditBox = CreateFontIndirect(&lf);
 				if (s_hfontEditBox != NULL)
-					SetWindowFont(hwndCtl, s_hfontEditBox, FALSE);
+					SetWindowFont(hwndEdit, s_hfontEditBox, FALSE);
 
 				s_szUid[0] = '\0'; s_szEnvi[0] = '\0';
 				Button_Enable(GetDlgItem(hDlg, IDC_TMX), FALSE);
@@ -1069,13 +1069,13 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 				else
 				{ // Display the standard info text
 					s_szFileName[0] = TEXT('\0');
-					Edit_ReplaceSel(hwndCtl, g_szAbout);
+					Edit_ReplaceSel(hwndEdit, g_szAbout);
 					// Show a hint to scale the font if needed
 					if (bShowFontScalingInfo && LoadString(g_hInstance,
 						g_bGerUI ? IDS_GER_FONTSIZEINFO : IDS_ENG_FONTSIZEINFO, szText, _countof(szText)) > 0)
-						Edit_ReplaceSel(hwndCtl, szText);
-					if ((GetWindowStyle(hwndCtl) & ES_READONLY) == 0)
-						Edit_SetReadOnly(hwndCtl, TRUE);
+						Edit_ReplaceSel(hwndEdit, szText);
+					if ((GetWindowStyle(hwndEdit) & ES_READONLY) == 0)
+						Edit_SetReadOnly(hwndEdit, TRUE);
 				}
 
 				// Allow drag-and-drop
@@ -1088,11 +1088,11 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 				SaveSettings(hDlg, s_hfontEditBox);
 
 				DeleteWindowRect(hDlg);
-				HWND hwndCtl = GetWindow(hDlg, GW_CHILD);
-				while (hwndCtl)
+				HWND hwndChild = GetWindow(hDlg, GW_CHILD);
+				while (hwndChild)
 				{
-					DeleteWindowRect(hwndCtl);
-					hwndCtl = GetNextSibling(hwndCtl);
+					DeleteWindowRect(hwndChild);
+					hwndChild = GetNextSibling(hwndChild);
 				}
 
 				if (s_hwndSizeBox != NULL)
@@ -1101,9 +1101,9 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 					s_hwndSizeBox = NULL;
 				}
 
-				hwndCtl = GetDlgItem(hDlg, IDC_OUTPUT);
-				if (hwndCtl != NULL && g_lpPrevOutputWndProc != NULL)
-					SubclassWindow(hwndCtl, g_lpPrevOutputWndProc);
+				HWND hwndEdit = GetDlgItem(hDlg, IDC_OUTPUT);
+				if (hwndEdit != NULL && g_lpPrevOutputWndProc != NULL)
+					SubclassWindow(hwndEdit, g_lpPrevOutputWndProc);
 
 				if (s_hfontEditBox != NULL)
 				{
@@ -1162,19 +1162,19 @@ LRESULT CALLBACK OutputWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL DumpFile(HWND hwndCtl, LPCTSTR lpszFileName, LPSTR lpszUid, LPSTR lpszEnvi)
+BOOL DumpFile(HWND hwndEdit, LPCTSTR lpszFileName, LPSTR lpszUid, LPSTR lpszEnvi)
 {
 	BOOL bRet = FALSE;
 	TCHAR szOutput[OUTPUT_LEN];
 
-	if (hwndCtl == NULL || lpszFileName == NULL || lpszFileName[0] == TEXT('\0') ||
+	if (hwndEdit == NULL || lpszFileName == NULL || lpszFileName[0] == TEXT('\0') ||
 		lpszUid == NULL || lpszEnvi == NULL)
 		return FALSE;
 
 	lpszUid[0] = '\0';
 	lpszEnvi[0] = '\0';
 
-	HWND hDlg = GetParent(hwndCtl);
+	HWND hDlg = GetParent(hwndEdit);
 
 	// Disable the TMX and Dedimania buttons
 	DisableButton(hDlg, IDC_TMX, IDC_OPEN);
@@ -1206,26 +1206,26 @@ BOOL DumpFile(HWND hwndCtl, LPCTSTR lpszFileName, LPSTR lpszUid, LPSTR lpszEnvi)
 	LPCTSTR lpsz = _tcsrchr(lpszFileName, TEXT('\\'));
 	if (lpsz == NULL)
 		lpsz = _tcsrchr(lpszFileName, TEXT('/'));
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("File Name:\t%s\r\n"),
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("File Name:\t%s\r\n"),
 		lpsz != NULL && *(lpsz + 1) != TEXT('\0') ? lpsz + 1 : lpszFileName);
 
 	// Obtain attribute information about the file
 	WIN32_FILE_ATTRIBUTE_DATA wfad = {0};
 	if (!GetFileAttributesEx(lpszFileName, GetFileExInfoStandard, &wfad))
 	{
-		OutputErrorMessage(hwndCtl, GetLastError());
+		OutputErrorMessage(hwndEdit, GetLastError());
 		return FALSE;
 	}
 
 	// Output file size
 	if ((wfad.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
 	{
-		OutputText(hwndCtl, TEXT("File Size:\t"));
+		OutputText(hwndEdit, TEXT("File Size:\t"));
 		if (wfad.nFileSizeHigh > 0)
-			OutputText(hwndCtl, TEXT("> 4 GB"));
+			OutputText(hwndEdit, TEXT("> 4 GB"));
 		else if (FormatByteSize(wfad.nFileSizeLow, szOutput, _countof(szOutput)))
-			OutputText(hwndCtl, szOutput);
-		OutputText(hwndCtl, TEXT("\r\n"));
+			OutputText(hwndEdit, szOutput);
+		OutputText(hwndEdit, TEXT("\r\n"));
 	}
 
 	// Open the file
@@ -1233,7 +1233,7 @@ BOOL DumpFile(HWND hwndCtl, LPCTSTR lpszFileName, LPSTR lpszUid, LPSTR lpszEnvi)
 		OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (hFile == INVALID_HANDLE_VALUE)
 	{
-		OutputErrorMessage(hwndCtl, GetLastError());
+		OutputErrorMessage(hwndEdit, GetLastError());
 		return FALSE;
 	}
 
@@ -1241,75 +1241,75 @@ BOOL DumpFile(HWND hwndCtl, LPCTSTR lpszFileName, LPSTR lpszUid, LPSTR lpszEnvi)
 	BYTE achMagic[12] = {0}; // Large enough for "RIFF....WEBP"
 	if (!ReadData(hFile, (LPVOID)&achMagic, sizeof(achMagic)))
 	{
-		OutputTextErr(hwndCtl, g_bGerUI ? IDP_GER_ERR_MAGIC : IDP_ENG_ERR_MAGIC);
-		OutputText(hwndCtl, g_szSep2);
+		OutputTextErr(hwndEdit, g_bGerUI ? IDP_GER_ERR_MAGIC : IDP_ENG_ERR_MAGIC);
+		OutputText(hwndEdit, g_szSep2);
 		CloseHandle(hFile);
 		return FALSE;
 	}
 
 	if (memcmp(achMagic, "GBX", 3) == 0)
 	{ // GameBox
-		OutputText(hwndCtl, TEXT("File Type:\tGameBox\r\n"));
+		OutputText(hwndEdit, TEXT("File Type:\tGameBox\r\n"));
 
-		if (!(bRet = DumpGbx(hwndCtl, hFile, lpszUid, lpszEnvi)))
-			OutputTextErr(hwndCtl, g_bGerUI ? IDP_GER_ERR_READ : IDP_ENG_ERR_READ);
+		if (!(bRet = DumpGbx(hwndEdit, hFile, lpszUid, lpszEnvi)))
+			OutputTextErr(hwndEdit, g_bGerUI ? IDP_GER_ERR_READ : IDP_ENG_ERR_READ);
 	}
 	else if (memcmp(achMagic, "NadeoPak", 8) == 0) // *.Pack.Gbx- or *.pak files
 	{ // NadeoPak
-		OutputText(hwndCtl, TEXT("File Type:\tNadeoPak\r\n"));
+		OutputText(hwndEdit, TEXT("File Type:\tNadeoPak\r\n"));
 
-		if (!(bRet = DumpPack(hwndCtl, hFile)))
-			OutputTextErr(hwndCtl, g_bGerUI ? IDP_GER_ERR_READ : IDP_ENG_ERR_READ);
+		if (!(bRet = DumpPack(hwndEdit, hFile)))
+			OutputTextErr(hwndEdit, g_bGerUI ? IDP_GER_ERR_READ : IDP_ENG_ERR_READ);
 	}
 	else if (memcmp(achMagic, "NadeoFile", 9) == 0) // *.mux file
 	{ // NadeoFile
-		OutputText(hwndCtl, TEXT("File Type:\tNadeoFile\r\n"));
+		OutputText(hwndEdit, TEXT("File Type:\tNadeoFile\r\n"));
 
-		if (!(bRet = DumpMux(hwndCtl, hFile)))
-			OutputTextErr(hwndCtl, g_bGerUI ? IDP_GER_ERR_READ : IDP_ENG_ERR_READ);
+		if (!(bRet = DumpMux(hwndEdit, hFile)))
+			OutputTextErr(hwndEdit, g_bGerUI ? IDP_GER_ERR_READ : IDP_ENG_ERR_READ);
 	}
 	else if (memcmp(achMagic, "DDS ", 4) == 0) // The fourth character is a space
 	{ // DDS
-		OutputText(hwndCtl, TEXT("File Type:\tDirectDraw Surface\r\n"));
+		OutputText(hwndEdit, TEXT("File Type:\tDirectDraw Surface\r\n"));
 
-		if (!(bRet = DumpDDS(hwndCtl, hFile, wfad.nFileSizeLow)))
-			OutputTextErr(hwndCtl, g_bGerUI ? IDP_GER_ERR_READ : IDP_ENG_ERR_READ);
+		if (!(bRet = DumpDDS(hwndEdit, hFile, wfad.nFileSizeLow)))
+			OutputTextErr(hwndEdit, g_bGerUI ? IDP_GER_ERR_READ : IDP_ENG_ERR_READ);
 	}
 	else if (achMagic[0] == 0xFF && achMagic[1] == 0xD8 && achMagic[2] == 0xFF)
 	{ // JPEG
 		if (achMagic[3] == 0xE0) // JFIF
-			OutputText(hwndCtl, TEXT("File Type:\tJPEG/JFIF\r\n"));
+			OutputText(hwndEdit, TEXT("File Type:\tJPEG/JFIF\r\n"));
 		else if (achMagic[3] == 0xE1) // Exif
-			OutputText(hwndCtl, TEXT("File Type:\tJPEG/Exif\r\n"));
+			OutputText(hwndEdit, TEXT("File Type:\tJPEG/Exif\r\n"));
 		else if (achMagic[3] != 0x00 && achMagic[3] != 0xFF) // JPEG-LS, SPIFF, etc.
-			OutputText(hwndCtl, TEXT("File Type:\tJPEG\r\n"));
+			OutputText(hwndEdit, TEXT("File Type:\tJPEG\r\n"));
 
-		if (!(bRet = DumpJpeg(hwndCtl, hFile, wfad.nFileSizeLow)))
-			OutputTextErr(hwndCtl, g_bGerUI ? IDP_GER_ERR_READ : IDP_ENG_ERR_READ);
+		if (!(bRet = DumpJpeg(hwndEdit, hFile, wfad.nFileSizeLow)))
+			OutputTextErr(hwndEdit, g_bGerUI ? IDP_GER_ERR_READ : IDP_ENG_ERR_READ);
 	}
 	else if (memcmp(achMagic, "RIFF", 4) == 0 && memcmp(achMagic + 8, "WEBP", 4) == 0)
 	{ // WebP
-		OutputText(hwndCtl, TEXT("File Type:\tWebP\r\n"));
+		OutputText(hwndEdit, TEXT("File Type:\tWebP\r\n"));
 
-		if (!(bRet = DumpWebP(hwndCtl, hFile, wfad.nFileSizeLow)))
-			OutputTextErr(hwndCtl, g_bGerUI ? IDP_GER_ERR_READ : IDP_ENG_ERR_READ);
+		if (!(bRet = DumpWebP(hwndEdit, hFile, wfad.nFileSizeLow)))
+			OutputTextErr(hwndEdit, g_bGerUI ? IDP_GER_ERR_READ : IDP_ENG_ERR_READ);
 	}
 	else if (memcmp(achMagic, "BM", 2) == 0 || memcmp(achMagic, "BA", 2) == 0)
 	{ // BMP
-		OutputText(hwndCtl, TEXT("File Type:\tBitmap\r\n"));
+		OutputText(hwndEdit, TEXT("File Type:\tBitmap\r\n"));
 
-		if (!(bRet = DumpBitmap(hwndCtl, hFile, wfad.nFileSizeLow)))
-			OutputTextErr(hwndCtl, g_bGerUI ? IDP_GER_ERR_READ : IDP_ENG_ERR_READ);
+		if (!(bRet = DumpBitmap(hwndEdit, hFile, wfad.nFileSizeLow)))
+			OutputTextErr(hwndEdit, g_bGerUI ? IDP_GER_ERR_READ : IDP_ENG_ERR_READ);
 	}
 	else
 	{ // Unsupported file format
-		OutputTextErr(hwndCtl, g_bGerUI ? IDP_GER_ERR_MAGIC : IDP_ENG_ERR_MAGIC);
+		OutputTextErr(hwndEdit, g_bGerUI ? IDP_GER_ERR_MAGIC : IDP_ENG_ERR_MAGIC);
 
-		if (!(bRet = DumpHex(hwndCtl, hFile, wfad.nFileSizeLow)))
-			OutputTextErr(hwndCtl, g_bGerUI ? IDP_GER_ERR_READ : IDP_ENG_ERR_READ);
+		if (!(bRet = DumpHex(hwndEdit, hFile, wfad.nFileSizeLow)))
+			OutputTextErr(hwndEdit, g_bGerUI ? IDP_GER_ERR_READ : IDP_ENG_ERR_READ);
 	}
 
-	OutputText(hwndCtl, g_szSep2);
+	OutputText(hwndEdit, g_szSep2);
 	CloseHandle(hFile);
 
 	return bRet;
@@ -1317,11 +1317,11 @@ BOOL DumpFile(HWND hwndCtl, LPCTSTR lpszFileName, LPSTR lpszUid, LPSTR lpszEnvi)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL DumpMux(HWND hwndCtl, HANDLE hFile)
+BOOL DumpMux(HWND hwndEdit, HANDLE hFile)
 {
 	TCHAR szOutput[OUTPUT_LEN];
 
-	if (hwndCtl == NULL || hFile == NULL)
+	if (hwndEdit == NULL || hFile == NULL)
 		return FALSE;
 
 	// Skip the file signature (already checked in DumpFile())
@@ -1333,30 +1333,30 @@ BOOL DumpMux(HWND hwndCtl, HANDLE hFile)
 	if (!ReadNat8(hFile, &cVersion))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Version:\t%d"), (char)cVersion);
-	if (cVersion > 1) OutputText(hwndCtl, TEXT("*"));
-	OutputText(hwndCtl, TEXT("\r\n"));
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Version:\t%d"), (char)cVersion);
+	if (cVersion > 1) OutputText(hwndEdit, TEXT("*"));
+	OutputText(hwndEdit, TEXT("\r\n"));
 
 	// Salt
 	DWORD dwSalt = 0;
 	if (!ReadNat32(hFile, &dwSalt))
 		return FALSE;
 
-	OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("Salt:\t\t%08X\r\n"), dwSalt);
+	OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("Salt:\t\t%08X\r\n"), dwSalt);
 
 	return TRUE;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL DumpJpeg(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
+BOOL DumpJpeg(HWND hwndEdit, HANDLE hFile, DWORD dwFileSize)
 {
 	INT nTraceLevel = 1;
 
-	if (hwndCtl == NULL || hFile == NULL || dwFileSize == 0)
+	if (hwndEdit == NULL || hFile == NULL || dwFileSize == 0)
 		return FALSE;
 
-	HWND hDlg = GetParent(hwndCtl);
+	HWND hDlg = GetParent(hwndEdit);
 
 	// Jump to the beginning of the file
 	if (!FileSeekBegin(hFile, 0))
@@ -1373,7 +1373,7 @@ BOOL DumpJpeg(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		return FALSE;
 	}
 
-	OutputText(hwndCtl, g_szSep1);
+	OutputText(hwndEdit, g_szSep1);
 
 	HANDLE hDib = NULL;
 	HCURSOR hOldCursor = SetCursor(LoadCursor(NULL, IDC_WAIT));
@@ -1396,12 +1396,12 @@ BOOL DumpJpeg(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL DumpWebP(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
+BOOL DumpWebP(HWND hwndEdit, HANDLE hFile, DWORD dwFileSize)
 {
-	if (hwndCtl == NULL || hFile == NULL || dwFileSize == 0)
+	if (hwndEdit == NULL || hFile == NULL || dwFileSize == 0)
 		return FALSE;
 
-	HWND hDlg = GetParent(hwndCtl);
+	HWND hDlg = GetParent(hwndEdit);
 
 	// Jump to the beginning of the file
 	if (!FileSeekBegin(hFile, 0))
@@ -1418,7 +1418,7 @@ BOOL DumpWebP(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 		return FALSE;
 	}
 
-	OutputText(hwndCtl, g_szSep1);
+	OutputText(hwndEdit, g_szSep1);
 
 	HANDLE hDib = NULL;
 	HCURSOR hOldCursor = SetCursor(LoadCursor(NULL, IDC_WAIT));
@@ -1441,7 +1441,7 @@ BOOL DumpWebP(HWND hwndCtl, HANDLE hFile, DWORD dwFileSize)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL DumpHex(HWND hwndCtl, HANDLE hFile, SIZE_T cbLen)
+BOOL DumpHex(HWND hwndEdit, HANDLE hFile, SIZE_T cbLen)
 {
 	const int COLUMNS = 16;
 	const int FORMAT_LEN = 256;
@@ -1449,7 +1449,7 @@ BOOL DumpHex(HWND hwndCtl, HANDLE hFile, SIZE_T cbLen)
 	TCHAR szFormat[FORMAT_LEN];
 	TCHAR szOutput[OUTPUT_LEN];
 
-	if (hwndCtl == NULL || hFile == NULL)
+	if (hwndEdit == NULL || hFile == NULL)
 		return FALSE;
 
 	if (cbLen > 1024)
@@ -1465,8 +1465,8 @@ BOOL DumpHex(HWND hwndCtl, HANDLE hFile, SIZE_T cbLen)
 		return FALSE;
 	}
 
-	OutputText(hwndCtl, g_szSep1);
-	OutputTextCount(hwndCtl, g_bGerUI ? IDS_GER_HEXDUMP : IDS_ENG_HEXDUMP, cbLen);
+	OutputText(hwndEdit, g_szSep1);
+	OutputTextCount(hwndEdit, g_bGerUI ? IDS_GER_HEXDUMP : IDS_ENG_HEXDUMP, cbLen);
 
 	PBYTE pByte;
 	SIZE_T i, j, c;
@@ -1504,7 +1504,7 @@ BOOL DumpHex(HWND hwndCtl, HANDLE hFile, SIZE_T cbLen)
 
 		_tcsncat(szOutput, TEXT("|\r\n"), _countof(szOutput) - _tcslen(szOutput) - 1);
 
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, szOutput);
 	}
 
 	MyGlobalFreePtr((LPVOID)pData);
@@ -1835,34 +1835,34 @@ HFONT CreateScaledFont(HDC hdc, LPCRECT lpRect, LPCTSTR lpszText)
 
 /////////////////////////////////////////////////////////////////////////////
 
-int SelectText(HWND hwndCtl)
+int SelectText(HWND hwndEdit)
 {
-	if (hwndCtl == NULL || Edit_GetTextLength(hwndCtl) == 0)
+	if (hwndEdit == NULL || Edit_GetTextLength(hwndEdit) == 0)
 		return 0;
 
 	INT_PTR iStartChar = 0;
 	INT_PTR iEndChar = 0;
-	SendMessage(hwndCtl, EM_GETSEL, (WPARAM)&iStartChar, (LPARAM)&iEndChar);
+	SendMessage(hwndEdit, EM_GETSEL, (WPARAM)&iStartChar, (LPARAM)&iEndChar);
 
 	int nSelLen = (int)(iEndChar - iStartChar);
 
 	if (nSelLen != 0)
 		return nSelLen;
 
-	int iLine = Edit_LineFromChar(hwndCtl, -1);
-	int nLineLen = Edit_LineLength(hwndCtl, -1);
+	int iLine = Edit_LineFromChar(hwndEdit, -1);
+	int nLineLen = Edit_LineLength(hwndEdit, -1);
 
 	if (nLineLen > 1024)
 		nLineLen = 1024;
 
 	TCHAR szLine[1024] = {0};
-	nLineLen = Edit_GetLine(hwndCtl, iLine, szLine, nLineLen);
+	nLineLen = Edit_GetLine(hwndEdit, iLine, szLine, nLineLen);
 	szLine[nLineLen] = TEXT('\0');
 
 	if (nLineLen == 0)
 		return 0;
 
-	int iChar = Edit_LineIndex(hwndCtl, iLine);
+	int iChar = Edit_LineIndex(hwndEdit, iLine);
 	int iCharInLine = (int)(iStartChar - iChar);
 
 	// Spaces and parentheses are valid characters for URLs,
@@ -1890,7 +1890,7 @@ int SelectText(HWND hwndCtl)
 	nSelLen = (int)(iEndChar - iStartChar);
 
 	if (nSelLen != 0)
-		Edit_SetSel(hwndCtl, iStartChar, iEndChar);
+		Edit_SetSel(hwndEdit, iStartChar, iEndChar);
 
 	return nSelLen;
 }
@@ -2189,12 +2189,12 @@ BOOL AllowDarkModeForWindow(HWND hwndParent, BOOL bAllow)
 	if (hwndParent == NULL)
 		return FALSE;
 
-	HWND hwndCtl = GetWindow(hwndParent, GW_CHILD);
-	while (hwndCtl)
+	HWND hwndChild = GetWindow(hwndParent, GW_CHILD);
+	while (hwndChild)
 	{
 		// We use only buttons, a multiline edit control and the size box (scroll bar)
-		SetWindowTheme(hwndCtl, bAllow ? L"DarkMode_Explorer" : NULL, NULL);
-		hwndCtl = GetNextSibling(hwndCtl);
+		SetWindowTheme(hwndChild, bAllow ? L"DarkMode_Explorer" : NULL, NULL);
+		hwndChild = GetNextSibling(hwndChild);
 	}
 
 	RedrawWindow(hwndParent, NULL, NULL,

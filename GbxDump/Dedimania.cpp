@@ -26,7 +26,7 @@
 // Forward declarations of functions included in this code module
 
 // Request, parse and output data from Dedimania
-BOOL RequestAndOutputDediData(HWND hwndCtl, LPCSTR lpszUid, BOOL bIsManiaPlanet, LPBOOL lpbTrackFound);
+BOOL RequestAndOutputDediData(HWND hwndEdit, LPCSTR lpszUid, BOOL bIsManiaPlanet, LPBOOL lpbTrackFound);
 // Converts a UTF-8 string to Unicode and removes the Nadeo formatting characters
 BOOL ConvertDediString(LPVOID lpData, SIZE_T cbLenData, LPTSTR lpszOutput, SIZE_T cchLenOutput);
 
@@ -77,14 +77,14 @@ static char *estrtok(char *str, const char *delim)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL DumpDedimania(HWND hwndCtl, LPCSTR lpszUid, LPCSTR lpszEnvi)
+BOOL DumpDedimania(HWND hwndEdit, LPCSTR lpszUid, LPCSTR lpszEnvi)
 {
-	if (hwndCtl == NULL || lpszUid == NULL || lpszEnvi == NULL)
+	if (hwndEdit == NULL || lpszUid == NULL || lpszEnvi == NULL)
 		return FALSE;
 
 	HCURSOR hOldCursor = SetCursor(LoadCursor(NULL, IDC_WAIT));
 
-	OutputText(hwndCtl, g_szDedimania);
+	OutputText(hwndEdit, g_szDedimania);
 
 	BOOL bTrackFound = FALSE;
 
@@ -97,16 +97,16 @@ BOOL DumpDedimania(HWND hwndCtl, LPCSTR lpszUid, LPCSTR lpszEnvi)
 		bIsManiaPlanet = FALSE;
 
 	// Retrieve and display the data
-	BOOL bSuccess = RequestAndOutputDediData(hwndCtl, lpszUid, bIsManiaPlanet, &bTrackFound);
+	BOOL bSuccess = RequestAndOutputDediData(hwndEdit, lpszUid, bIsManiaPlanet, &bTrackFound);
 	if (bSuccess && !bTrackFound && bIsTwice)
-		bSuccess = RequestAndOutputDediData(hwndCtl, lpszUid, !bIsManiaPlanet, &bTrackFound);
+		bSuccess = RequestAndOutputDediData(hwndEdit, lpszUid, !bIsManiaPlanet, &bTrackFound);
 
 	if (bSuccess && !bTrackFound)
 	{ // Track not found
-		OutputTextErr(hwndCtl, g_bGerUI ? IDP_GER_ERR_TRACK : IDP_ENG_ERR_TRACK);
+		OutputTextErr(hwndEdit, g_bGerUI ? IDP_GER_ERR_TRACK : IDP_ENG_ERR_TRACK);
 	}
 
-	OutputText(hwndCtl, g_szSep2);
+	OutputText(hwndEdit, g_szSep2);
 	SetCursor(hOldCursor);
 
 	return bSuccess;
@@ -114,9 +114,9 @@ BOOL DumpDedimania(HWND hwndCtl, LPCSTR lpszUid, LPCSTR lpszEnvi)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL RequestAndOutputDediData(HWND hwndCtl, LPCSTR lpszUid, BOOL bIsManiaPlanet, LPBOOL lpbTrackFound)
+BOOL RequestAndOutputDediData(HWND hwndEdit, LPCSTR lpszUid, BOOL bIsManiaPlanet, LPBOOL lpbTrackFound)
 {
-	if (hwndCtl == NULL || lpszUid == NULL || lpbTrackFound == NULL)
+	if (hwndEdit == NULL || lpszUid == NULL || lpbTrackFound == NULL)
 		return FALSE;
 
 	TCHAR szOutput[OUTPUT_LEN];
@@ -126,8 +126,8 @@ BOOL RequestAndOutputDediData(HWND hwndCtl, LPCSTR lpszUid, BOOL bIsManiaPlanet,
 	LPSTR lpszData = (LPSTR)MyGlobalAllocPtr(GHND, DEDI_MAX_DATASIZE);
 	if (lpszData == NULL)
 	{
-		OutputText(hwndCtl, g_szSep1);
-		OutputText(hwndCtl, g_szErrOom);
+		OutputText(hwndEdit, g_szSep1);
+		OutputText(hwndEdit, g_szErrOom);
 		return FALSE;
 	}
 
@@ -135,7 +135,7 @@ BOOL RequestAndOutputDediData(HWND hwndCtl, LPCSTR lpszUid, BOOL bIsManiaPlanet,
 	TCHAR szDediUrl[512];
 	_sntprintf(szDediUrl, _countof(szDediUrl), g_szUrlDedi, TEXT("http"),
 		bIsManiaPlanet ? 8080 : 8000, bIsManiaPlanet ? TEXT("MX") : TEXT("TMX"), lpszUid);
-	if (!ReadInternetFile(hwndCtl, szDediUrl, lpszData, DEDI_MAX_DATASIZE))
+	if (!ReadInternetFile(hwndEdit, szDediUrl, lpszData, DEDI_MAX_DATASIZE))
 	{
 		MyGlobalFreePtr((LPVOID)lpszData);
 		return FALSE;
@@ -151,9 +151,9 @@ BOOL RequestAndOutputDediData(HWND hwndCtl, LPCSTR lpszUid, BOOL bIsManiaPlanet,
 	*lpbTrackFound = TRUE;
 
 	// Place the cursor at the end of the line
-	int nLen = Edit_GetTextLength(hwndCtl);
-	Edit_SetSel(hwndCtl, (WPARAM)nLen, (LPARAM)nLen);
-	OutputText(hwndCtl, g_szSep1);
+	int nLen = Edit_GetTextLength(hwndEdit);
+	Edit_SetSel(hwndEdit, (WPARAM)nLen, (LPARAM)nLen);
+	OutputText(hwndEdit, g_szSep1);
 
 	// Skip first line (track info)
 	LPSTR lpsz = lpszData;
@@ -174,7 +174,7 @@ BOOL RequestAndOutputDediData(HWND hwndCtl, LPCSTR lpszUid, BOOL bIsManiaPlanet,
 	{
 		TCHAR szText[OUTPUT_LEN];
 		if (LoadString(g_hInstance, g_bGerUI ? IDP_GER_ERR_RECORDS : IDP_ENG_ERR_RECORDS, szText, _countof(szText)) > 0)
-			OutputText(hwndCtl, szText);
+			OutputText(hwndEdit, szText);
 	}
 
 	UINT uRecords = 0;
@@ -203,7 +203,7 @@ BOOL RequestAndOutputDediData(HWND hwndCtl, LPCSTR lpszUid, BOOL bIsManiaPlanet,
 			{
 				case 1: // Time (ms)
 					{
-						OutputTextFmt(hwndCtl, szOutput, _countof(szOutput), TEXT("%02u. "), uRecords);
+						OutputTextFmt(hwndEdit, szOutput, _countof(szOutput), TEXT("%02u. "), uRecords);
 						int nTime = atoi(token);
 						if (nTime < 3600000)
 						{
@@ -211,7 +211,7 @@ BOOL RequestAndOutputDediData(HWND hwndCtl, LPCSTR lpszUid, BOOL bIsManiaPlanet,
 							int nSecond   = (nTime % 60000 / 1000);
 							int nMilliSec = (nTime % 60000 % 1000);
 
-							OutputTextFmt(hwndCtl, szOutput, _countof(szOutput),
+							OutputTextFmt(hwndEdit, szOutput, _countof(szOutput),
 								TEXT("%d:%02d.%003d, "), nMinute, nSecond, nMilliSec);
 						}
 						else
@@ -221,7 +221,7 @@ BOOL RequestAndOutputDediData(HWND hwndCtl, LPCSTR lpszUid, BOOL bIsManiaPlanet,
 							int nSecond   = (nTime % 3600000 % 60000 / 1000);
 							int nMilliSec = (nTime % 3600000 % 60000 % 1000);
 
-							OutputTextFmt(hwndCtl, szOutput, _countof(szOutput),
+							OutputTextFmt(hwndEdit, szOutput, _countof(szOutput),
 								TEXT("%d:%02d:%02d.%003d, "), nHour, nMinute, nSecond, nMilliSec);
 						}
 					}
@@ -233,43 +233,43 @@ BOOL RequestAndOutputDediData(HWND hwndCtl, LPCSTR lpszUid, BOOL bIsManiaPlanet,
 						{
 							switch (nGamemode)
 							{
-								case 2: OutputText(hwndCtl, TEXT("TA,  ")); break;
-								case 1: OutputText(hwndCtl, TEXT("Rnd, ")); break;
-								case 4: OutputText(hwndCtl, TEXT("Laps, ")); break;
-								case 3: OutputText(hwndCtl, TEXT("Team, ")); break;
-								case 5: OutputText(hwndCtl, TEXT("Cup, ")); break;
-								case 0: OutputText(hwndCtl, TEXT("Script, ")); break;
-								case 6: OutputText(hwndCtl, TEXT("Stunts, ")); break;
-								default: OutputText(hwndCtl, TEXT("?, "));
+								case 2: OutputText(hwndEdit, TEXT("TA,  ")); break;
+								case 1: OutputText(hwndEdit, TEXT("Rnd, ")); break;
+								case 4: OutputText(hwndEdit, TEXT("Laps, ")); break;
+								case 3: OutputText(hwndEdit, TEXT("Team, ")); break;
+								case 5: OutputText(hwndEdit, TEXT("Cup, ")); break;
+								case 0: OutputText(hwndEdit, TEXT("Script, ")); break;
+								case 6: OutputText(hwndEdit, TEXT("Stunts, ")); break;
+								default: OutputText(hwndEdit, TEXT("?, "));
 							}
 						}
 						else
 						{
 							if (nGamemode == 1)
-								OutputText(hwndCtl, TEXT("TA,  "));
+								OutputText(hwndEdit, TEXT("TA,  "));
 							else if (nGamemode == 0)
-								OutputText(hwndCtl, TEXT("Rnd, "));
+								OutputText(hwndEdit, TEXT("Rnd, "));
 							else
-								OutputText(hwndCtl, TEXT("?,   "));
+								OutputText(hwndEdit, TEXT("?,   "));
 						}
 					}
 					break;
 				/*
 				case 4: // Login
 					ConvertDediString(token, strlen(token), szOutput, _countof(szOutput));
-					OutputText(hwndCtl, szOutput);
-					OutputText(hwndCtl, TEXT(", "));
+					OutputText(hwndEdit, szOutput);
+					OutputText(hwndEdit, TEXT(", "));
 					break;
 				*/
 				case 6: // Nick name
 					ConvertDediString(token, strlen(token), szOutput, _countof(szOutput));
-					OutputText(hwndCtl, szOutput);
-					OutputText(hwndCtl, TEXT(", "));
+					OutputText(hwndEdit, szOutput);
+					OutputText(hwndEdit, TEXT(", "));
 					break;
 				case 7: // Server name
 					ConvertDediString(token, strlen(token), szOutput, _countof(szOutput));
-					OutputText(hwndCtl, szOutput);
-					OutputText(hwndCtl, TEXT("\r\n"));
+					OutputText(hwndEdit, szOutput);
+					OutputText(hwndEdit, TEXT("\r\n"));
 					break;
 			}
 			token = estrtok(NULL, ",");

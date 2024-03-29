@@ -84,40 +84,40 @@ HWND GetOutputWindow(HWND hDlg)
 	else
 		hwndDlg = GetActiveWindow();
 
-	HWND hwndCtl = NULL;
+	HWND hwndEdit = NULL;
 	if (hwndDlg != NULL)
-		hwndCtl = GetDlgItem(hwndDlg, IDC_OUTPUT);
+		hwndEdit = GetDlgItem(hwndDlg, IDC_OUTPUT);
 
-	return hwndCtl;
+	return hwndEdit;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ClearOutputWindow(HWND hwndCtl)
+void ClearOutputWindow(HWND hwndEdit)
 {
-	if (hwndCtl == NULL)
+	if (hwndEdit == NULL)
 		return;
 
-	Edit_SetText(hwndCtl, TEXT(""));
-	Edit_EmptyUndoBuffer(hwndCtl);
-	Edit_SetModify(hwndCtl, FALSE);
+	Edit_SetText(hwndEdit, TEXT(""));
+	Edit_EmptyUndoBuffer(hwndEdit);
+	Edit_SetModify(hwndEdit, FALSE);
 
-	UpdateWindow(hwndCtl);
+	UpdateWindow(hwndEdit);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-void OutputText(HWND hwndCtl, LPCTSTR lpszOutput)
+void OutputText(HWND hwndEdit, LPCTSTR lpszOutput)
 {
-	if (hwndCtl != NULL && lpszOutput != NULL)
-		Edit_ReplaceSel(hwndCtl, lpszOutput);
+	if (hwndEdit != NULL && lpszOutput != NULL)
+		Edit_ReplaceSel(hwndEdit, lpszOutput);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-void OutputTextFmt(HWND hwndCtl, LPTSTR lpszOutput, SIZE_T cchLenOutput, LPCTSTR lpszFormat, ...)
+void OutputTextFmt(HWND hwndEdit, LPTSTR lpszOutput, SIZE_T cchLenOutput, LPCTSTR lpszFormat, ...)
 {
-	if (hwndCtl != NULL && lpszOutput != NULL && lpszFormat != NULL && cchLenOutput > 0)
+	if (hwndEdit != NULL && lpszOutput != NULL && lpszFormat != NULL && cchLenOutput > 0)
 	{
 		va_list arglist;
 		va_start(arglist, lpszFormat);
@@ -125,34 +125,34 @@ void OutputTextFmt(HWND hwndCtl, LPTSTR lpszOutput, SIZE_T cchLenOutput, LPCTSTR
 		lpszOutput[cchLenOutput - 1] = TEXT('\0');
 		va_end(arglist);
 
-		Edit_ReplaceSel(hwndCtl, lpszOutput);
+		Edit_ReplaceSel(hwndEdit, lpszOutput);
 	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL OutputTextErr(HWND hwndCtl, UINT uID)
+BOOL OutputTextErr(HWND hwndEdit, UINT uID)
 {
-	if (hwndCtl == NULL)
+	if (hwndEdit == NULL)
 		return FALSE;
 
 	TCHAR szOutput[OUTPUT_LEN];
 	if (LoadString(g_hInstance, uID, szOutput, _countof(szOutput)) == 0)
 		return FALSE;
 
-	Edit_ReplaceSel(hwndCtl, g_szSep1);
-	Edit_ReplaceSel(hwndCtl, szOutput);
+	Edit_ReplaceSel(hwndEdit, g_szSep1);
+	Edit_ReplaceSel(hwndEdit, szOutput);
 
 	return TRUE;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL OutputTextCount(HWND hwndCtl, UINT uID, SIZE_T uCount)
+BOOL OutputTextCount(HWND hwndEdit, UINT uID, SIZE_T uCount)
 {
 	const int FORMAT_LEN = 256;
 
-	if (hwndCtl == NULL)
+	if (hwndEdit == NULL)
 		return FALSE;
 
 	TCHAR szOutput[OUTPUT_LEN];
@@ -167,8 +167,8 @@ BOOL OutputTextCount(HWND hwndCtl, UINT uID, SIZE_T uCount)
 	if (lpszText == NULL)
 		return FALSE;
 
-	OutputText(hwndCtl, lpszText);
-	OutputText(hwndCtl, g_szSep1);
+	OutputText(hwndEdit, lpszText);
+	OutputText(hwndEdit, g_szSep1);
 
 	MyGlobalFreePtr((LPVOID)lpszText);
 
@@ -177,9 +177,9 @@ BOOL OutputTextCount(HWND hwndCtl, UINT uID, SIZE_T uCount)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL OutputErrorMessage(HWND hwndCtl, DWORD dwError)
+BOOL OutputErrorMessage(HWND hwndEdit, DWORD dwError)
 {
-	if (hwndCtl == NULL)
+	if (hwndEdit == NULL)
 		return FALSE;
 
 	LPVOID lpMsgBuf = NULL;
@@ -192,12 +192,12 @@ BOOL OutputErrorMessage(HWND hwndCtl, DWORD dwError)
 	if (dwLen > 0 && lpMsgBuf != NULL)
 	{
 		MyStrNCpy(szOutput, (LPTSTR)lpMsgBuf, _countof(szOutput));
-		OutputText(hwndCtl, g_szSep1);
-		OutputText(hwndCtl, szOutput);
+		OutputText(hwndEdit, g_szSep1);
+		OutputText(hwndEdit, szOutput);
 		LocalFree(lpMsgBuf);
 	}
 
-	OutputText(hwndCtl, g_szSep2);
+	OutputText(hwndEdit, g_szSep2);
 
 	return TRUE;
 }
