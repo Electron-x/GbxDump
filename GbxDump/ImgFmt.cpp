@@ -598,24 +598,25 @@ HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData, BOOL bFlipImage, INT nTrace
 	// Create palette
 	if (wBitDepth == 8)
 	{
+		LPRGBQUAD lprgbqColors = (LPRGBQUAD)FindDibPalette((LPCSTR)lpBIV5);
 		if (pjInfo->out_color_space == JCS_GRAYSCALE)
 		{  // Grayscale image
 			for (UINT u = 0; u < uNumColors; u++)
 			{  // Create grayscale
-				lpBMI->bmiColors[u].rgbRed      = (BYTE)u;
-				lpBMI->bmiColors[u].rgbGreen    = (BYTE)u;
-				lpBMI->bmiColors[u].rgbBlue     = (BYTE)u;
-				lpBMI->bmiColors[u].rgbReserved = (BYTE)0;
+				lprgbqColors[u].rgbRed      = (BYTE)u;
+				lprgbqColors[u].rgbGreen    = (BYTE)u;
+				lprgbqColors[u].rgbBlue     = (BYTE)u;
+				lprgbqColors[u].rgbReserved = (BYTE)0;
 			}
 		}
 		else
 		{  // Palette image
 			for (UINT u = 0; u < uNumColors; u++)
 			{  // Copy palette
-				lpBMI->bmiColors[u].rgbRed      = pjInfo->colormap[0][u];
-				lpBMI->bmiColors[u].rgbGreen    = pjInfo->colormap[1][u];
-				lpBMI->bmiColors[u].rgbBlue     = pjInfo->colormap[2][u];
-				lpBMI->bmiColors[u].rgbReserved = 0;
+				lprgbqColors[u].rgbRed      = pjInfo->colormap[0][u];
+				lprgbqColors[u].rgbGreen    = pjInfo->colormap[1][u];
+				lprgbqColors[u].rgbBlue     = pjInfo->colormap[2][u];
+				lprgbqColors[u].rgbReserved = 0;
 			}
 		}
 	}
