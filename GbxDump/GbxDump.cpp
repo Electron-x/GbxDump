@@ -39,7 +39,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance);
 // Loads the specified bitmap resource and converts the image to a DIB
 HANDLE MyLoadBitmap(HINSTANCE hInstance, LPCTSTR lpBitmapName, UINT fuLoad);
 // Creates a copy of the command line and returns the argument between the first two quotes
-LPTSTR AllocGetCmdLine(LPTSTR lpCmdLine, LPTSTR* lpszFilename);
+LPTSTR AllocGetCmdLine(LPCTSTR lpCmdLine, LPTSTR* lpszFilename);
 
 // Window function of the application
 INT_PTR CALLBACK GbxDumpDlgProc(HWND, UINT, WPARAM, LPARAM);
@@ -113,16 +113,16 @@ const TCHAR g_szTitle[]     = TEXT("GbxDump");
 const TCHAR g_szAbout[]     = TEXT("Gbx File Dumper ") VERSION TEXT(" (") PLATFORM TEXT(")\r\n")
                               TEXT("Copyright © 2010-2024 by Electron\r\n");
 const TCHAR g_szUserAgent[] = TEXT("GbxDump") TEXT("/") VERSION;
+const TCHAR g_szDlgClass[]  = TEXT("GbxDumpDlgClass");
 const TCHAR g_szRegPath[]   = TEXT("Software\\Electron\\GbxDump");
 const TCHAR g_szPlacement[] = TEXT("WindowPlacement");
 const TCHAR g_szFntHeight[] = TEXT("FontHeight");
 const TCHAR g_szFontEdit[]  = TEXT("Consolas");
 const TCHAR g_szFontThumb[] = TEXT("Arial");
-const TCHAR g_szDlgClass[]  = TEXT("GbxDumpDlgClass");
-const TCHAR g_szWndTop[]    = TEXT("GbxDumpWndTop");
-const TCHAR g_szWndBottom[] = TEXT("GbxDumpWndBottom");
-const TCHAR g_szWndLeft[]   = TEXT("GbxDumpWndLeft");
-const TCHAR g_szWndRight[]  = TEXT("GbxDumpWndRight");
+const TCHAR g_szWndTop[]    = TEXT("WndTop");
+const TCHAR g_szWndBottom[] = TEXT("WndBottom");
+const TCHAR g_szWndLeft[]   = TEXT("WndLeft");
+const TCHAR g_szWndRight[]  = TEXT("WndRight");
 
 WNDPROC g_lpPrevOutputWndProc = NULL;
 
@@ -163,7 +163,7 @@ int APIENTRY _tWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstanc
 	g_hDibDefault = MyLoadBitmap(hInstance, MAKEINTRESOURCE(IDB_THUMB), LR_CREATEDIBSECTION);
 
 	LPTSTR lpszFilename = NULL;
-	LPTSTR lpszCommandLine = AllocGetCmdLine(lpCmdLine, &lpszFilename);
+	LPCTSTR lpszCommandLine = AllocGetCmdLine(lpCmdLine, &lpszFilename);
 
 	// Create and display the main window
 	INT_PTR nResult = DialogBoxParam(hInstance, MAKEINTRESOURCE(g_bGerUI ? IDD_GER_GBXDUMP : IDD_ENG_GBXDUMP),
@@ -215,6 +215,9 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 
 HANDLE MyLoadBitmap(HINSTANCE hInstance, LPCTSTR lpBitmapName, UINT fuLoad)
 {
+	if (lpBitmapName == NULL)
+		return NULL;
+
 	HBITMAP hBitmap = (HBITMAP)LoadImage(hInstance, lpBitmapName, IMAGE_BITMAP, 0, 0, fuLoad);
 	if (hBitmap == NULL)
 		return NULL;
@@ -228,7 +231,7 @@ HANDLE MyLoadBitmap(HINSTANCE hInstance, LPCTSTR lpBitmapName, UINT fuLoad)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-LPTSTR AllocGetCmdLine(LPTSTR lpCmdLine, LPTSTR* lpszFilename)
+LPTSTR AllocGetCmdLine(LPCTSTR lpCmdLine, LPTSTR* lpszFilename)
 {
 	if (lpCmdLine == NULL || lpCmdLine[0] == '\0')
 		return NULL;
@@ -897,6 +900,12 @@ INT_PTR CALLBACK GbxDumpDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 							EnableMenuItem(hmenuTrackPopup, IDC_THUMB_SAVE, MF_BYCOMMAND | MF_GRAYED);
 						}
 					}
+
+					MENUINFO mi = { 0 };
+					mi.cbSize = sizeof(mi);
+					mi.fMask = MIM_STYLE;
+					mi.dwStyle = MNS_NOCHECK;
+					SetMenuInfo(hmenuTrackPopup, &mi);
 
 					BOOL bSuccess = TrackPopupMenu(hmenuTrackPopup,
 						TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_RIGHTBUTTON, x, y, 0, hDlg, NULL);
@@ -1965,7 +1974,7 @@ BOOL SetWordWrap(HWND hDlg, BOOL bWordWrap)
 	if (g_bUseDarkMode)
 		SetWindowTheme(hwndEditNew, L"DarkMode_Explorer", NULL);
 
-	SetWindowLong(hwndEditOld, GWL_ID, nID+2000);
+	SetWindowLongPtr(hwndEditOld, GWLP_ID, (LONG_PTR)nID+2000);
 	SetWindowPos(hwndEditNew, HWND_TOP, 0, 0, 0, 0,
 		SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOZORDER | SWP_SHOWWINDOW);
 	SetWindowPos(hwndEditNew, HWND_TOP, 0, 0, 0, 0,
