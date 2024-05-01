@@ -17,7 +17,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "stdafx.h"
-#include "archive.h"
+#include "Archive.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -383,7 +383,7 @@ LPTSTR AllocReplaceString(LPCTSTR lpszOriginal, LPCTSTR lpszPattern, LPCTSTR lps
 	LPCTSTR lpszPatLoc;
 
 	// Determine how often the pattern occurs in the original string
-	for (lpszOrigPtr = lpszOriginal; lpszPatLoc = _tcsstr(lpszOrigPtr, lpszPattern);
+	for (lpszOrigPtr = lpszOriginal; (lpszPatLoc = _tcsstr(lpszOrigPtr, lpszPattern));
 		lpszOrigPtr = lpszPatLoc + cchPatLen)
 		uPatCount++;
 
@@ -394,7 +394,7 @@ LPTSTR AllocReplaceString(LPCTSTR lpszOriginal, LPCTSTR lpszPattern, LPCTSTR lps
 	{
 		// Copy the original string and replace each occurrence of the pattern
 		LPTSTR lpszRetPtr = lpszReturn;
-		for (lpszOrigPtr = lpszOriginal; lpszPatLoc = _tcsstr(lpszOrigPtr, lpszPattern);
+		for (lpszOrigPtr = lpszOriginal; (lpszPatLoc = _tcsstr(lpszOrigPtr, lpszPattern));
 			lpszOrigPtr = lpszPatLoc + cchPatLen)
 		{
 			SIZE_T CONST cchSkpLen = lpszPatLoc - lpszOrigPtr;
@@ -427,7 +427,7 @@ LPTSTR AllocCleanupString(LPCTSTR lpszOriginal)
 		LPTSTR  lpszRetPtr = lpszReturn;
 
 		// Search every occurrence of the $ character
-		while (lpszPatLoc = _tcsstr(lpszOriPtr, TEXT("$")))
+		while ((lpszPatLoc = _tcsstr(lpszOriPtr, TEXT("$"))))
 		{
 			// Determining the length of the formatting pattern
 			// TODO: Add handling of incorrectly formatted strings

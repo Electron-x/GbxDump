@@ -17,14 +17,14 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "stdafx.h"
-#include "imgfmt.h"
-#include "tmx.h"
-#include "dedimania.h"
-#include "archive.h"
-#include "dumpbmp.h"
-#include "dumpdds.h"
-#include "dumppak.h"
-#include "dumpgbx.h"
+#include "ImgFmt.h"
+#include "Tmx.h"
+#include "Dedimania.h"
+#include "Archive.h"
+#include "DumpBmp.h"
+#include "DumpDds.h"
+#include "DumpPak.h"
+#include "DumpGbx.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Data Types

@@ -17,8 +17,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "stdafx.h"
-#include "internet.h"
-#include "dedimania.h"
+#include "Internet.h"
+#include "Dedimania.h"
 
 #define DEDI_MAX_DATASIZE 8192
 

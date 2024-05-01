@@ -17,9 +17,9 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "stdafx.h"
-#include "imgfmt.h"
-#include "archive.h"
-#include "dumpdds.h"
+#include "ImgFmt.h"
+#include "Archive.h"
+#include "DumpDds.h"
 
 #define FLAGS_LEN 32
 

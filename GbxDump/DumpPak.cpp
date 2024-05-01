@@ -21,9 +21,9 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "stdafx.h"
-#include "classid.h"
-#include "archive.h"
-#include "dumppak.h"
+#include "ClassId.h"
+#include "Archive.h"
+#include "DumpPak.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Data Types
@@ -402,7 +402,7 @@ BOOL DumpPack(HWND hwndEdit, HANDLE hFile)
 	{ // Output comment
 		// Replace line breaks with separators
 		LPSTR lpsz = (LPSTR)lpDataTxt;
-		while (lpsz = strchr(lpsz, '\n'))
+		while ((lpsz = strchr(lpsz, '\n')))
 			*lpsz++ = '|';
 
 		OutputText(hwndEdit, g_szSep1);
@@ -855,7 +855,7 @@ BOOL DumpPackHeader(HWND hwndEdit, HANDLE hFile, DWORD dwVersion, DWORD dwHeader
 		}
 
 		// SFileDescFlags
-		ULARGE_INTEGER ullFlags = {0};
+		ULARGE_INTEGER ullFlags = { {0} };
 		if (!ReadNat64(hFile, &ullFlags))
 			return FALSE;
 

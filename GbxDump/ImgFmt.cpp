@@ -23,8 +23,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "stdafx.h"
-#include "imgfmt.h"
-#include "dumpbmp.h"
+#include "ImgFmt.h"
+#include "DumpBmp.h"
 #include "..\libjpeg\jpeglib.h"
 #include "..\libjpeg\iccprofile.h"
 #include "..\libwebp\src\webp\decode.h"

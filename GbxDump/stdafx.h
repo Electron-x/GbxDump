@@ -60,5 +60,5 @@
 #include <setjmp.h>
 
 // TODO: reference additional headers your program requires here
-#include "gbxdump.h"
-#include "misc.h"
+#include "GbxDump.h"
+#include "Misc.h"
