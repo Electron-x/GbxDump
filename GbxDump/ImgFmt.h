@@ -51,7 +51,7 @@ HANDLE WebpToDib(LPVOID lpWebpData, DWORD dwLenData, BOOL bFlipImage = FALSE, BO
 HANDLE DdsToDib(LPVOID lpDdsData, DWORD dwLenData, BOOL bFlipImage = FALSE, BOOL bShowTextureDesc = FALSE);
 
 // Frees the memory allocated for the DIB
-BOOL FreeDib(HANDLE hDib);
+HANDLE FreeDib(HANDLE hDib);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Alpha Blending
@@ -60,7 +60,7 @@ BOOL FreeDib(HANDLE hDib);
 HBITMAP CreatePremultipliedBitmap(HANDLE hDib);
 
 // Frees the memory allocated for the DIB section
-BOOL FreeBitmap(HBITMAP hbmpDib);
+HBITMAP FreeBitmap(HBITMAP hbmpDib);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // DIB API

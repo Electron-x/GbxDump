@@ -54,7 +54,7 @@ BOOL GetFileName(HWND hDlg, LPTSTR lpszFileName, SIZE_T cchStringLen, LPDWORD lp
 		uID = g_bGerUI ? IDS_GER_FILTER_PNG : IDS_ENG_FILTER_PNG;
 	LoadString(g_hInstance, uID, szFilter, _countof(szFilter));
 	TCHAR* psz = szFilter;
-	while (psz = _tcschr(psz, TEXT('|')))
+	while ((psz = _tcschr(psz, TEXT('|'))))
 		*psz++ = TEXT('\0');
 
 	// Initial directory
@@ -80,7 +80,7 @@ BOOL GetFileName(HWND hDlg, LPTSTR lpszFileName, SIZE_T cchStringLen, LPDWORD lp
 		{
 			if ((psz = _tcsrchr(lpszFileName, TEXT('\\'))) == NULL)
 				psz = _tcsrchr(lpszFileName, TEXT('/'));
-			psz = (psz != NULL ? (*(psz + 1) != TEXT('\0') ? psz + 1 : TEXT("*")) : lpszFileName);
+			psz = (psz != NULL ? (*(psz + 1) != TEXT('\0') ? psz + 1 : (TCHAR*)TEXT("*")) : lpszFileName);
 			MyStrNCpy(szFile, psz, _countof(szFile));
 		}
 		else
@@ -510,7 +510,7 @@ HANDLE JpegToDib(LPVOID lpJpegData, DWORD dwLenData, BOOL bFlipImage, INT nTrace
 	HANDLE hDib = NULL;
 
 	// Initialize the JPEG decompression object
-	JPEG_DECOMPRESS JpegDecompress = {0};
+	JPEG_DECOMPRESS JpegDecompress = { {0} };
 	j_decompress_ptr pjInfo = &JpegDecompress.jInfo;
 	JpegDecompress.lpProfileData = NULL;
 	JpegDecompress.nTraceLevel = nTraceLevel;
@@ -991,14 +991,12 @@ HANDLE DdsToDib(LPVOID lpDdsData, DWORD dwLenData, BOOL bFlipImage, BOOL bShowTe
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL FreeDib(HANDLE hDib)
+HANDLE FreeDib(HANDLE hDib)
 {
-	if (hDib == NULL || GlobalFree(hDib) != NULL)
-		return FALSE;
+	if (hDib == NULL)
+		return NULL;
 
-	hDib = NULL;
-
-	return TRUE;
+	return GlobalFree(hDib);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1028,7 +1026,7 @@ HBITMAP CreatePremultipliedBitmap(HANDLE hDib)
 	LONG lWidth  = bIsCore ? lpbc->bcWidth : lpbi->biWidth;
 	LONG lHeight = bIsCore ? lpbc->bcHeight : lpbi->biHeight;
 
-	BITMAPINFO bmi = {0};
+	BITMAPINFO bmi = { {0} };
 	bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
 	bmi.bmiHeader.biWidth = lWidth;
 	bmi.bmiHeader.biHeight = lHeight;
@@ -1154,14 +1152,15 @@ HBITMAP CreatePremultipliedBitmap(HANDLE hDib)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL FreeBitmap(HBITMAP hbmpDib)
+HBITMAP FreeBitmap(HBITMAP hbmpDib)
 {
-	if (hbmpDib == NULL || !DeleteBitmap(hbmpDib))
-		return FALSE;
+	if (hbmpDib == NULL)
+		return NULL;
 
-	hbmpDib = NULL;
+	if (DeleteBitmap(hbmpDib))
+		return NULL;
 
-	return TRUE;
+	return hbmpDib;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////

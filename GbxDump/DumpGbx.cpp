@@ -3081,12 +3081,8 @@ BOOL ChallengeThumbnailChunk(HWND hwndEdit, HANDLE hFile, PCHUNK pckThumbnail)
 			__except (EXCEPTION_EXECUTE_HANDLER) { hDib = NULL; }
 			if (hDib != NULL)
 			{
-				if (g_hBitmapThumb != NULL)
-					FreeBitmap(g_hBitmapThumb);
-				g_hBitmapThumb = NULL;
-
-				if (g_hDibThumb != NULL)
-					FreeDib(g_hDibThumb);
+				g_hBitmapThumb = FreeBitmap(g_hBitmapThumb);
+				FreeDib(g_hDibThumb);
 				g_hDibThumb = hDib;
 
 				LPBITMAPINFOHEADER lpbi = (LPBITMAPINFOHEADER)GlobalLock(g_hDibThumb);
@@ -3752,16 +3748,8 @@ BOOL CollectorIconChunk(HWND hwndEdit, HANDLE hFile, PCHUNK pckIcon)
 		HANDLE hDib = GlobalAlloc(GHND, sizeof(BITMAPINFOHEADER) + dwSizeImage);
 		if (hDib != NULL)
 		{
-			if (g_hBitmapThumb != NULL)
-			{
-				FreeBitmap(g_hBitmapThumb);
-				g_hBitmapThumb = NULL;
-			}
-			if (g_hDibThumb != NULL)
-			{
-				FreeDib(g_hDibThumb);
-				g_hDibThumb = NULL;
-			}
+			g_hBitmapThumb = FreeBitmap(g_hBitmapThumb);
+			g_hDibThumb = FreeDib(g_hDibThumb);
 
 			LPBITMAPINFOHEADER lpbi = (LPBITMAPINFOHEADER)GlobalLock(hDib);
 			if (lpbi != NULL)
@@ -3778,8 +3766,8 @@ BOOL CollectorIconChunk(HWND hwndEdit, HANDLE hFile, PCHUNK pckIcon)
 				lpbi->biClrUsed = 0;
 				lpbi->biClrImportant = 0;
 
-				register LPBYTE lpSrc = (LPBYTE)lpData;
-				register LPBYTE lpDest = ((LPBYTE)lpbi) + sizeof(BITMAPINFOHEADER);
+				LPBYTE lpSrc = (LPBYTE)lpData;
+				LPBYTE lpDest = ((LPBYTE)lpbi) + sizeof(BITMAPINFOHEADER);
 
 				__try
 				{

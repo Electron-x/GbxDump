@@ -175,9 +175,9 @@ int APIENTRY _tWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstanc
 	if (g_hDrawDib != NULL)
 		DrawDibClose(g_hDrawDib);
 
-	FreeBitmap(g_hBitmapThumb);
-	FreeDib(g_hDibThumb);
-	FreeDib(g_hDibDefault);
+	g_hBitmapThumb = FreeBitmap(g_hBitmapThumb);
+	g_hDibThumb = FreeDib(g_hDibThumb);
+	g_hDibDefault = FreeDib(g_hDibDefault);
 
 	if (hLibDwmapi != NULL)
 		FreeLibrary(hLibDwmapi);
@@ -1190,16 +1190,8 @@ BOOL DumpFile(HWND hwndEdit, LPCTSTR lpszFileName, LPSTR lpszUid, LPSTR lpszEnvi
 	DisableButton(hDlg, IDC_DEDIMANIA, IDC_OPEN);
 
 	// Release old thumbnail
-	if (g_hBitmapThumb != NULL)
-	{
-		FreeBitmap(g_hBitmapThumb);
-		g_hBitmapThumb = NULL;
-	}
-	if (g_hDibThumb != NULL)
-	{
-		FreeDib(g_hDibThumb);
-		g_hDibThumb = NULL;
-	}
+	g_hBitmapThumb = FreeBitmap(g_hBitmapThumb);
+	g_hDibThumb = FreeDib(g_hDibThumb);
 
 	// Restore the title of the default thumbnail
 	HWND hwndThumb = GetDlgItem(hDlg, IDC_THUMB);
@@ -2235,10 +2227,8 @@ void MarkAsUnsupported(HWND hDlg)
 void ReplaceThumbnail(HWND hDlg, HANDLE hDib)
 {
 	// Free the memory of the current thumbnail image
-	if (g_hBitmapThumb != NULL)
-		FreeBitmap(g_hBitmapThumb);
-	if (g_hDibThumb != NULL)
-		FreeDib(g_hDibThumb);
+	g_hBitmapThumb = FreeBitmap(g_hBitmapThumb);
+	g_hDibThumb = FreeDib(g_hDibThumb);
 
 	// Save the DIB for display using StretchDIBits or DrawDibDraw.
 	// If hDib is NULL, a default thumbnail is displayed.
